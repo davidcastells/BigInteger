@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "CorrectnessTest.h"
+#include "PerformanceTest.h"
 
 
 void printUsage()
@@ -30,10 +31,13 @@ void printUsage()
     printf("[options]\n");
     printf("  --help                        prints this message\n");
     printf("  --test-correctness            test the correctness of all the algorithms\n");
+    printf("  --test-performance            test the performance of all the algorithms\n");
 }
 
 
-int doTestCorrectness;
+int doTestCorrectness = 0;
+int doTestPerformance = 0;
+int doHelp = 0;
 
 void parseArgs(int argc, char* args[])
 {
@@ -41,7 +45,10 @@ void parseArgs(int argc, char* args[])
     {
         if (strcmp(args[i], "--test-correctness") == 0)
             doTestCorrectness = 1;
-                
+        if (strcmp(args[i], "--test-performance") == 0)
+            doTestPerformance = 1;
+        if (strcmp(args[i], "--help") == 0)
+            doHelp = 1;
     }
 }
 
@@ -58,9 +65,18 @@ int main(int argc, char** argv)
     
     parseArgs(argc, argv);
     
+    if (doHelp)
+        printUsage();
+    
     if (doTestCorrectness)
     {
         CorrectnessTest test;
+        test.run();
+    }
+    
+    if (doTestPerformance)
+    {
+        PerformanceTest test;
         test.run();
     }
     
