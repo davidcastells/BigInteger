@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 template <typename T>
 std::string to_string(T value)
@@ -120,6 +121,16 @@ BigInteger::~BigInteger()
     m_data = NULL;
 }
 
+/**
+ * Sets the integer to a random value (using all the limbs)
+ */
+void BigInteger::random()
+{
+    for (int i=0; i < m_size; i++)
+        m_data[i] = rand();
+}
+
+
 void BigInteger::add(BigInteger* r, BigInteger* a, BigInteger* b)
 {
     unsigned int carryIn = 0;
@@ -158,7 +169,7 @@ void BigInteger::add(BigInteger* r, BigInteger* a, BigInteger* b)
  * @param r
  * @param a
  * @param b
- * @param shift
+ * @param shift left shifts in bits
  */
 void BigInteger::addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shift)
 {
@@ -191,7 +202,7 @@ void BigInteger::addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shi
         if (ia < a->m_size) sum += px[ia];
         if (ib < b->m_size) sum += py[ib];
 
-        if (sum < px[ia])
+        if ((ia < a->m_size) && (sum < px[ia]))
         {
             if (carryIn) sum++;
             carryOut = 1;
@@ -237,17 +248,20 @@ void BigInteger::addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shi
             if (r != a)
                 r->copy(a);
             
-        int cs = 32-sv;
-
-        for (int i=r->m_size-1; i >= 0; i--)
+        if (sv != 0)
         {
-            unsigned int nv = (pr[i] >> sv) | carry;
+            int cs = 32-sv;
 
-            carry = ~((0xFFFFFFFF >> sv) << sv);
-            carry &= pr[i];
-            carry = carry << cs;
+            for (int i=r->m_size-1; i >= 0; i--)
+            {
+                unsigned int nv = (pr[i] >> sv) | carry;
 
-            pr[i] = nv;
+                carry = ~((0xFFFFFFFF >> sv) << sv);
+                carry &= pr[i];
+                carry = carry << cs;
+
+                pr[i] = nv;
+            }
         }
     }
     
@@ -284,19 +298,21 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
         if (r != a)
             r->copy(a);
     
-    int cs = 32-sv;
-
-    for (int i=0; i < r->m_size; i++)
+    if (sv != 0)
     {
-        unsigned int nv = (pr[i] << sv) | carry;
+        int cs = 32-sv;
 
-        carry = ~((0xFFFFFFFF << sv) >> sv);
-        carry &= pr[i];
-        carry = carry >> cs;
+        for (int i=0; i < r->m_size; i++)
+        {
+            unsigned int nv = (pr[i] << sv) | carry;
 
-        pr[i] = nv;
+            carry = ~((0xFFFFFFFF << sv) >> sv);
+            carry &= pr[i];
+            carry = carry >> cs;
+
+            pr[i] = nv;
+        }
     }
-
  }
 
  /**
@@ -422,6 +438,11 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             return false;
         }
         
+        /**
+         * 
+         * @param up
+         * @param down
+         */
         void BigInteger::range(int up, int down)
         {
             BigInteger ref(*this);
@@ -430,10 +451,11 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
         
         void BigInteger::range(BigInteger* r, BigInteger* x, int upper, int lower)
         {
-            
-           int zl = x->getNumBits() -1-(upper+1);
-           BigInteger::shiftLeft(r, x, zl);
-           BigInteger::shiftRight(r, r, zl+lower);      // clear left bits
+            BigInteger temp(*x);
+           int zl = x->getNumBits() -1-(upper); 
+           BigInteger::shiftLeft(&temp, x, zl);
+           BigInteger::shiftRight(&temp, &temp, zl+lower);      // clear left bits
+           r->copy(&temp);
            
         }
         
@@ -455,6 +477,12 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
         {
             BigInteger ref(*this);
             BigInteger::subtract(this, &ref, y);
+        }
+        
+        void BigInteger::add(BigInteger* y)
+        {
+            BigInteger ref(*this);
+            BigInteger::add(this, &ref, y);
         }
         
         void BigInteger::div_naive(BigInteger* x,
@@ -556,151 +584,6 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             nq->copy(&q);
         }
         
-        
-#ifdef MACRO_INLINING
-    #define __kernel
-    #define __global
-
-    #define KERNEL_NUM_LIMBS	(2048/32)
-
-    int get_global_id(int x)        { return 0;}
-        
-        /**
-         * 
-         * @param x
-         * @param divisor
-         * @param q
-         * @param nr
-         */
-/*        void BigInteger::div_naive(BigInteger* x,
-                BigInteger* divisor, 
-                BigInteger* q, BigInteger* r)*/
-        
-        __kernel void BigInteger::kernel_div_naive(__global unsigned int* x, __global unsigned int* y, __global unsigned int* nq, __global unsigned int* nr)                
-        {
-        	int numIndex = get_global_id(0);
-        	const int numLimbs = KERNEL_NUM_LIMBS;
-        	int base = numIndex * numLimbs;
-	
-
-        	unsigned int ref[KERNEL_NUM_LIMBS];
-        	KERNEL_BIG_INTEGER_COPY(ref, 0, numLimbs, x, base, numLimbs);
-            
-            unsigned int divisor[KERNEL_NUM_LIMBS];
-            KERNEL_BIG_INTEGER_COPY(divisor, 0, numLimbs, y, base, numLimbs);
-            //BigInteger q;
-            //BigInteger r;
-            unsigned int q[KERNEL_NUM_LIMBS];
-            unsigned int r[KERNEL_NUM_LIMBS];
-
-            //q.initSize(x->m_size);
-            //r.initSize(x->m_size);
-            KERNEL_BIG_INTEGER_ZERO(q, 0, numLimbs);
-            
-            int temp;
-            KERNEL_BIG_INTEGER_IS_LESS_THAN(x, base, numLimbs, y, base, numLimbs, temp); 
-            if (temp)
-            //if (x->isLessThan(y))
-            {
-                KERNEL_BIG_INTEGER_COPY(nr, base, numLimbs, x, base, numLimbs);
-                KERNEL_BIG_INTEGER_COPY(nq, base, numLimbs, q, 0, numLimbs);
-                return;
-            }
-            
-            
-            // get the length of y
-            int yl; // = y->getLength();
-            int rl; //= ref.getLength();
-            KERNEL_BIG_INTEGER_GET_LENGTH(y, base, numLimbs, yl);
-            KERNEL_BIG_INTEGER_GET_LENGTH(ref, 0, numLimbs, rl);
-            
-            int downBit = rl-yl;
-            
-            //if (downBit < 0) assert(false);
-            
-            // get the yl most significant bits of ref
-            //r = ref;
-            //r.range(rl-1, downBit--);
-            KERNEL_BIG_INTEGER_COPY(r, 0, numLimbs, ref, 0, numLimbs);
-            KERNEL_BIG_INTEGER_RANGE1(r, 0, numLimbs, (rl-1), downBit);
-            downBit--;
-            
-            KERNEL_BIG_INTEGER_IS_LESS_THAN(r, 0, numLimbs, divisor, 0, numLimbs, temp);
-            if (temp)
-            //if (r.isLessThan(&divisor))
-            {
-                // take another bit from ref
-                //r = ref;
-                //r.range(rl-1, downBit--);
-                KERNEL_BIG_INTEGER_COPY(r, 0, numLimbs, ref, 0, numLimbs);
-                KERNEL_BIG_INTEGER_RANGE1(r, 0, numLimbs, (rl-1), downBit);downBit--; 
-            }
-            
-//            cout << " term = " << term.toString() << endl;
-//            cout << "      - " << divisor.toString() << endl;
-            
-            //q.inc();
-            //r.subtract(&divisor);
-            KERNEL_BIG_INTEGER_INC(q, 0, numLimbs);
-            KERNEL_BIG_INTEGER_SUBTRACT1(r, 0, numLimbs, divisor, 0, numLimbs);
-
-//            cout << "      = " << term.toString() << endl;
-//            cout << "    q = " << q.toString() << endl;
-            
-            // take another bit
-            while (downBit >= 0)
-            {
-                //r.shiftLeft(1);
-                KERNEL_BIG_INTEGER_SHIFT_LEFT1(r, 0, numLimbs, 1);
-                int getBit;
-                KERNEL_BIG_INTEGER_GET_BIT(ref, 0, numLimbs, downBit, getBit); downBit--;
-                if (getBit)
-                //if (ref.getBit(downBit--))
-                {
-                    //r.inc();
-                    KERNEL_BIG_INTEGER_INC(r, 0, numLimbs);
-                }
-
-//                cout << " term = " << term.toString() << endl;
-				
-				KERNEL_BIG_INTEGER_IS_LESS_THAN(r, 0, numLimbs, divisor, 0, numLimbs, temp);
-				if (temp)
-                //if (r.isLessThan(&divisor))
-                {
-                    //q.shiftLeft(1);    // put a zero in q
-                    KERNEL_BIG_INTEGER_SHIFT_LEFT1(q, 0, numLimbs, 1);
-                    //goto loop;
-                    
-//                    cout << "  0 q = " << q.toString() << endl;
-
-                }
-                else
-                {
-                    //q.shiftLeft(1);     // put a one in q
-                    //q.inc();
-                    KERNEL_BIG_INTEGER_SHIFT_LEFT1(q, 0, numLimbs, 1);
-                    KERNEL_BIG_INTEGER_INC(q, 0, numLimbs);
-
-//                    cout << "  1 q = " << q.toString() << endl;
-//                    
-//                    cout << " term = " << term.toString() << endl;
-//                    cout << "      - " << divisor.toString() << endl;
-
-                    //r.subtract(&divisor);
-                    KERNEL_BIG_INTEGER_SUBTRACT1(r, 0, numLimbs, divisor, 0, numLimbs);
-                    //goto loop;
-                    
-//                    cout << "      = " << term.toString() << endl;
-        
-                }
-            } 
-            
-
-            KERNEL_BIG_INTEGER_COPY(nr, base, numLimbs, r, 0, numLimbs);
-            KERNEL_BIG_INTEGER_COPY(nq, base, numLimbs, q, 0, numLimbs);
-        }
-
-#endif        
         
         int BigInteger::isOdd()
         {
@@ -835,10 +718,6 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
                         term.m_data[k+1] = pr_high;
                     }
                     
-//                    std::cout << " shift left " << i << std::endl;
-//                    shiftLeft(&term, &term, i);
-//                    add(r, r, &term);
-                    
                     addShifted(r, r, &term, i);
                 }
                 
@@ -848,38 +727,180 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             }
         }
         
-#ifdef MACRO_INLINING        
         /**
-         * r can be a or b since we have an intermediate value
+         * 
          * @param r
-         * @param a
-         * @param b
-         * @param mod
+         * @param x
+         * @param y
          */
-        __kernel void BigInteger::multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod)
+        void BigInteger::mult_karatsubaRecursive(BigInteger* r, BigInteger* x, BigInteger* y)
         {
-        	int numIndex = get_global_id(0);
-        	const int numLimbs = KERNEL_NUM_LIMBS;
-        	int base = numIndex * numLimbs;
-        	
-            unsigned int m[KERNEL_NUM_LIMBS+KERNEL_NUM_LIMBS];
-            //m.initSize(a->m_size + b->m_size);
-            unsigned int q[KERNEL_NUM_LIMBS];
-            //unsigned int r[KERNEL_NUM_LIMBS];
-            //q.initSize(a->m_size);
-            
-            //mult(&m, a, b);
-            KERNEL_BIG_INTEGER_MULT(m, 0, (KERNEL_NUM_LIMBS+KERNEL_NUM_LIMBS), a, base, KERNEL_NUM_LIMBS, b, base, KERNEL_NUM_LIMBS);
-            //div_naive(&m, mod, &q, r);
-            KERNEL_BIG_INTEGER_DIV_NAIVE(m, 0, (KERNEL_NUM_LIMBS+KERNEL_NUM_LIMBS), 
-                    mod, base, KERNEL_NUM_LIMBS, 
-                    q, 0, KERNEL_NUM_LIMBS, 
-                    r, base, KERNEL_NUM_LIMBS);
-            
-            
-        }
+            if (x->isZero() || y->isZero())
+            {
+                r->zero();
+            }
+            else
+            {
+                int maxSize = (x->m_size > y->m_size)? x->m_size : y->m_size;
+                int resultSize = r->m_size;
 
-#endif
+                if (maxSize < 4)
+                {
+                    BigInteger::mult(r, x, y);
+                    return;
+                }
+
+                int halfSize = (maxSize+1) / 2;
+
+
+                BigInteger x1, x0;
+                BigInteger y1, y0;
+                x1.initSize(halfSize);
+                x0.initSize(halfSize);
+                y1.initSize(halfSize);
+                y0.initSize(halfSize);
+                BigInteger::range(&x1, x, maxSize*32-1, halfSize*32);
+                BigInteger::range(&x0, x, halfSize*32-1, 0);
+                BigInteger::range(&y1, y, maxSize*32-1, halfSize*32);
+                BigInteger::range(&y0, y, halfSize*32-1, 0);
+
+                //const int m = numBits/2;
+
+                BigInteger z0;
+                BigInteger z1;
+                BigInteger z2;
+                z0.initSize(maxSize+1);
+                z1.initSize(maxSize+1);
+                z2.initSize(maxSize+1);
+
+                BigInteger::mult_karatsubaRecursive(&z0, &x0, &y0);
+                BigInteger::mult_karatsubaRecursive(&z2, &x1, &y1);
+
+
+
+                BigInteger t1;
+                t1.initSize(halfSize+1);
+
+                BigInteger::add(&t1, &y1, &y0);
+
+                BigInteger t2;
+                t2.initSize(halfSize+1);
+
+                BigInteger::add(&t2, &x1, &x0);
+                BigInteger::mult_karatsubaRecursive(&z1, &t1, &t2);
+
+                // z1 = z1 - z2-z0
+                z1.subtract(&z2);
+                z1.subtract(&z0);
+
+
+                BigInteger z1z2;
+                z1z2.initSize(resultSize);
+                z1z2.zero();
+                r->zero();
+                BigInteger::addShifted(&z1z2, &z1, &z2, halfSize*32);
+//                std::cout << "  z2 (" << z2.m_size << ") = " << z2.toHexString() << std::endl;
+//                std::cout << "  z1 (" << z1.m_size << ") = " << z1.toHexString() << std::endl;
+//                std::cout << "  z1+z2<<" << halfSize*32 << " (" << z1z2.m_size << ") = " << z1z2.toHexString() << std::endl;
+                
+                BigInteger::addShifted(r, &z0, &z1z2, halfSize*32);
+                
+//                std::cout << "  z0+z1z2 <<hs (" << r->m_size << ") = " << r->toHexString() << std::endl;
+            }            
+            
+            BigInteger r2(*r);
+            mult(&r2, x, y);
+            
+            if (!isEqual(r, &r2))
+            {
+                std::cout << "  X (" << x->m_size << ") = " << x->toHexString() << std::endl;
+                std::cout << "* Y (" << y->m_size << ") = " << y->toHexString() << std::endl;
+                std::cout << "= R (" << r->m_size << ") = " << r->toHexString() << std::endl;
+                std::cout << "= e (" << r2.m_size << ") = " << r2.toHexString() << std::endl;
+                
+            }
+        }
+        
+        /**
+         * Multiply two numbers using the Karatsuba algorithm
+         * @param r
+         * @param x
+         * @param y
+         */
+        void BigInteger::mult_karatsuba(BigInteger* r, BigInteger* x, BigInteger* y)
+        {
+            if (x->isZero() || y->isZero())
+            {
+                r->zero();
+            }
+            else
+            {
+                int maxSize = (x->m_size > y->m_size)? x->m_size : y->m_size;
+                int halfSize = (maxSize+1) / 2;
+
+                BigInteger x1, x0;
+                BigInteger y1, y0;
+                x1.initSize(halfSize);
+                x0.initSize(halfSize);
+                y1.initSize(halfSize);
+                y0.initSize(halfSize);
+                BigInteger::range(&x1, x, maxSize*32-1, halfSize*32);
+                BigInteger::range(&x0, x, halfSize*32-1, 0);
+                BigInteger::range(&y1, y, maxSize*32-1, halfSize*32);
+                BigInteger::range(&y0, y, halfSize*32-1, 0);
+
+                //const int m = numBits/2;
+
+                BigInteger z0;
+                BigInteger z2;
+                z0.initSize(maxSize+1);
+                z2.initSize(maxSize+1);
+
+                BigInteger::mult(&z2, &x1, &y1);
+                BigInteger::mult(&z0, &x0, &y0);
+
+
+                BigInteger z1;
+                z1.initSize(maxSize+1);
+
+                BigInteger t1;
+                t1.initSize(halfSize+1);
+
+                BigInteger::add(&t1, &y1, &y0);
+
+                BigInteger t2;
+                t2.initSize(halfSize+1);
+
+                BigInteger::add(&t2, &x1, &x0);
+                BigInteger::mult(&z1, &t1, &t2);
+
+
+                z1.subtract(&z2);
+                z1.subtract(&z0);
+
+                // r = z2 << hs*2  + z1 << hs + z0
+                BigInteger z1z2;
+                z1z2.initSize(maxSize);
+                z1z2.zero();
+                r->zero();
+                BigInteger::addShifted(&z1z2, &z1, &z2, halfSize*32);
+                BigInteger::addShifted(r, &z0, &z1z2, halfSize*32);
+                
+            }            
+            
+//            BigInteger r2(*r);
+//            mult(&r2, x, y);
+            
+//            if (!isEqual(r, &r2))
+//            {
+//                std::cout << "  X (" << x->m_size << ") = " << x->toHexString() << std::endl;
+//                std::cout << "* Y (" << y->m_size << ") = " << y->toHexString() << std::endl;
+//                std::cout << "= R (" << r->m_size << ") = " << r->toHexString() << std::endl;
+//                std::cout << "= e (" << r2.m_size << ") = " << r2.toHexString() << std::endl;
+//                
+//            }
+        }
+        
         
         void BigInteger::multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod)
         {
@@ -901,29 +922,22 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
          */
         void BigInteger::powerMod(BigInteger* r, BigInteger* v, BigInteger* power, BigInteger* mod)
         {
-            // x = this, y = power, n = mod
-//            	var k1,k2,kn,np;
-//	if(s7.length!=n.length)
-//		s7=dup(n);
+            BigInteger x(*v);
+            BigInteger y(*power);
 
-                BigInteger x(*v);
-                BigInteger y(*power);
-                
-	//for even modulus, use a simple square-and-multiply algorithm,
-	//rather than using the more complex Montgomery algorithm.
-	//if (mod.isEven())
+            // we use a simple square-and-multiply algorithm,
         
-                r->setIntValue(1);
-                
-		while(!y.isZero())
-                {
-			if (y.isOdd())
-                            multMod(r, r, &x, mod);
-				
-			shiftRight(&y, &y, 1);    // / 2
-			squareMod(&x, &x, mod); 
-		}
-		return;
+            r->setIntValue(1);
+
+            while(!y.isZero())
+            {
+                    if (y.isOdd())
+                        multMod(r, r, &x, mod);
+
+                    shiftRight(&y, &y, 1);    // / 2
+                    squareMod(&x, &x, mod); 
+            }
+            return;
 	}
         
         /**
@@ -962,6 +976,39 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
                 BigInteger::add(this, this, &digit);
                 
 //                std::cout << toString() << std::endl;
+            }
+        }
+        
+        /**
+         * Parses an hexadecimal string
+         * @param str
+         */
+        void BigInteger::parseHexString(const char* str)
+        {
+            // multiply by x*10 is x*(8+2) -> 8*x + 2*x
+            int l = strlen(str);
+            
+            zero();
+            
+            BigInteger digit;
+            digit.initSize(1);
+            
+            // V = V*10+s[i];
+            for (int i=0; i < l; i++)
+            {
+                //  x=x*10
+                BigInteger::shiftLeft(this, this, 4); // *16
+                
+//                std::cout << toString() << " + " << str[i] << " = "; 
+                
+                if ((str[i] >= '0') && (str[i] <= '9'))
+                    digit.setIntValue(str[i]-'0');
+                else 
+                    digit.setIntValue(10 + (str[i]-'A'));
+                
+                BigInteger::add(this, this, &digit);
+                
+//                std::cout << toHexString() << std::endl;
             }
         }
         

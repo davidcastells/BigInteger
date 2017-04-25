@@ -42,6 +42,7 @@ public:
     void copy(const BigInteger* orig);
     void copy(unsigned int* limbs);
     void parseString(const char* str);
+    void parseHexString(const char* str);
     int isLessThan(BigInteger* v);
     int isZero();
     int isOdd();
@@ -53,14 +54,20 @@ public:
     std::string toHexString();
     
     void shiftLeft(int shift);
+    void add(BigInteger* y);
     void subtract(BigInteger* y);
     void range(int upper, int lower);
     
+    void random();
+    
+// Static functions
 public:
     static void add(BigInteger* r, BigInteger* a, BigInteger* b);
     static void addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shift);
     static void subtract(BigInteger* r, BigInteger* x, BigInteger* y);
     static void mult(BigInteger* r, BigInteger* a, BigInteger* b);
+    static void mult_karatsuba(BigInteger* r, BigInteger* x, BigInteger* y);
+    static void mult_karatsubaRecursive(BigInteger* r, BigInteger* x, BigInteger* y);
     static void multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod);
     static void squareMod(BigInteger* r, BigInteger* v, BigInteger* mod);
     static void powerMod(BigInteger* r, BigInteger* v, BigInteger* p, BigInteger* mod);
