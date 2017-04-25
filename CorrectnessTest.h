@@ -16,10 +16,15 @@ public:
     
 public:
     void run();
+    void testShiftRight();
+    void testShiftLeft();
+    void testRange();
     void testAdd();
+    void testAddShifted();
+    void testMult();
     
 private:
-
+    int stopAtFirstError;
 };
 
 #endif	/* CORRECTNESSTEST_H */
