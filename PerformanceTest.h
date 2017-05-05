@@ -22,6 +22,8 @@ private:
     void testPerformanceAdd();
     void testPerformanceSubtract();
     void testPerformanceMult();
+    void testPerformanceModMult();
+
 };
 
 #endif	/* PERFORMANCETEST_H */

@@ -35,6 +35,7 @@ void PerformanceTest::run()
    testPerformanceAdd(); 
    testPerformanceSubtract(); 
    testPerformanceMult();
+   testPerformanceModMult();
 }
 
 void PerformanceTest::testPerformanceRange()
@@ -133,8 +134,9 @@ void PerformanceTest::testPerformanceSubtract()
 void PerformanceTest::testPerformanceMult()
 {
     double seconds;
+    int numReps = 1000;
     cout << "MULTIPLY)" << endl;
-    cout << "Multiplying two random numbers (10k times)" << endl;
+    cout << "Multiplying two random numbers (" << (numReps/1000) << "k times)" << endl;
     cout << "Details;\t\tbits;\ttime;" << endl;
     
     for (int bits = 32; bits <= 4096; bits *= 2)
@@ -151,7 +153,7 @@ void PerformanceTest::testPerformanceMult()
         b.random();
         
         lap.start();
-        for (int rep=0; rep < 10000; rep++)
+        for (int rep=0; rep < numReps; rep++)
             BigInteger::mult(&r, &a, &b);
         seconds = lap.stop();
         
@@ -172,7 +174,7 @@ void PerformanceTest::testPerformanceMult()
         b.random();
         
         lap.start();
-        for (int rep=0; rep < 10000; rep++)
+        for (int rep=0; rep < numReps; rep++)
             BigInteger::mult_karatsuba(&r, &a, &b);
         seconds = lap.stop();
         
@@ -193,7 +195,7 @@ void PerformanceTest::testPerformanceMult()
         b.random();
         
         lap.start();
-        for (int rep=0; rep < 10000; rep++)
+        for (int rep=0; rep < numReps; rep++)
             BigInteger::mult_karatsubaRecursive(&r, &a, &b);
         seconds = lap.stop();
         
@@ -201,3 +203,107 @@ void PerformanceTest::testPerformanceMult()
     }
 }
 
+void PerformanceTest::testPerformanceModMult()
+{
+     
+    double seconds;
+    int numReps = 1000;
+    cout << "MODULAR MULTIPLY)" << endl;
+    cout << "Modular Multiplying two random numbers ("<< (numReps/1000)<<"k times)" << endl;
+    cout << "Details;\t\tbits;\ttime;" << endl;
+    
+    for (int bits = 32; bits <= 4096; bits *= 2)
+    {
+        PerformanceLap lap;
+        
+        BigInteger a;
+        BigInteger b;
+        BigInteger m;
+        BigInteger r;
+        a.initSize(bits/32);
+        b.initSize(bits/32);
+        m.initSize(bits/32);
+        r.initSize(bits/32);
+        a.random();
+        b.random();
+        m.random();
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::multMod(&r, &a, &b, &m);
+        seconds = lap.stop();
+        
+        cout << "Modular Multiply Simple;\t" << bits << ";\t" << seconds << ";" <<endl;
+    }
+    
+     
+    for (int bits = 32; bits <= 4096; bits *= 2)
+    {
+        PerformanceLap lap;
+        
+        BigInteger a;
+        BigInteger b;
+        BigInteger m;
+        BigInteger radix;
+        BigInteger r;
+        a.initSize(bits/32);
+        b.initSize(bits/32);
+        m.initSize(bits/32);
+        radix.initSize(m.m_size+1);
+        r.initSize(bits/32);
+        a.random();
+        b.random();
+        m.random();
+        
+        BigInteger::radixFromMontgomeryMod(&radix, &m);
+        
+        BigInteger radixInv(radix);
+        BigInteger::inverseMod(&radixInv, &radix, &m);         // radixInv = radix ^ (-1) mod m
+        
+        BigInteger mprime(radix);
+        BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+
+
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::multMontgomeryForm(&r, &a, &b, &m, &mprime);
+        seconds = lap.stop();
+        
+        cout << "Montgomery Modular Multiply;\t" << bits << ";\t" << seconds << ";" <<endl;
+    }
+    
+    for (int bits = 32; bits <= 4096; bits *= 2)
+    {
+        PerformanceLap lap;
+        
+        BigInteger a;
+        BigInteger b;
+        BigInteger m;
+        BigInteger radix;
+        BigInteger r;
+        a.initSize(bits/32);
+        b.initSize(bits/32);
+        m.initSize(bits/32);
+        radix.initSize(m.m_size+1);
+        r.initSize(bits/32);
+        a.random();
+        b.random();
+        m.random();
+        
+        BigInteger::radixFromMontgomeryMod(&radix, &m);
+        
+        BigInteger radixInv(radix);
+        BigInteger::inverseMod(&radixInv, &radix, &m);         // radixInv = radix ^ (-1) mod m
+        
+        BigInteger mprime(radix);
+        BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+
+
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::multMontgomeryForm2(&r, &a, &b, &m, &mprime);
+        seconds = lap.stop();
+        
+        cout << "Montgomery Modular Multiply (2);\t" << bits << ";\t" << seconds << ";" <<endl;
+    }
+}
