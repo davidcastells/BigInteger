@@ -38,13 +38,15 @@ public:
     int getLength();
     int getNumBits();
     void zero();
-    void setIntValue(int v);
+    void setIntValue(unsigned int v);
     void copy(const BigInteger* orig);
     void copy(unsigned int* limbs);
     void parseString(const char* str);
+    void initFromHexString(const char* str);
     void parseHexString(const char* str);
     int isLessThan(BigInteger* v);
     int isZero();
+    int isOne();
     int isOdd();
     int isNegative();
     void inc();
@@ -53,12 +55,25 @@ public:
     std::string toString();
     std::string toHexString();
     
-    void shiftLeft(int shift);
+    
+    
+    
+    
+
+// non static operations    
+public:
     void add(BigInteger* y);
     void subtract(BigInteger* y);
+    void subtractMod(BigInteger* x, BigInteger* m);
     void range(int upper, int lower);
-    
+    void shiftLeft(int shift);
+    void shiftRight(int shift);
+    void mult(BigInteger* m);
+    void multMod(BigInteger* b, BigInteger* m);
+    void div(BigInteger* m);
+    void mod(BigInteger* m);
     void random();
+    void random(int bits);
     
 // Static functions
 public:
@@ -71,17 +86,29 @@ public:
     static void multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod);
     static void squareMod(BigInteger* r, BigInteger* v, BigInteger* mod);
     static void powerMod(BigInteger* r, BigInteger* v, BigInteger* p, BigInteger* mod);
-    static void mod(BigInteger* r, BigInteger* v, BigInteger* mod);
+    //static void mod(BigInteger* r, BigInteger* v, BigInteger* mod);
     static void shiftLeft(BigInteger* r, BigInteger* a, int shift);
     static void shiftRight(BigInteger* r, BigInteger* a, int shift);
     static void div_naive(BigInteger* x, BigInteger* divisor, BigInteger* q, BigInteger* r);
     static void range(BigInteger* r, BigInteger* v, int upper, int lower);
-    
+    static void inverseMod(BigInteger* fr, BigInteger* x, BigInteger* mod);
+    static void toMontgomeryDomain(BigInteger* nprime, BigInteger* n, BigInteger* R, BigInteger* m);
+    static void fromMontgomeryDomain(BigInteger* n, BigInteger* nprime, BigInteger* Rinv, BigInteger* m);
+    static void multMontgomeryForm(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
+    static void multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
+    static void radixFromMontgomeryMod(BigInteger* radix, BigInteger* m);
+    static void mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, BigInteger* radix);
+
+
     static int isEqual(BigInteger* a, BigInteger* b);
     
+    
     static int verbosity;
+    static int extraChecks;
     
-    
+private:
+    void mult(unsigned int x, unsigned int y, unsigned int *rHight, unsigned int *rLow);
+
 public:
     unsigned int* m_data;
     unsigned int m_size;
