@@ -23,6 +23,7 @@ private:
     void testPerformanceSubtract();
     void testPerformanceMult();
     void testPerformanceModMult();
+    void testPerformanceModPow();
 
 };
 
