@@ -68,7 +68,7 @@ void PerformanceTest::testPerformanceRange()
         }
         seconds = lap.stop();
         
-        cout << "Add;\t" << bits << ";\t" << seconds << ";" <<endl;
+        cout << "Range;\t" << bits << ";\t" << seconds << ";" <<endl;
     }
 }
 
