@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <time.h>
 
 template <typename T>
 std::string to_string(T value)
@@ -118,28 +119,6 @@ BigInteger::~BigInteger()
     m_data = NULL;
 }
 
-/**
- * Sets the integer to a random value (using all the limbs)
- */
-void BigInteger::random()
-{
-    for (int i=0; i < m_size; i++)
-        m_data[i] = rand();
-}
-
-
-/**
- * Creates a random number having n bits
- */
-void BigInteger::random(int n)
-{
-    assert(n < getNumBits());
-    
-    random();
-    int shift = getNumBits() - n;
-    shiftRight(shift);
-    
-}
 
 void BigInteger::add(BigInteger* r, BigInteger* a, BigInteger* b)
 {
@@ -150,15 +129,17 @@ void BigInteger::add(BigInteger* r, BigInteger* a, BigInteger* b)
     unsigned int* py = b->m_data;
     unsigned int* pr = r->m_data;
 
-            
+        
+    unsigned int sum;
+
     for (int i=0; i < r->m_size; i++)
     {
-        unsigned int sum = 0;
+        sum = 0;
 
         if (i < a->m_size) sum += px[i];
         if (i < b->m_size) sum += py[i];
 
-        if (sum < px[i])
+        if ((i < a->m_size) && (sum < px[i]))
         {
             if (carryIn) sum++;
             carryOut = 1;
@@ -248,7 +229,10 @@ void BigInteger::addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shi
     {
         if (extraChecks)
         {
-            assert((r->m_size*32) >= (a->m_size*32 - sv));
+            // check that the result number can hold the resulting value
+            int targetLen = r->m_size*32;
+            int reqLen = a->getLength() - sv;
+            assert(targetLen >= reqLen);
         }
         
         unsigned int* pa = a->m_data;
@@ -450,7 +434,8 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
         }
         
         /**
-         * Returns if this < v
+         * Returns true if this < v
+         * Returns false if this >= v
          * 
          * @param v
          * @return 
@@ -460,9 +445,10 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             unsigned int* pv = v->m_data;
             
             // if there is any 1 in a bigger size v before the range of this
-            // then return false
+            // then return true
             for (int i=v->m_size-1; i >= m_size; i--)
-                return false;
+                if (pv[i])
+                    return true;
             
             for (int i=m_size-1; i >= 0; i--)
                 if (i >= v->m_size)
@@ -488,49 +474,13 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             parseHexString(str);
         }
         
-        /**
-         * 
-         * @param up
-         * @param down
-         */
-        void BigInteger::range(int up, int down)
-        {
-            BigInteger ref(*this);
-            BigInteger::range(this, &ref, up, down);
-        }
+        
         
         /**
-         * 
-         * @param r
-         * @param x
-         * @param upper
-         * @param lower
+         * Returns the value of the ith bit of the integer
+         * @param bitnum
+         * @return 
          */
-        void BigInteger::range(BigInteger* r, BigInteger* x, int upper, int lower)
-        {
-            r->zero();
-            
-            int maxSize = (r->m_size > x->m_size)? r->m_size : x->m_size;
-            BigInteger temp, temp2;
-            temp.initSize(maxSize);
-            temp2.initSize(maxSize);
-            
-           int zl = temp.getNumBits() -1-(upper); 
-           
-           if (verbosity) std::cout << "BigInteger.range x = " << x->toHexString() << std::endl;
-               
-           BigInteger::shiftLeft(&temp, x, zl);
-           
-           if (verbosity) std::cout << "BigInteger.range x << " << to_string(zl) << " = " << temp.toHexString() << std::endl;
-           
-           BigInteger::shiftRight(&temp2, &temp, zl+lower);      // clear left bits
-           
-           if (verbosity) std::cout << "BigInteger.range x >> " << to_string(zl+lower) << " = " << temp2.toHexString() << std::endl;
-           
-           r->copy(&temp2);
-           
-        }
-        
         int BigInteger::getBit(int bitnum)
         {
             int limbIndex = bitnum / 32;
@@ -539,23 +489,7 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             return (m_data[limbIndex] >> bitIndex) & 1;
         }
         
-        void BigInteger::shiftLeft(int bits)
-        {
-            BigInteger ref(*this);
-            BigInteger::shiftLeft(this, &ref, bits );
-        }
         
-        void BigInteger::shiftRight(int bits)
-        {
-            BigInteger ref(*this);
-            BigInteger::shiftRight(this, &ref, bits );
-        }
-        
-        void BigInteger::subtract(BigInteger* y)
-        {
-            BigInteger ref(*this);
-            BigInteger::subtract(this, &ref, y);
-        }
         
         void BigInteger::add(BigInteger* y)
         {
@@ -574,7 +508,16 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
         }
         
         
-        
+        /**
+         * Compute division, so that
+         *  nq = x / y
+         *  nr = x % y
+         * 
+         * @param x
+         * @param y
+         * @param nq
+         * @param nr
+         */
         void BigInteger::div_naive(BigInteger* x,
                 BigInteger* y, 
                 BigInteger* nq, BigInteger* nr)
@@ -586,8 +529,8 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             BigInteger r;
 
 
-            if (verbosity) std::cout << "BigInteger.div x = " << ref.toHexString() << std::endl;
-            if (verbosity) std::cout << "BigInteger.div /   " << divisor.toHexString() << std::endl;
+            if (verbosity>2) std::cout << "BigInteger.div x = " << ref.toHexString() << std::endl;
+            if (verbosity>2) std::cout << "BigInteger.div /   " << divisor.toHexString() << std::endl;
 
             q.initSize(x->m_size);
             r.initSize(x->m_size);
@@ -607,35 +550,35 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             
             int downBit = rl-yl;
             
-            //if (downBit < 0) assert(false);
+            if (extraChecks) assert(downBit >= 0);
             
             // get the yl most significant bits of ref
             r.copy(&ref);
-            if (verbosity) std::cout << "BigInteger.div r " <<  r.toHexString() << std::endl;
+            if (verbosity>2) std::cout << "BigInteger.div r " <<  r.toHexString() << std::endl;
 
             r.range(rl-1, downBit--);
             
-            if (verbosity) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r.toHexString() << std::endl;
+            if (verbosity>2) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r.toHexString() << std::endl;
 
             if (r.isLessThan(&divisor))
             {
-                if (verbosity) std::cout << "BigInteger.div r < divisor" << std::endl;
+                if (verbosity>2) std::cout << "BigInteger.div r < divisor" << std::endl;
 
                 // take another bit from ref
                 r.copy(&ref);
                 r.range(rl-1, downBit--);
 
-                if (verbosity) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r.toHexString() << std::endl;
+                if (verbosity>2) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r.toHexString() << std::endl;
             }
             
-            if (verbosity) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
-            if (verbosity) std::cout << "BigInteger.div      - " << divisor.toHexString() << std::endl;
+            if (verbosity>2) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
+            if (verbosity>2) std::cout << "BigInteger.div      - " << divisor.toHexString() << std::endl;
             
             q.inc();
             r.subtract(&divisor);
 
-            if (verbosity) std::cout << "BigInteger.div      = " << r.toHexString() << std::endl;
-            if (verbosity) std::cout << "BigInteger.div    q = " << q.toHexString() << std::endl;
+            if (verbosity>2) std::cout << "BigInteger.div      = " << r.toHexString() << std::endl;
+            if (verbosity>2) std::cout << "BigInteger.div    q = " << q.toHexString() << std::endl;
             
             // take another bit
             while (downBit >= 0)
@@ -644,29 +587,29 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
                 if (ref.getBit(downBit--))
                     r.inc();
 
-                if (verbosity) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
+                if (verbosity>2) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
 
                 if (r.isLessThan(&divisor))
                 {
                     q.shiftLeft(1);    // put a zero in q
                     //goto loop;
                     
-                    if (verbosity) std::cout << "BigInteger.div  0 q = " << q.toHexString() << std::endl;
+                    if (verbosity>2) std::cout << "BigInteger.div  0 q = " << q.toHexString() << std::endl;
                 }
                 else
                 {
                     q.shiftLeft(1);     // put a one in q
                     q.inc();
 
-                if (verbosity) std::cout << "BigInteger.div  1 q = " << q.toHexString() << std::endl;
+                if (verbosity>2) std::cout << "BigInteger.div  1 q = " << q.toHexString() << std::endl;
       
-                if (verbosity) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
-                if (verbosity) std::cout << "BigInteger.div      - " << divisor.toHexString() << std::endl;
+                if (verbosity>2) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
+                if (verbosity>2) std::cout << "BigInteger.div      - " << divisor.toHexString() << std::endl;
 
                     r.subtract(&divisor);
                     //goto loop;
                     
-                if (verbosity) std::cout << "BigInteger.div      = " << r.toHexString() << std::endl;
+                if (verbosity>2) std::cout << "BigInteger.div      = " << r.toHexString() << std::endl;
         
                 }
             } 
@@ -675,16 +618,24 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             nr->copy(&r);
             nq->copy(&q);
             
-            if (verbosity) std::cout << "BigInteger.div     nr = " << nr->toHexString() << std::endl;
-            if (verbosity) std::cout << "BigInteger.div     nq = " << nq->toHexString() << std::endl;
+            if (verbosity>2) std::cout << "BigInteger.div     nr = " << nr->toHexString() << std::endl;
+            if (verbosity>2) std::cout << "BigInteger.div     nq = " << nq->toHexString() << std::endl;
         }
         
         
+        /**
+         * 
+         * @return true is the number is odd
+         */
         int BigInteger::isOdd()
         {
             return m_data[0] & 0x1;
         }
         
+        /**
+         * 
+         * @return true is the number is zero
+         */
         int BigInteger::isZero()
         {
             unsigned int* p = m_data;
@@ -992,11 +943,15 @@ void BigInteger::mult(unsigned int x, unsigned int y, unsigned int *rHight, unsi
  */
 void BigInteger::multMontgomeryForm(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime)
 {
-    assert(r->m_size == x->m_size);
-    assert(r->m_size == y->m_size);
-    assert(r->m_size == m->m_size);
+    assert(r->m_size >= (m->m_size-1));
 
     r->zero();
+
+
+    if (verbosity) std::cout << "BigInteger::multMontgomeryForm  x:" << x->toHexString() << std::endl;
+    if (verbosity) std::cout << "BigInteger::multMontgomeryForm  y:" << y->toHexString() << std::endl;
+    if (verbosity) std::cout << "BigInteger::multMontgomeryForm  m:" << m->toHexString() << std::endl;
+    if (verbosity) std::cout << "BigInteger::multMontgomeryForm  mprime:" << mprime->toHexString() << std::endl;
 
     for (int i=0; i < r->m_size; i++)
     {
@@ -1037,17 +992,31 @@ void BigInteger::multMontgomeryForm(BigInteger* r, BigInteger* x, BigInteger* y,
         BigInteger::mult(&temp2, m, &bui);        // temp2 = m*u[i]
 
         if (verbosity) std::cout << "  temp2:" << temp2.toHexString() << std::endl;
+        if (verbosity) std::cout << "  r:" << r->toHexString() << std::endl;
         
         BigInteger::add(&temp3, r, &temp2);         // temp3 = r + m*u[i]
-        BigInteger::add(&temp4, &temp3, &temp);     // temp4 = r + m*u[i] + y*x[i]
-        BigInteger::shiftRight(r, &temp4, 32);      // r = temp4 / b
         
         if (verbosity) std::cout << "  temp3:" << temp3.toHexString() << std::endl;
+        
+        BigInteger::add(&temp4, &temp3, &temp);     // temp4 = r + m*u[i] + y*x[i]
+        
         if (verbosity) std::cout << "  temp4:" << temp4.toHexString() << std::endl;
+        
+        BigInteger::shiftRight(r, &temp4, 32);      // r = temp4 / b
+        
         if (verbosity) std::cout << "  r:" << r->toHexString() << std::endl;
     }
 }
-        
+
+/**
+ * Inspired in https://github.com/adamwalker/mmul/blob/master/crypto.c
+ * 
+ * @param r
+ * @param x
+ * @param y
+ * @param m
+ * @param mprime
+ */
 void BigInteger::multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime)
 {
 //void mmul(uint32_t *res, uint32_t *x, uint32_t *y, uint32_t *m, uint32_t *mprime)
@@ -1113,6 +1082,89 @@ void BigInteger::radixFromMontgomeryMod(BigInteger* radix, BigInteger* m)
 }
 
 
+/**
+ * Sets the integer to a random value (using all the limbs)
+ */
+void BigInteger::random()
+{
+    int lc = clock();
+    while (lc == clock());
+    
+    srand(clock());
+    
+    for (int i=0; i < m_size; i++)
+        m_data[i] = rand();
+}
+
+
+/**
+ * Creates a random number having n bits
+ */
+void BigInteger::random(int n)
+{
+    assert(n < getNumBits());
+    
+    random();
+    int shift = getNumBits() - n;
+    shiftRight(shift);
+    
+}
+
+/**
+ * 
+ * @param up
+ * @param down
+ */
+void BigInteger::range(int up, int down)
+{
+   BigInteger ref(*this);
+   BigInteger::range(this, &ref, up, down);
+}
+
+/**
+* 
+* @param r
+* @param x
+* @param upper
+* @param lower
+*/
+void BigInteger::range(BigInteger* r, BigInteger* x, int upper, int lower)
+{
+   r->zero();
+
+   int maxSize = (r->m_size > x->m_size)? r->m_size : x->m_size;
+   BigInteger temp, temp2;
+   temp.initSize(maxSize);
+   temp2.initSize(maxSize);
+
+  int zl = temp.getNumBits() -1-(upper); 
+
+  if (verbosity > 3) std::cout << "BigInteger.range x = " << x->toHexString() << std::endl;
+
+  BigInteger::shiftLeft(&temp, x, zl);
+
+  if (verbosity> 3) std::cout << "BigInteger.range x << " << to_string(zl) << " = " << temp.toHexString() << std::endl;
+
+  BigInteger::shiftRight(&temp2, &temp, zl+lower);      // clear left bits
+
+  if (verbosity> 3) std::cout << "BigInteger.range x >> " << to_string(zl+lower) << " = " << temp2.toHexString() << std::endl;
+
+  r->copy(&temp2);
+
+}
+
+/**
+ * Computes m' in the montgomery domain, this is a value such m * m' mod radix = -1 
+ * 
+ * To compute it we first compute 
+ *      m' = radix - (m ^ -1) mod radix
+ * 
+ * If number is not invertible, then mprime is zero
+ * 
+ * @param mprime
+ * @param m
+ * @param radix
+ */
 void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, BigInteger* radix)
 {
     BigInteger temp;
@@ -1122,8 +1174,23 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
     invTemp.initSize(radix->m_size);
     BigInteger::inverseMod(&invTemp, &temp, radix);    // invTemp = (m mod radix) ^ (-1) mod radix
  
-    mprime->copy(radix);
-    mprime->subtract(&invTemp);
+    if (invTemp.isZero())
+    {
+        mprime->zero();
+    }
+    else
+    {
+        if (verbosity > 0) std::cout << "BigInteger::mprimeFromMontgomeryRadix m = " << m->toHexString() << std::endl;
+        if (verbosity > 0) std::cout << "BigInteger::mprimeFromMontgomeryRadix m^-1 = " << invTemp.toHexString() << std::endl;
+
+        if (verbosity > 0) std::cout << "BigInteger::mprimeFromMontgomeryRadix radix = " << radix->toHexString() << std::endl;
+
+        mprime->copy(radix);
+        mprime->subtract(&invTemp);
+
+
+        if (verbosity > 0) std::cout << "BigInteger::mprimeFromMontgomeryRadix mprime = " << mprime->toHexString() << std::endl;
+    }
 }
 
     
@@ -1257,15 +1324,135 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
 	}
         
         /**
-         * Objects r and v can be the same
+         * As implemented in "Handbook of Applied Cryptography" algorithm 14.94
+         * we compute r = x ^ e mod m
          * @param r
          * @param v
          * @param mod
          */
-        void BigInteger::squareMod(BigInteger* r, BigInteger* v, BigInteger* mod)
+        void BigInteger::powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m, BigInteger* mprime, BigInteger* radix)
         {
-            multMod(r, v, v, mod);
+            if (extraChecks)
+            {
+                assert(!m->isZero());
+                assert(!mprime->isZero());
+            }
+            BigInteger radix2;
+            radix2.initSize(m->m_size);
+            squareMod(&radix2, radix, m);
+
+            if (verbosity)
+                std::cout << "BigInteger::powerModMontgomery radix: " << radix->toHexString() << std::endl;
+            if (verbosity)
+                std::cout << "BigInteger::powerModMontgomery m: " << m->toHexString() << std::endl;
+            if (verbosity)
+                std::cout << "BigInteger::powerModMontgomery radix ^2 mod m: " << radix2.toHexString() << std::endl;
+            
+            BigInteger xprime;
+            xprime.initSize(m->m_size);
+            
+            multMontgomeryForm(&xprime, x, &radix2, m, mprime);
+            
+            BigInteger a(*radix);
+            a.mod(m);
+            a.reduceWorkingSize(m->m_size);
+            
+            int t = e->getLength();
+            
+            for (int i=t-1; i >= 0; i--)
+            {
+                int ei = e->getBit(i);
+                
+                BigInteger temp(a);
+                multMontgomeryForm(&a, &temp, &temp, m, mprime);
+                
+                if (ei)
+                {
+                    temp.copy(&a);
+                    multMontgomeryForm(&a, &temp, &xprime, m, mprime);
+                }   
+            }
+            
+            BigInteger one;
+            one.initSize(1);
+            one.setIntValue(1);
+            
+            multMontgomeryForm(r, &a, &one, m, mprime);
         }
+        
+
+        /**
+         * Reduce the working size of the integer (without reallocating memory)
+         * @param s new size
+         */
+        void BigInteger::reduceWorkingSize(int s)
+        {
+            for (int i=s; i < m_size; i++)
+                assert(m_data[i] == 0);
+            
+            m_size = s;
+        }
+
+        /**
+         * Computes r = v^2 mod m
+         * 
+         * @param r
+         * @param v
+         * @param mod
+         */
+        void BigInteger::squareMod(BigInteger* r, BigInteger* v, BigInteger* m)
+        {
+            multMod(r, v, v, m);
+        }
+        
+        void BigInteger::squareMod(BigInteger* m)
+        {
+            BigInteger ref(*this);
+            squareMod(this, &ref, m);
+        }
+        
+        void BigInteger::shiftLeft(int bits)
+        {
+            BigInteger ref(*this);
+            BigInteger::shiftLeft(this, &ref, bits );
+        }
+        
+        void BigInteger::shiftRight(int bits)
+        {
+            BigInteger ref(*this);
+            BigInteger::shiftRight(this, &ref, bits );
+        }
+        
+        void BigInteger::subtract(BigInteger* y)
+        {
+            BigInteger ref(*this);
+            BigInteger::subtract(this, &ref, y);
+        }
+        
+        /**
+         * Compute r = (r - x ) mod m
+         * If r < x we add the m until it is bigger
+         * @param x
+         * @param mod
+         */
+        void BigInteger::subtractMod(BigInteger* x, BigInteger* m)
+        {
+            assert(m_size >= m->m_size);
+            assert(m_size >= x->m_size);
+            
+            while (isLessThan(x))
+            {
+//                std::cout << " submod: r = r - x, and r < x!!" << std::endl;
+//                std::cout << " r: " << this->toHexString() << std::endl;
+//                std::cout << " x: " << x->toHexString() << std::endl;
+//                std::cout << " m: " << m->toHexString() << std::endl;
+                add(m);
+//                std::cout << " r+m: " << this->toHexString() << std::endl;
+            }
+            
+            subtract(x);
+        }
+
         
         void BigInteger::parseString(const char* str)
         {
@@ -1446,6 +1633,7 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
          * 
          * from https://rosettacode.org/wiki/Modular_inverse
          * 
+         * If the number is non invertible returns zero
          * 
          * @param fr    result
          * @param x     number we are computing the inverse
@@ -1514,14 +1702,17 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             
             if (one.isLessThan(&r))     // if (r > 1) return -1;  / * No inverse * /
             {
-                std::cerr << "Number not invertible " << std::endl;
-                std::cerr << "a: " << a->toHexString() << std::endl;
-                std::cerr << "b: " << b->toHexString() << std::endl;
-                std::cerr << "r: " << r.toHexString() << std::endl;
-                assert(false);
+                if (verbosity)
+                {
+                    std::cerr << "Number not invertible " << std::endl;
+                    std::cerr << "a: " << a->toHexString() << std::endl;
+                    std::cerr << "b: " << b->toHexString() << std::endl;
+                    std::cerr << "r: " << r.toHexString() << std::endl;
+                }
+                //assert(false);
+                t.zero();
             }
-            
-            if (t.isNegative()) // if (t < 0)
+            else if (t.isNegative()) // if (t < 0)
             {
                 t.add(b);       //  t += b;
                 
@@ -1531,31 +1722,7 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             ret->copy(&t);
         }
         
-        
-        /**
-         * Compute r = (r - x ) mod m
-         * If r < x we add the m until it is bigger
-         * @param x
-         * @param mod
-         */
-        void BigInteger::subtractMod(BigInteger* x, BigInteger* m)
-        {
-            assert(m_size >= m->m_size);
-            assert(m_size >= x->m_size);
-            
-            while (isLessThan(x))
-            {
-//                std::cout << " submod: r = r - x, and r < x!!" << std::endl;
-//                std::cout << " r: " << this->toHexString() << std::endl;
-//                std::cout << " x: " << x->toHexString() << std::endl;
-//                std::cout << " m: " << m->toHexString() << std::endl;
-                add(m);
-//                std::cout << " r+m: " << this->toHexString() << std::endl;
-            }
-            
-            subtract(x);
-        }
-        
+                
 void BigInteger::zero()
 {
     for (int i=0; i < m_size; i++)

@@ -35,6 +35,7 @@ public:
     
 public:
     void initSize(int s);
+    void reduceWorkingSize(int s);
     int getLength();
     int getNumBits();
     void zero();
@@ -63,17 +64,18 @@ public:
 // non static operations    
 public:
     void add(BigInteger* y);
-    void subtract(BigInteger* y);
-    void subtractMod(BigInteger* x, BigInteger* m);
+    void div(BigInteger* m);
+    void mod(BigInteger* m);
+    void mult(BigInteger* m);
+    void multMod(BigInteger* b, BigInteger* m);
+    void random();
+    void random(int bits);
     void range(int upper, int lower);
     void shiftLeft(int shift);
     void shiftRight(int shift);
-    void mult(BigInteger* m);
-    void multMod(BigInteger* b, BigInteger* m);
-    void div(BigInteger* m);
-    void mod(BigInteger* m);
-    void random();
-    void random(int bits);
+    void squareMod(BigInteger* m);
+    void subtract(BigInteger* y);
+    void subtractMod(BigInteger* x, BigInteger* m);
     
 // Static functions
 public:
@@ -92,12 +94,15 @@ public:
     static void div_naive(BigInteger* x, BigInteger* divisor, BigInteger* q, BigInteger* r);
     static void range(BigInteger* r, BigInteger* v, int upper, int lower);
     static void inverseMod(BigInteger* fr, BigInteger* x, BigInteger* mod);
+    
+    // Montgomery Functions
     static void toMontgomeryDomain(BigInteger* nprime, BigInteger* n, BigInteger* R, BigInteger* m);
     static void fromMontgomeryDomain(BigInteger* n, BigInteger* nprime, BigInteger* Rinv, BigInteger* m);
     static void multMontgomeryForm(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
     static void multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
     static void radixFromMontgomeryMod(BigInteger* radix, BigInteger* m);
     static void mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, BigInteger* radix);
+    static void powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m, BigInteger* mprime, BigInteger* radix);
 
 
     static int isEqual(BigInteger* a, BigInteger* b);
