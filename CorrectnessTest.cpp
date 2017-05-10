@@ -35,6 +35,7 @@ void CorrectnessTest::run()
     
     BigInteger::extraChecks = 1;
     
+    testIsLessThan();
     testParseNumbers();
     testShiftLeft();
     testShiftRight();
@@ -45,89 +46,19 @@ void CorrectnessTest::run()
     testDiv();
     testMultMod();
     testModBase();
-    testMultMontgomeryForm();
     testInverseMod();
+    testMultMontgomeryForm();
 //    testMod();
 
-//    testSquareMod();
-//    testPowerMod();
+    testSquareMod();
+    testPowerMod();
     
     BigInteger::extraChecks = 0;
     
     cout << "========================================" << endl;
 }
 
-/**
- * 
- */
-void CorrectnessTest::testShiftLeft()
-{
-    BigInteger a;
-    BigInteger r;
-    BigInteger expected;
-    a.initSize(64/32),
-    r.initSize(64/32);
-    expected.initSize(64/32);
-    a.parseHexString("ABCDEF9876543210");
-    expected.parseHexString("7654321000000000");
-    
-    BigInteger::shiftLeft(&r, &a, 32);
-    
-    cout << "Shift Left " ;
-    
-    if (BigInteger::isEqual(&r, &expected))
-        cout << "[OK]" << endl;
-    else
-    {
-        cout << "## ERROR ##" << endl;
-        cout << "Expected: " << expected.toHexString() << endl;
-        cout << "Result: " << r.toHexString() << endl;
-    }
-}
 
-/**
- * 
- */
-void CorrectnessTest::testShiftRight()
-{
-    BigInteger a;
-    BigInteger r;
-    BigInteger expected;
-    a.initSize(64/32),
-    r.initSize(64/32);
-    expected.initSize(64/32);
-    a.parseHexString("ABCDEF9876543210");
-    expected.parseHexString("ABCDEF98");
-    
-    BigInteger::shiftRight(&r, &a, 32);
-    
-    cout << "Shift Right 32 (same size) " ;
-    checkResultMatchsExpected(&r, &expected);
-    
-    r.initSize(32/32);
-    expected.initSize(32/32);
-    expected.parseHexString("ABCDEF98");
-    
-    BigInteger::shiftRight(&r, &a, 32);
-    cout << "Shift Right 32 (smaller size) " ;
-    checkResultMatchsExpected(&r, &expected);
-    
-    cout << "Shift Right 63 ";
-    a.initFromHexString("DD8396BCC9236B280000000000000004");
-    expected.initFromHexString("00000001BB072D799246D650");
-    r.initSize(expected.m_size);
-    BigInteger::shiftRight(&r, &a, 63);
-    checkResultMatchsExpected(&r, &expected);
-
-    cout << "Shift Right 96  " ;
-    a.initFromHexString("3A91FD8E07F953A0000000000000000000000000");
-    expected.initFromHexString("3A91FD8E07F953A0");
-    r.initSize(expected.m_size);
-    BigInteger::shiftRight(&r, &a, 96);
-    checkResultMatchsExpected(&r, &expected);
-    
-    
-}
 
 void CorrectnessTest::checkResultMatchsExpected(BigInteger* r, BigInteger* expected)
 {
@@ -145,172 +76,6 @@ void CorrectnessTest::checkResultMatchsExpected(BigInteger* r, BigInteger* expec
     
 }
 
-void CorrectnessTest::testRange()
-{
-    BigInteger a;
-    BigInteger r;
-    BigInteger exp;
-    a.initSize(64/32),
-    r.initSize(32/32);
-    exp.initSize(32/32);
-    a.parseHexString("ABCDEF9876543210");
-    
-    exp.parseHexString("9876543210");
-    
-    
-    
-    cout << "Range a[39..0] " ;
-    BigInteger::range(&r, &a, 39, 0);
-    checkResultMatchsExpected(&r, &exp);
-    
-    exp.parseHexString("ABCDEF");
-    cout << "Range a[63..0] ";
-    BigInteger::range(&r, &a, 63, 40);
-    checkResultMatchsExpected(&r, &exp);
-    
-    a.initSize(5);
-    a.parseHexString("E991945399FE030C3A91FD8E07F953A0");
-    r.initSize(3);
-    exp.initSize(3);
-    
-    cout << "Range a[159..64] ";
-    exp.parseHexString("E991945399FE030C");
-    BigInteger::range(&r, &a, 159, 64);
-    checkResultMatchsExpected(&r, &exp);
-
-    cout << "Range a[63..0] ";
-    exp.parseHexString("3A91FD8E07F953A0");
-    BigInteger::range(&r, &a, 63, 0);
-    checkResultMatchsExpected(&r, &exp);
-
-//    BigInteger::verbosity = 1;
-    
-    cout << "Range a[125..61] ";
-    a.initFromHexString("3760E5AF3248DACA0000000000000001");
-    exp.initFromHexString("00000000000001BB072D799246D650");
-    r.initSize(exp.m_size);
-    
-    BigInteger::range(&r, &a, 125, 61);
-    checkResultMatchsExpected(&r, &exp);
-}
-
-void CorrectnessTest::testAdd()
-{
-    BigInteger a;
-    BigInteger b;
-    BigInteger r;
-    BigInteger exp;
-    
-    a.initSize(2048/32),
-    b.initSize(2048/32);
-    r.initSize(2048/32);
-    exp.initSize(2048/32);
-    
-    a.parseString("8768279873802716238987346287098787657656763502221946787");
-    b.parseString("1231230932483459873495094398734762765654543128761987338");
-    exp.parseString("9999510806286176112482440685833550423311306630983934125");
-    
-    BigInteger::add(&r, &a, &b);
-    
-    cout << "Add (standard) ";
-    
-    if (BigInteger::isEqual(&r, &exp))
-        cout << "[OK]" << endl;
-    else
-    {
-        cout << "## ERROR ##" << endl;
-        cout << "Expected: " << exp.toHexString() << endl;
-        cout << "Result: " << r.toHexString() << endl;
-    }
-    
-}
-
-/*
- *  z2 (5) = 5D89046E2103349A4BE7F542BB2B7720    00000000
-  z1 (5) = A9E2ADA64B7DE037C3FD063AF92C4E94    00000000
- */
-
-void CorrectnessTest::testAddShifted()
-{
-    BigInteger a;
-    BigInteger b;
-    BigInteger r;
-    BigInteger exp;
-    
-    a.initSize(5),
-    b.initSize(5);
-    r.initSize(9);
-    exp.initSize(9);
-    
-    a.parseHexString("A9E2ADA64B7DE037C3FD063AF92C4E94");
-    b.parseHexString("5D89046E2103349A4BE7F542BB2B7720");
-    exp.parseHexString("5D89046E2103349AF5CAA2E906A95757C3FD063AF92C4E94");
-    
-    BigInteger::addShifted(&r, &a, &b, 64);
-    
-    cout << "AddShifted ";
-    
-    if (BigInteger::isEqual(&r, &exp))
-        cout << "[OK]" << endl;
-    else
-    {
-        cout << "## ERROR ##" << endl;
-        cout << "a: " << a.toHexString() << endl;
-        cout << "b: " << b.toHexString() << endl;
-        cout << "Expected: " << exp.toHexString() << endl;
-        cout << "Result: " << r.toHexString() << endl;
-        
-        if (stopAtFirstError)
-            exit(-1);
-    }
-    
-}
-/**
- * Test the multiplication 
- */
-void CorrectnessTest::testMult()
-{
-    int bits = 1024;
-    
-    BigInteger a;
-    BigInteger b;
-    BigInteger r;
-    BigInteger exp;
-    
-    a.initSize(bits/32),
-    b.initSize(bits/32);
-    r.initSize((2*bits)/32);
-    exp.initSize(bits/32);
-    
-    a.parseString("8768279873802716238987346287098787657656763502221946787");
-    b.parseString("1231230932483459873495094398734762765654543128761987338");
-    exp.parseString("10795777405298072177618168577285717325589251812726064155447348434996647761182520574284706593966188053403783006");
-    
-    cout << "Mult (standard) ";
-    
-    BigInteger::mult(&r, &a, &b);
-    
-    if (BigInteger::isEqual(&r, &exp))
-        cout << "[OK]" << endl;
-    else
-    {
-        cout << "## ERROR ##" << endl;
-        cout << "Expected: " << exp.toHexString() << endl;
-        cout << "Result: " << r.toHexString() << endl;
-        cout << "Result: " << r.toString() << endl;
-    }
-    
-    cout << "Mult (karatsuba) ";
-    
-    BigInteger::mult_karatsuba(&r, &a, &b);
-    checkResultMatchsExpected(&r, &exp);
-    
-    cout << "Mult (karatsuba recursive) ";
-    
-    BigInteger::mult_karatsubaRecursive(&r, &a, &b);
-    checkResultMatchsExpected(&r, &exp);
-    
-}
 
 void CorrectnessTest::checkMultMod(const char* msg, const char* a, const char* b, const char* m, const char* exp )
 {
@@ -362,11 +127,147 @@ void CorrectnessTest::checkDivision(const char* msg, const char* a, const char* 
     checkResultMatchsExpected(&br, &ber);
 }
 
-void CorrectnessTest::testMultMod()
+
+
+void CorrectnessTest::testRange()
 {
-    checkMultMod("Mult Mod (same size)", "8000000000000000", "2B62E85E55F7CD1A", "45CB977B71DFED43", "A6653828E63485C");
-    checkMultMod("Mult Mod ", "00000000CB1F03567C39076B", "45CB977B71DFED43", "000000010000000000000000", "00000001");
+    BigInteger a;
+    BigInteger r;
+    BigInteger exp;
+    a.initSize(64/32),
+    r.initSize(32/32);
+    exp.initSize(32/32);
+    a.parseHexString("ABCDEF9876543210");
+    
+    exp.parseHexString("9876543210");
+    
+    
+    
+    cout << "Range a[39..0] " ;
+    BigInteger::range(&r, &a, 39, 0);
+    checkResultMatchsExpected(&r, &exp);
+    
+    exp.parseHexString("ABCDEF");
+    cout << "Range a[63..0] ";
+    BigInteger::range(&r, &a, 63, 40);
+    checkResultMatchsExpected(&r, &exp);
+    
+    a.initSize(5);
+    a.parseHexString("E991945399FE030C3A91FD8E07F953A0");
+    r.initSize(3);
+    exp.initSize(3);
+    
+    cout << "Range a[159..64] ";
+    exp.parseHexString("E991945399FE030C");
+    BigInteger::range(&r, &a, 159, 64);
+    checkResultMatchsExpected(&r, &exp);
+
+    cout << "Range a[63..0] ";
+    exp.parseHexString("3A91FD8E07F953A0");
+    BigInteger::range(&r, &a, 63, 0);
+    checkResultMatchsExpected(&r, &exp);
+
+//    BigInteger::verbosity = 1;
+    
+    cout << "Range a[125..61] ";
+    a.initFromHexString("3760E5AF3248DACA0000000000000001");
+    exp.initFromHexString("00000000000001BB072D799246D650");
+    r.initSize(exp.m_size);
+    
+    BigInteger::range(&r, &a, 125, 61);
+    checkResultMatchsExpected(&r, &exp);
+    
+    a.initSize(32); 
+    a.m_data[31] = -1;
+    r.initSize(16);
+
+    cout << "Range a[1023..512] ";
+    
+    BigInteger::range(&r, &a, 1023, 512);
+
+    cout << "[OK]" << endl;
+
 }
+
+void CorrectnessTest::testAdd()
+{
+    BigInteger a;
+    BigInteger b;
+    BigInteger r;
+    BigInteger exp;
+    
+    a.initFromHexString("000000000000000000000000");
+    b.initFromHexString("00000000");
+    exp.initFromHexString("000000000000000000000000");
+
+    BigInteger::add(&r, &a, &b);
+    
+    cout << "Add (1) ";
+    checkResultMatchsExpected(&r, &exp);
+    
+    BigInteger::add(&r, &b, &a);
+    
+    cout << "Add (2) ";
+    checkResultMatchsExpected(&r, &exp);
+
+    a.initSize(2048/32),
+    b.initSize(2048/32);
+    r.initSize(2048/32);
+    exp.initSize(2048/32);
+    
+    a.parseString("8768279873802716238987346287098787657656763502221946787");
+    b.parseString("1231230932483459873495094398734762765654543128761987338");
+    exp.parseString("9999510806286176112482440685833550423311306630983934125");
+    
+    BigInteger::add(&r, &a, &b);
+    
+    cout << "Add (3) ";
+    checkResultMatchsExpected(&r, &exp);
+    
+}
+
+/*
+ *  z2 (5) = 5D89046E2103349A4BE7F542BB2B7720    00000000
+  z1 (5) = A9E2ADA64B7DE037C3FD063AF92C4E94    00000000
+ */
+
+void CorrectnessTest::testAddShifted()
+{
+    BigInteger a;
+    BigInteger b;
+    BigInteger r;
+    BigInteger exp;
+    
+    a.initSize(5),
+    b.initSize(5);
+    r.initSize(9);
+    exp.initSize(9);
+    
+    a.parseHexString("A9E2ADA64B7DE037C3FD063AF92C4E94");
+    b.parseHexString("5D89046E2103349A4BE7F542BB2B7720");
+    exp.parseHexString("5D89046E2103349AF5CAA2E906A95757C3FD063AF92C4E94");
+    
+    BigInteger::addShifted(&r, &a, &b, 64);
+    
+    cout << "AddShifted ";
+    
+    if (BigInteger::isEqual(&r, &exp))
+        cout << "[OK]" << endl;
+    else
+    {
+        cout << "## ERROR ##" << endl;
+        cout << "a: " << a.toHexString() << endl;
+        cout << "b: " << b.toHexString() << endl;
+        cout << "Expected: " << exp.toHexString() << endl;
+        cout << "Result: " << r.toHexString() << endl;
+        
+        if (stopAtFirstError)
+            exit(-1);
+    }
+    
+}
+
+
 
 /**
  * Test division
@@ -425,6 +326,81 @@ void CorrectnessTest::testDiv()
 }
 
 
+void CorrectnessTest::testInverseMod()
+{
+    cout << "Inverse Mod ";
+    
+    BigInteger m;
+    m.initSize(2048/32);
+    m.parseString("264564564564564564565464564611");
+    //m.random();
+    
+    BigInteger v;
+    v.initSize(2048/32);
+    v.parseString("54654645645645654654654654645675467");
+    v.random();
+    
+    BigInteger vinv;
+    vinv.initSize(2048/32);
+    
+    BigInteger::extraChecks = false;
+    BigInteger::inverseMod(&vinv, &v, &m);
+    BigInteger::extraChecks = true;
+    
+    // Ensure vinv * v mod m = 1
+    BigInteger r;
+    r.initSize(2048/32);
+    BigInteger::multMod(&r, &vinv, &v, &m);
+    
+    BigInteger one;
+    one.initSize(2048/32);
+    one.setIntValue(1);
+    
+    if (BigInteger::isEqual(&r, &one))
+    {
+        cout << "[OK]" << endl;
+    }
+    else
+    {
+        cout << "### ERROR ###" << endl; 
+        cout << " v = " << v.toHexString() << endl;
+        cout << " vinv = " << vinv.toHexString() << endl;
+        cout << " r = " << r.toHexString() << endl;
+    }
+    
+    cout << "Invalid inv mod";
+
+    v.initFromHexString("3A35825373ADDCE6");
+    m.initFromHexString("10000000000000000");
+    r.initFromHexString("0");
+    //BigInteger::verbosity = 10;
+    BigInteger::inverseMod(&vinv, &v, &m);
+    
+    checkResultMatchsExpected(&vinv, &r);
+
+}
+
+
+void CorrectnessTest::testIsLessThan()
+{
+    BigInteger a, b;
+    a.initFromHexString("3A35825373ADDCE6");
+    b.initFromHexString("000000010000000000000000");
+    
+    cout << "IsLessThan (a<B)? ";
+    
+    if (a.isLessThan(&b))
+        cout << "[OK]";
+    else
+        cout << "### ERROR ###";
+    
+    cout << "IsLessThan (B<a)? ";
+    
+    if (b.isLessThan(&a))
+        cout << "### ERROR ###";
+    else
+        cout << "[OK]";
+}
 
 /**
  * We are working with a number system which is based on 2^32 numbers (limbs)
@@ -487,47 +463,57 @@ void CorrectnessTest::testModBase()
     }
 }
 
-void CorrectnessTest::testInverseMod()
+/**
+ * Test the multiplication 
+ */
+void CorrectnessTest::testMult()
 {
-    cout << "Inverse Mod ";
+    int bits = 1024;
     
-    BigInteger m;
-    m.initSize(2048/32);
-    m.parseString("264564564564564564565464564611");
-    //m.random();
-    
-    BigInteger v;
-    v.initSize(2048/32);
-    v.parseString("54654645645645654654654654645675467");
-    v.random();
-    
-    BigInteger vinv;
-    vinv.initSize(2048/32);
-    
-    BigInteger::extraChecks = false;
-    BigInteger::inverseMod(&vinv, &v, &m);
-    BigInteger::extraChecks = true;
-    
-    // Ensure vinv * v mod m = 1
+    BigInteger a;
+    BigInteger b;
     BigInteger r;
-    r.initSize(2048/32);
-    BigInteger::multMod(&r, &vinv, &v, &m);
+    BigInteger exp;
     
-    BigInteger one;
-    one.initSize(2048/32);
-    one.setIntValue(1);
+    a.initSize(bits/32),
+    b.initSize(bits/32);
+    r.initSize((2*bits)/32);
+    exp.initSize(bits/32);
     
-    if (BigInteger::isEqual(&r, &one))
-    {
+    a.parseString("8768279873802716238987346287098787657656763502221946787");
+    b.parseString("1231230932483459873495094398734762765654543128761987338");
+    exp.parseString("10795777405298072177618168577285717325589251812726064155447348434996647761182520574284706593966188053403783006");
+    
+    cout << "Mult (standard) ";
+    
+    BigInteger::mult(&r, &a, &b);
+    
+    if (BigInteger::isEqual(&r, &exp))
         cout << "[OK]" << endl;
-    }
     else
     {
-        cout << "### ERROR ###" << endl; 
-        cout << " v = " << v.toHexString() << endl;
-        cout << " vinv = " << vinv.toHexString() << endl;
-        cout << " r = " << r.toHexString() << endl;
+        cout << "## ERROR ##" << endl;
+        cout << "Expected: " << exp.toHexString() << endl;
+        cout << "Result: " << r.toHexString() << endl;
+        cout << "Result: " << r.toString() << endl;
     }
+    
+    cout << "Mult (karatsuba) ";
+    
+    BigInteger::mult_karatsuba(&r, &a, &b);
+    checkResultMatchsExpected(&r, &exp);
+    
+    cout << "Mult (karatsuba recursive) ";
+    
+    BigInteger::mult_karatsubaRecursive(&r, &a, &b);
+    checkResultMatchsExpected(&r, &exp);
+    
+}
+
+void CorrectnessTest::testMultMod()
+{
+    checkMultMod("Mult Mod (same size)", "8000000000000000", "2B62E85E55F7CD1A", "45CB977B71DFED43", "A6653828E63485C");
+    checkMultMod("Mult Mod ", "00000000CB1F03567C39076B", "45CB977B71DFED43", "000000010000000000000000", "00000001");
 }
 
 void CorrectnessTest::testMultMontgomeryForm()
@@ -538,20 +524,24 @@ void CorrectnessTest::testMultMontgomeryForm()
     
     BigInteger m;
     m.initSize(bits/32);
-    m.random();
-    
     
     BigInteger radix;
     radix.initSize(m.m_size+1);
-    BigInteger::radixFromMontgomeryMod(&radix, &m);
     
     BigInteger temp;
     temp.initSize(radix.m_size);
-    temp.copy(&m);
+    
     //temp.mod(&radix);            // temp = m mod radix
     
     BigInteger invTemp(radix);
-    BigInteger::inverseMod(&invTemp, &temp, &radix);    // invTemp = (m mod radix) ^ (-1) mod radix
+    do
+    {
+        m.random();
+        BigInteger::radixFromMontgomeryMod(&radix, &m);
+        temp.copy(&m);
+        
+        BigInteger::inverseMod(&invTemp, &temp, &radix);    // invTemp = (m mod radix) ^ (-1) mod radix
+    } while (invTemp.isZero());                             // until we get a valid radix^-1
     
     // check m^-1 * m mod radix = 1
     BigInteger check(invTemp);
@@ -559,7 +549,7 @@ void CorrectnessTest::testMultMontgomeryForm()
     
     if (!check.isOne())
     {
-        cout << "### ERROR ###" << endl;
+        cout << "### ERROR ### inverse mod not valid " << endl;
 
         cout << " radix = " << radix.toHexString() << endl;
         cout << " m = " << m.toHexString() << endl;
@@ -648,6 +638,153 @@ void CorrectnessTest::testParseNumbers()
     
     cout << "Check parse Numbers ";
     checkResultMatchsExpected(&a, &b);
+}
+
+
+/**
+ * 
+ */
+void CorrectnessTest::testShiftLeft()
+{
+    BigInteger a;
+    BigInteger r;
+    BigInteger expected;
+    a.initSize(64/32),
+    r.initSize(64/32);
+    expected.initSize(64/32);
+    a.parseHexString("ABCDEF9876543210");
+    expected.parseHexString("7654321000000000");
+    
+    BigInteger::shiftLeft(&r, &a, 32);
+    
+    cout << "Shift Left " ;
+    
+    if (BigInteger::isEqual(&r, &expected))
+        cout << "[OK]" << endl;
+    else
+    {
+        cout << "## ERROR ##" << endl;
+        cout << "Expected: " << expected.toHexString() << endl;
+        cout << "Result: " << r.toHexString() << endl;
+    }
+}
+
+/**
+ * 
+ */
+void CorrectnessTest::testShiftRight()
+{
+    BigInteger a;
+    BigInteger r;
+    BigInteger expected;
+    a.initSize(64/32),
+    r.initSize(64/32);
+    expected.initSize(64/32);
+    a.parseHexString("ABCDEF9876543210");
+    expected.parseHexString("ABCDEF98");
+    
+    BigInteger::shiftRight(&r, &a, 32);
+    
+    cout << "Shift Right 32 (same size) " ;
+    checkResultMatchsExpected(&r, &expected);
+    
+    r.initSize(32/32);
+    expected.initSize(32/32);
+    expected.parseHexString("ABCDEF98");
+    
+    BigInteger::shiftRight(&r, &a, 32);
+    cout << "Shift Right 32 (smaller size) " ;
+    checkResultMatchsExpected(&r, &expected);
+    
+    cout << "Shift Right 63 ";
+    a.initFromHexString("DD8396BCC9236B280000000000000004");
+    expected.initFromHexString("00000001BB072D799246D650");
+    r.initSize(expected.m_size);
+    BigInteger::shiftRight(&r, &a, 63);
+    checkResultMatchsExpected(&r, &expected);
+
+    cout << "Shift Right 96  " ;
+    a.initFromHexString("3A91FD8E07F953A0000000000000000000000000");
+    expected.initFromHexString("3A91FD8E07F953A0");
+    r.initSize(expected.m_size);
+    BigInteger::shiftRight(&r, &a, 96);
+    checkResultMatchsExpected(&r, &expected);
+
+}
+
+void CorrectnessTest::testSquareMod()
+{
+    BigInteger a;
+    BigInteger m;
+    BigInteger r;
+ 
+    for (int bits=32; bits < 1024; bits*=2)
+    {
+        a.initSize(bits);
+        m.initSize(bits);
+        r.initSize(bits);
+        a.random();
+        m.random();
+
+
+        cout << "Square Mod ("<< bits<<" bits) " ;
+
+        BigInteger::multMod(&r, &a, &a, &m);
+        
+        a.squareMod(&m);
+
+        checkResultMatchsExpected(&a, &r);
+    }
+}
+
+void CorrectnessTest::testPowerMod()
+{
+    BigInteger a;
+    BigInteger e;
+    BigInteger m;
+    BigInteger r, r2;
+ 
+    for (int bits=32; bits < 1024; bits*=2)
+    {
+        a.initSize(bits/32);
+        e.initSize(bits/32);
+        m.initSize(bits/32);
+        r.initSize(bits/32);
+        r2.initSize(bits/32);
+        a.random();
+        e.random();
+        
+//        cout << "a: " << a.toHexString() << endl;
+//        cout << "e: " << e.toHexString() << endl;
+
+        BigInteger radix;
+        radix.initSize(m.m_size+1);
+        BigInteger mprime;
+        mprime.initSize(radix.m_size);        
+
+        do
+        {
+
+            m.random();
+//        cout << "m: " << m.toHexString() << endl;
+
+            BigInteger::radixFromMontgomeryMod(&radix, &m);
+        
+            BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+        
+        } while (mprime.isZero());
+
+        BigInteger::powerMod(&r, &a, &e, &m);
+        
+        // cout << "r: " << r.toHexString() << endl;
+        
+        // BigInteger::verbosity = 1;
+        BigInteger::powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
+
+        cout << "Power Mod Montgomery ("<< bits<<" bits) " ;
+
+        checkResultMatchsExpected(&r2, &r);
+    }
 }
 
 //function inverseModInt(x,n) {
