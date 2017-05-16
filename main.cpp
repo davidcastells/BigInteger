@@ -37,7 +37,9 @@ void printUsage()
 
 int doTestCorrectness = 0;
 int doTestPerformance = 0;
+int doTestAllPerformance = 0;
 int doHelp = 0;
+int verbosity = 0;
 
 void parseArgs(int argc, char* args[])
 {
@@ -47,8 +49,15 @@ void parseArgs(int argc, char* args[])
             doTestCorrectness = 1;
         if (strcmp(args[i], "--test-performance") == 0)
             doTestPerformance = 1;
+        if (strcmp(args[i], "--test-all-performance") == 0)
+            doTestAllPerformance = 1;
         if (strcmp(args[i], "--help") == 0)
             doHelp = 1;
+        if (strcmp(args[i], "--verbosity") == 0)
+        {
+            i++;
+            verbosity = atoi(args[i]);            
+        }
     }
 }
 
@@ -71,12 +80,24 @@ int main(int argc, char** argv)
     if (doTestCorrectness)
     {
         CorrectnessTest test;
+        BigInteger::verbosity = verbosity;
+        test.verbosity = verbosity;
         test.run();
     }
     
+    if (doTestAllPerformance)
+    {
+        PerformanceTest test;
+        BigInteger::verbosity = verbosity;
+        test.verbosity = verbosity;
+        test.runAll();
+    }
+
     if (doTestPerformance)
     {
         PerformanceTest test;
+        BigInteger::verbosity = verbosity;
+        test.verbosity = verbosity;
         test.run();
     }
     
