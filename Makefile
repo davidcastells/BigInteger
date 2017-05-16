@@ -1,5 +1,35 @@
-TARGET=BigInteger
+TARGET_CYG=BigInteger.cyg.exe
+TARGET_MINGW=BigInteger.mingw.exe
+TARGET_VC=BigInteger.vc.exe
+TARGET_ZZ_CYG=ZZTest.cyg.exe
 
+MINGW=/usr/x86_64-w64-mingw/bin
+VC="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC"
 
-TARGET:
-	g++ -g -O3 main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp -o $(TARGET)
+CC_MINGW=$(MINGW)/gcc
+CPP_MINGW=$(MINGW)/g++
+CC_VC=$(VC)/bin/cl.exe
+CPP_VC=$(VC)/bin/cl.exe
+MSVC_DIR="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC"
+WINDOWS_SDK="C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0"
+WINDOWS_INCLUDE_DIR=/I "C:\Program Files (x86)\Windows Kits\10\Include\10.0.14393.0\ucrt" /I "C:\Program Files (x86)\Windows Kits\10\Include\10.0.14393.0\um" /I"C:\Program Files (x86)\Windows Kits\10\Include\10.0.14393.0\shared"
+WINDOWS_LIBS=$(WINDOWS_SDK)/um/x86/uuid.lib $(WINDOWS_SDK)/um/x86/kernel32.lib $(WINDOWS_SDK)/ucrt/x86/libucrt.lib $(MSVC_DIR)/lib/libcpmt.lib $(MSVC_DIR)/lib/libcmt.lib $(MSVC_DIR)/lib/oldnames.lib $(MSVC_DIR)/lib/libvcruntime.lib
+INCLUDE_DIRS_MSVC=/I /usr/local/include $(WINDOWS_INCLUDE_DIR) /I$(MSVC_DIR)/include
+CFLAGS_MSVC=/D WIN32 $(INCLUDE_DIRS_MSVC) $(LIB_DIRS_MSVC) $(WINDOWS_LIBS)  /EHa /GR /Zl /DEBUG /MACHINE:X86
+
+all: $(TARGET_CYG) $(TARGET_MINGW) $(TARGET_VC) $(TARGET_ZZ_CYG)
+	
+clean:
+	rm -fr *.exe
+
+$(TARGET_CYG): BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp
+	g++ -static -g -O0 main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp -o $(TARGET_CYG)
+	
+$(TARGET_MINGW): main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp
+	$(CPP_MINGW) -static -g -O3 -m64 main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp -o $(TARGET_MINGW)
+
+$(TARGET_VC): main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp
+	$(CPP_VC) $(CFLAGS_MSVC) -g -O3 main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp -o $(TARGET_VC)
+
+$(TARGET_ZZ_CYG):
+	g++ -g -O3 mainZZ.cpp PerformanceLap.cpp PerformanceTestZZ.cpp -L/usr/local/lib -lntl -lm -lgmp -o $(TARGET_ZZ_CYG)

@@ -8,6 +8,10 @@
 #ifndef PERFORMANCELAP_H
 #define	PERFORMANCELAP_H
 
+#ifdef WIN32
+    #include <windows.h>
+#endif
+
 class PerformanceLap {
 public:
     PerformanceLap();
@@ -18,8 +22,14 @@ public:
     double lap();
     
 private:
+    double dtime();
+
     double d0;
     double df;
+    
+#ifdef WIN32
+    LARGE_INTEGER m_freq;
+#endif
 };
 
 #endif	/* PERFORMANCELAP_H */
