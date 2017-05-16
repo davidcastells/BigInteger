@@ -29,6 +29,15 @@
 #include <assert.h>
 #include <time.h>
 
+#define VERBOSITY_LEVEL_DIV             5
+#define VERBOSITY_LEVEL_GET_LENGTH      6
+#define VERBOSITY_LEVEL_MULT_KARATSUBA  5
+#define VERBOSITY_LEVEL_MULT_MONTGOMERY 3
+#define VERBOSITY_LEVEL_MONTGOMERY      4
+#define VERBOSITY_LEVEL_POWER_MOD       2
+#define VERBOSITY_LEVEL_INV_MOD         4
+#define VERBOSITY_LEVEL_RANGE           6
+
 template <typename T>
 std::string to_string(T value)
 {
@@ -68,19 +77,6 @@ BigInteger::BigInteger(const BigInteger& orig)
     copy(&orig);
 }
 
-/**
- * Initialize the size of the limbs array which are 32 bits numbers
- * @param s number of limbs 
- */
-void BigInteger::initSize(int s)
-{
-    if  (m_size > 0)
-        delete m_data;
-        
-    m_size = s;
-    m_data = new unsigned int [m_size];
-}
-
 
 
 void BigInteger::setIntValue(unsigned int v)
@@ -113,8 +109,8 @@ void BigInteger::copy(unsigned int* limbs)
 
 BigInteger::~BigInteger()
 {
-    if (m_data == NULL)
-        delete m_data;
+    if (m_data != NULL)
+        delete [] m_data;
     
     m_data = NULL;
 }
@@ -212,122 +208,18 @@ void BigInteger::addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shi
     }
 }
 
-    /**
-     * Shift right a number of bits, zeros are inserted at the left
-     * First we move slots (limb multiples)
-     * 
-     *  For instance if slots is 2
-     * 
-     *  ... a[6] a[5] a[4] a[3] a[2]
-     *  ... r[4] r[3] r[2] r[1] r[0]
-     * 
-     * @param r retsult r = a >> sv
-     * @param a
-     * @param sv    number of bits to shift to the right
-     */
-    void BigInteger::shiftRight(BigInteger* r, BigInteger* a, int sv)
-    {
-        if (extraChecks)
-        {
-            // check that the result number can hold the resulting value
-            int targetLen = r->m_size*32;
-            int reqLen = a->getLength() - sv;
-            assert(targetLen >= reqLen);
-        }
-        
-        unsigned int* pa = a->m_data;
-        unsigned int* pr = r->m_data;
-        unsigned int carry = 0;
-
-        unsigned int limbsShifted = sv / 32;
-
-        if (limbsShifted)
-        {
-            // number of limbs we are jumping r[i] = a[i+slots]
-            int slots = sv / 32;
-            unsigned int val;
-            for (int i=0; i < r->m_size; i++)
-            {
-                val = ((i + slots) < a->m_size) ?  pa[i + slots] : 0;
-                if (i < r->m_size) pr[i] = val;
-            }
-
-            // set zero to slots r[a->m_size-slot] to r[rize]
-//            for (int i=(a->m_size-slots); i < r->m_size; i++)
-//                pr[i] = 0;
-            
-            sv -= limbsShifted * 32;
-        }
-        else 
-            if (r != a)
-                r->copy(a);
-            
-        if (sv != 0)
-        {
-            int cs = 32-sv;
-
-            for (int i=r->m_size-1; i >= 0; i--)
-            {
-                unsigned int nv = (pr[i] >> sv) | carry;
-
-                carry = ~((0xFFFFFFFF >> sv) << sv);
-                carry &= pr[i];
-                carry = carry << cs;
-
-                pr[i] = nv;
-            }
-        }
-    }
-    
 /**
- * 
- * @param r
- * @param a
- * @param sv
+ * Returns the value of the ith bit of the integer
+ * @param bitnum
+ * @return 
  */
-void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
+int BigInteger::getBit(int bitnum)
 {
-    unsigned int* pa = a->m_data;
-    unsigned int* pr = r->m_data;
-    
-    unsigned int carry = 0;
-        
-    // 
-    unsigned int limbsShifted = sv / 32;
-    
-    if (limbsShifted)    // (sv == 32)
-    {
-        int slots = limbsShifted;
+   int limbIndex = bitnum / 32;
+   int bitIndex = bitnum % 32;
 
-        for (int i=r->m_size-1; i >= slots; i--)
-        {
-            pr[i] = pa[i-slots];
-        }
-        for (int i=slots-1; i >= 0; i--)
-             pr[i] = 0;
-        
-        sv -= limbsShifted * 32;
-    }
-    else
-        if (r != a)
-            r->copy(a);
-    
-    if (sv != 0)
-    {
-        int cs = 32-sv;
-
-        for (int i=0; i < r->m_size; i++)
-        {
-            unsigned int nv = (pr[i] << sv) | carry;
-
-            carry = ~((0xFFFFFFFF << sv) >> sv);
-            carry &= pr[i];
-            carry = carry >> cs;
-
-            pr[i] = nv;
-        }
-    }
- }
+   return (m_data[limbIndex] >> bitIndex) & 1;
+}
 
  /**
   * @return the number of bits that the number can store
@@ -353,13 +245,13 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
                     greaterActiveLimb = i;
             }
             
-//            cout << "[JNI] getLength greaterActiveLimb = " << greaterActiveLimb << endl;
+            if (verbosity > VERBOSITY_LEVEL_GET_LENGTH) std::cout << "BigInteger::getLength greaterActiveLimb = " << greaterActiveLimb << std::endl;
             
             // find the highest bit 
             unsigned int test = m_data[greaterActiveLimb];
             int numActiveBits = 0;
             
-//            cout << "[JNI] test = " << test << endl;
+            if (verbosity > VERBOSITY_LEVEL_GET_LENGTH) std::cout << "BigInteger::getLength test = " << test << std::endl;
             
             while (test > 0)
             {
@@ -464,30 +356,34 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             return false;
         }
         
-        /**
-         * Initializes size and parses hex string
-         * @param str
-         */
-        void BigInteger::initFromHexString(const char* str)
-        {
-            initSize((strlen(str)+7)/8);
-            parseHexString(str);
-        }
+/**
+ * Initializes size and parses hex string
+ * @param str
+ */
+void BigInteger::initFromHexString(const char* str)
+{
+    initSize((strlen(str)+7)/8);
+    parseHexString(str);
+}
         
         
+/**
+ * Initialize the size of the limbs array which are 32 bits numbers
+ * @param s number of limbs 
+ */
+void BigInteger::initSize(int s)
+{
+    if  (m_size > 0)
+        delete m_data;
         
-        /**
-         * Returns the value of the ith bit of the integer
-         * @param bitnum
-         * @return 
-         */
-        int BigInteger::getBit(int bitnum)
-        {
-            int limbIndex = bitnum / 32;
-            int bitIndex = bitnum % 32;
-            
-            return (m_data[limbIndex] >> bitIndex) & 1;
-        }
+    m_size = s;
+    m_data = new unsigned int [m_size];
+    
+    assert(m_data);
+}
+
+        
+        
         
         
         
@@ -529,8 +425,8 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             BigInteger r;
 
 
-            if (verbosity>2) std::cout << "BigInteger.div x = " << ref.toHexString() << std::endl;
-            if (verbosity>2) std::cout << "BigInteger.div /   " << divisor.toHexString() << std::endl;
+            if (verbosity> VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div x = " << ref.toHexString() << std::endl;
+            if (verbosity> VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div /   " << divisor.toHexString() << std::endl;
 
             q.initSize(x->m_size);
             r.initSize(x->m_size);
@@ -554,31 +450,31 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             
             // get the yl most significant bits of ref
             r.copy(&ref);
-            if (verbosity>2) std::cout << "BigInteger.div r " <<  r.toHexString() << std::endl;
+            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r " <<  r.toHexString() << std::endl;
 
             r.range(rl-1, downBit--);
             
-            if (verbosity>2) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r.toHexString() << std::endl;
+            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r.toHexString() << std::endl;
 
             if (r.isLessThan(&divisor))
             {
-                if (verbosity>2) std::cout << "BigInteger.div r < divisor" << std::endl;
+                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r < divisor" << std::endl;
 
                 // take another bit from ref
                 r.copy(&ref);
                 r.range(rl-1, downBit--);
 
-                if (verbosity>2) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r.toHexString() << std::endl;
+                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r.toHexString() << std::endl;
             }
             
-            if (verbosity>2) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
-            if (verbosity>2) std::cout << "BigInteger.div      - " << divisor.toHexString() << std::endl;
+            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
+            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      - " << divisor.toHexString() << std::endl;
             
             q.inc();
             r.subtract(&divisor);
 
-            if (verbosity>2) std::cout << "BigInteger.div      = " << r.toHexString() << std::endl;
-            if (verbosity>2) std::cout << "BigInteger.div    q = " << q.toHexString() << std::endl;
+            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      = " << r.toHexString() << std::endl;
+            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div    q = " << q.toHexString() << std::endl;
             
             // take another bit
             while (downBit >= 0)
@@ -587,29 +483,29 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
                 if (ref.getBit(downBit--))
                     r.inc();
 
-                if (verbosity>2) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
+                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
 
                 if (r.isLessThan(&divisor))
                 {
                     q.shiftLeft(1);    // put a zero in q
                     //goto loop;
                     
-                    if (verbosity>2) std::cout << "BigInteger.div  0 q = " << q.toHexString() << std::endl;
+                    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div  0 q = " << q.toHexString() << std::endl;
                 }
                 else
                 {
                     q.shiftLeft(1);     // put a one in q
                     q.inc();
 
-                if (verbosity>2) std::cout << "BigInteger.div  1 q = " << q.toHexString() << std::endl;
+                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div  1 q = " << q.toHexString() << std::endl;
       
-                if (verbosity>2) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
-                if (verbosity>2) std::cout << "BigInteger.div      - " << divisor.toHexString() << std::endl;
+                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
+                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      - " << divisor.toHexString() << std::endl;
 
                     r.subtract(&divisor);
                     //goto loop;
                     
-                if (verbosity>2) std::cout << "BigInteger.div      = " << r.toHexString() << std::endl;
+                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      = " << r.toHexString() << std::endl;
         
                 }
             } 
@@ -618,8 +514,8 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             nr->copy(&r);
             nq->copy(&q);
             
-            if (verbosity>2) std::cout << "BigInteger.div     nr = " << nr->toHexString() << std::endl;
-            if (verbosity>2) std::cout << "BigInteger.div     nq = " << nq->toHexString() << std::endl;
+            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div     nr = " << nr->toHexString() << std::endl;
+            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div     nq = " << nq->toHexString() << std::endl;
         }
         
         
@@ -682,51 +578,52 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
             } while(doRun);
         }
         
-        /**
-         * 
-         * @param r
-         * @param x
-         * @param y
-         */
-        void BigInteger::subtract(BigInteger* r, BigInteger* x, BigInteger* y)
+
+void BigInteger::mod(BigInteger* m)
+{
+    BigInteger ref(*this);
+    BigInteger q(*this);
+
+    BigInteger::div_naive(&ref, m, &q, this);
+}
+        
+
+/**
+ * from https://github.com/adamwalker/mmul/blob/master/crypto.c (mulhilo)
+ */        
+void BigInteger::mult(BigInteger* r, BigInteger* a, BigInteger* b)
+{
+    if (extraChecks) assert(r->m_size >= (a->m_size + b->m_size));
+    r->zero();
+
+    int asize = a->m_size;
+    int bsize = b->m_size;
+    uint64_t carry;
+    uint64_t accum;
+    unsigned int adata;
+    
+    for (int i=0; i< asize; i++)
+    {
+        carry = 0;
+        adata = a->m_data[i];
+        
+        for(register int j=0; j<bsize; j++)
         {
-            unsigned int* px = x->m_data;
-            unsigned int* py = y->m_data;
-            unsigned int* pr = r->m_data;
-            
-            unsigned int carryIn = 0;
-            unsigned int carryOut = 0;
-            
-            for (int i=0; i < x->m_size; i++)
-            {
-                unsigned int sum = 0;
-                
-                if (i < x->m_size) sum += px[i];
-                if (i < y->m_size) sum -= py[i];
-                
-                if (sum > px[i])
-                {
-                    if (carryIn) sum--;
-                    carryOut = 1;
-                }
-                else if (carryIn)
-                {
-                    carryOut = (sum == 0)? 1: 0;
-                    sum--;
-                }
-                
-                carryIn = carryOut;
-                pr[i] = sum;
-            }
+            int idx = i + j;
+
+            uint32_t lo, hi;
+            BigInteger::mult(adata, b->m_data[j], &hi, &lo);
+
+            if (extraChecks) assert(idx < r->m_size);
+            accum = r->m_data[idx] + carry + lo;
+            carry = (accum >> 32) + hi;
+            r->m_data[idx] = accum;
         }
         
-        void BigInteger::mod(BigInteger* m)
-        {
-            BigInteger ref(*this);
-            BigInteger q(*this);
-            
-            BigInteger::div_naive(&ref, m, &q, this);
-        }
+        if ((i + b->m_size)< r->m_size)
+            r->m_data[i + b->m_size] = carry;
+    }
+}        
         
 /**
  * Multiply two big numbers.
@@ -735,7 +632,7 @@ void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
  * @param a first operand
  * @param b second operand
  */
-void BigInteger::mult(BigInteger* r, BigInteger* a, BigInteger* b)
+void BigInteger::mult_naive(BigInteger* r, BigInteger* a, BigInteger* b)
 {
     BigInteger term;
     term.initSize(r->m_size);
@@ -837,7 +734,6 @@ void BigInteger::mult(BigInteger* r, BigInteger* a, BigInteger* b)
                 BigInteger z1;
                 BigInteger z2;
                 z0.initSize(maxSize+1);
-                z1.initSize(maxSize+1);
                 z2.initSize(maxSize+1);
 
                 BigInteger::mult_karatsubaRecursive(&z0, &x0, &y0);
@@ -854,6 +750,7 @@ void BigInteger::mult(BigInteger* r, BigInteger* a, BigInteger* b)
                 t2.initSize(halfSize+1);
 
                 BigInteger::add(&t2, &x1, &x0);
+                z1.initSize(t1.m_size + t2.m_size);
                 BigInteger::mult_karatsubaRecursive(&z1, &t1, &t2);
 
                 // z1 = z1 - z2-z0
@@ -862,7 +759,7 @@ void BigInteger::mult(BigInteger* r, BigInteger* a, BigInteger* b)
 
 
                 BigInteger z1z2;
-                z1z2.initSize(resultSize);
+                z1z2.initSize(maxVal(z1.m_size, z2.m_size+halfSize));
                 z1z2.zero();
                 r->zero();
                 BigInteger::addShifted(&z1z2, &z1, &z2, halfSize*32);
@@ -947,11 +844,22 @@ void BigInteger::multMontgomeryForm(BigInteger* r, BigInteger* x, BigInteger* y,
 
     r->zero();
 
+    BigInteger temp;
+    BigInteger temp2;
+    temp2.initSize(m->m_size+1);
+    BigInteger temp3;
+    temp3.initSize(temp2.m_size+r->m_size);
+    BigInteger temp4;
+    temp4.initSize(x->m_size+2);
 
-    if (verbosity) std::cout << "BigInteger::multMontgomeryForm  x:" << x->toHexString() << std::endl;
-    if (verbosity) std::cout << "BigInteger::multMontgomeryForm  y:" << y->toHexString() << std::endl;
-    if (verbosity) std::cout << "BigInteger::multMontgomeryForm  m:" << m->toHexString() << std::endl;
-    if (verbosity) std::cout << "BigInteger::multMontgomeryForm  mprime:" << mprime->toHexString() << std::endl;
+    BigInteger bxi;
+    bxi.initSize(1);
+    temp.initSize(y->m_size+bxi.m_size);
+
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  x:" << x->toHexString() << std::endl;
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  y:" << y->toHexString() << std::endl;
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  m:" << m->toHexString() << std::endl;
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  mprime:" << mprime->toHexString() << std::endl;
 
     for (int i=0; i < r->m_size; i++)
     {
@@ -966,45 +874,35 @@ void BigInteger::multMontgomeryForm(BigInteger* r, BigInteger* x, BigInteger* y,
         unsigned int ui = (r->m_data[0] + x->m_data[i] * y->m_data[0]) * mprime->m_data[0];
 
         // R = (R + x[i]*y + u[i]*m)/b
-        BigInteger temp;
-        temp.initSize(x->m_size+2);
-        BigInteger temp2;
-        temp2.initSize(m->m_size+2);
-        BigInteger temp3;
-        temp3.initSize(x->m_size+2);
-        BigInteger temp4;
-        temp4.initSize(x->m_size+2);
-
-        BigInteger bxi;
-        bxi.initSize(1);
         bxi.setIntValue(x->m_data[i]);
 
         BigInteger::mult(&temp, y, &bxi);         // temp = y*x[i]
 
-        if (verbosity) std::cout << "  temp:" << temp.toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  temp:" << temp.toHexString() << std::endl;
         
         BigInteger bui;
         bui.initSize(1);
         bui.setIntValue(ui);
 
-        if (verbosity) std::cout << "  ui:" << bui.toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  ui:" << bui.toHexString() << std::endl;
         
         BigInteger::mult(&temp2, m, &bui);        // temp2 = m*u[i]
 
-        if (verbosity) std::cout << "  temp2:" << temp2.toHexString() << std::endl;
-        if (verbosity) std::cout << "  r:" << r->toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  temp2:" << temp2.toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  r:" << r->toHexString() << std::endl;
         
         BigInteger::add(&temp3, r, &temp2);         // temp3 = r + m*u[i]
         
-        if (verbosity) std::cout << "  temp3:" << temp3.toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  temp3:" << temp3.toHexString() << std::endl;
         
         BigInteger::add(&temp4, &temp3, &temp);     // temp4 = r + m*u[i] + y*x[i]
         
-        if (verbosity) std::cout << "  temp4:" << temp4.toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  temp4:" << temp4.toHexString() << std::endl;
         
-        BigInteger::shiftRight(r, &temp4, 32);      // r = temp4 / b
+        //BigInteger::shiftRight(r, &temp4, 32);      // r = temp4 / b
+        BigInteger::range(r, &temp4, r->m_size*32, 32);
         
-        if (verbosity) std::cout << "  r:" << r->toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  r:" << r->toHexString() << std::endl;
     }
 }
 
@@ -1023,6 +921,14 @@ void BigInteger::multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y
 //    uint32_t t[128], tm[64], tmm[128], u[128];
     int i;
 
+    if (extraChecks)
+    {
+        assert(r != x);
+        assert(r != y);
+        assert(r != m);
+        assert(r != mprime);
+    }
+    
     BigInteger t;
     t.initSize(x->m_size + y->m_size);
     BigInteger pretm;
@@ -1039,29 +945,32 @@ void BigInteger::multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y
     BigInteger::mult(&tmm, &tm, m);
 
 
-    if (verbosity) std::cout << "t:" << t.toHexString() << std::endl;
-    if (verbosity) std::cout << "mprime:" << mprime->toHexString() << std::endl;
-    if (verbosity) std::cout << "pretm:" << pretm.toHexString() << std::endl;
-    if (verbosity) std::cout << "tm:" << tm.toHexString() << std::endl;
-    if (verbosity) std::cout << "tmm:" << tmm.toHexString() << std::endl;
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+    {
+        std::cout << "BigInteger::multMontgomeryForm2 t:" << t.toHexString() << std::endl;
+        std::cout << "BigInteger::multMontgomeryForm2 mprime:" << mprime->toHexString() << std::endl;
+        std::cout << "BigInteger::multMontgomeryForm2 pretm:" << pretm.toHexString() << std::endl;
+        std::cout << "BigInteger::multMontgomeryForm2 tm:" << tm.toHexString() << std::endl;
+        std::cout << "BigInteger::multMontgomeryForm2 tmm:" << tmm.toHexString() << std::endl;
+    }
 
     BigInteger u;
     u.initSize(tmm.m_size);
     BigInteger::add(&u, &t, &tmm);
 
 
-    if (verbosity) std::cout << "u:" << u.toHexString() << std::endl;
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm2 u:" << u.toHexString() << std::endl;
 
     BigInteger::shiftRight(r, &u, x->m_size*32);
 
 
-    if (verbosity) std::cout << "r:" << r->toHexString() << std::endl;
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm2 r:" << r->toHexString() << std::endl;
 
     if (m->isLessThan(r))   // if (r >= m) r = r - m
     {
         r->subtract(m);
 
-        if (verbosity) std::cout << "r:" << r->toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm2 r:" << r->toHexString() << std::endl;
 
     }
 }
@@ -1091,9 +1000,24 @@ void BigInteger::random()
     while (lc == clock());
     
     srand(clock());
+
     
     for (int i=0; i < m_size; i++)
+    {
         m_data[i] = rand();
+        
+        // Mingw random seems to return 16 bit numbers
+        #ifdef __MINGW32__
+            m_data[i] <<= 16;
+            m_data[i] |= rand();
+        #endif
+
+        // Windows random seems to return 16 bit numbers also
+        #ifdef WIN32
+            m_data[i] <<= 16;
+            m_data[i] |= rand();
+        #endif
+    }
 }
 
 
@@ -1139,20 +1063,24 @@ void BigInteger::range(BigInteger* r, BigInteger* x, int upper, int lower)
 
   int zl = temp.getNumBits() -1-(upper); 
 
-  if (verbosity > 3) std::cout << "BigInteger.range x = " << x->toHexString() << std::endl;
+  if (verbosity > VERBOSITY_LEVEL_RANGE) std::cout << "BigInteger.range x = " << x->toHexString() << std::endl;
 
   BigInteger::shiftLeft(&temp, x, zl);
 
-  if (verbosity> 3) std::cout << "BigInteger.range x << " << to_string(zl) << " = " << temp.toHexString() << std::endl;
+  if (verbosity > VERBOSITY_LEVEL_RANGE) std::cout << "BigInteger.range x << " << to_string(zl) << " = " << temp.toHexString() << std::endl;
 
   BigInteger::shiftRight(&temp2, &temp, zl+lower);      // clear left bits
 
-  if (verbosity> 3) std::cout << "BigInteger.range x >> " << to_string(zl+lower) << " = " << temp2.toHexString() << std::endl;
+  if (verbosity > VERBOSITY_LEVEL_RANGE) std::cout << "BigInteger.range x >> " << to_string(zl+lower) << " = " << temp2.toHexString() << std::endl;
 
   r->copy(&temp2);
 
 }
 
+int BigInteger::maxVal( int x,  int y)
+{
+    return (x > y) ? x:y;
+}
 /**
  * Computes m' in the montgomery domain, this is a value such m * m' mod radix = -1 
  * 
@@ -1180,16 +1108,16 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
     }
     else
     {
-        if (verbosity > 0) std::cout << "BigInteger::mprimeFromMontgomeryRadix m = " << m->toHexString() << std::endl;
-        if (verbosity > 0) std::cout << "BigInteger::mprimeFromMontgomeryRadix m^-1 = " << invTemp.toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::mprimeFromMontgomeryRadix m = " << m->toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::mprimeFromMontgomeryRadix m^-1 = " << invTemp.toHexString() << std::endl;
 
-        if (verbosity > 0) std::cout << "BigInteger::mprimeFromMontgomeryRadix radix = " << radix->toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::mprimeFromMontgomeryRadix radix = " << radix->toHexString() << std::endl;
 
         mprime->copy(radix);
         mprime->subtract(&invTemp);
 
 
-        if (verbosity > 0) std::cout << "BigInteger::mprimeFromMontgomeryRadix mprime = " << mprime->toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::mprimeFromMontgomeryRadix mprime = " << mprime->toHexString() << std::endl;
     }
 }
 
@@ -1222,6 +1150,14 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
                 BigInteger::range(&y1, y, maxSize*32-1, halfSize*32);
                 BigInteger::range(&y0, y, halfSize*32-1, 0);
 
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  x " << x->toHexString() << std::endl;
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  x1 " << x1.toHexString() << std::endl;
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  x0 " << x0.toHexString() << std::endl;
+                
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  y " << y->toHexString() << std::endl;
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  y1 " << y1.toHexString() << std::endl;
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  y0 " << y0.toHexString() << std::endl;
+                
                 //const int m = numBits/2;
 
                 BigInteger z0;
@@ -1232,33 +1168,50 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
                 BigInteger::mult(&z2, &x1, &y1);
                 BigInteger::mult(&z0, &x0, &y0);
 
-
-                BigInteger z1;
-                z1.initSize(maxSize+1);
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  z2=x1*y1 " << z2.toHexString() << std::endl;
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  z0=x0*y0 " << z0.toHexString() << std::endl;
+                
 
                 BigInteger t1;
                 t1.initSize(halfSize+1);
 
                 BigInteger::add(&t1, &y1, &y0);
 
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  t1=y1+y0 " << t1.toHexString() << std::endl;
+                
                 BigInteger t2;
                 t2.initSize(halfSize+1);
 
                 BigInteger::add(&t2, &x1, &x0);
+
+                BigInteger z1;
+                z1.initSize(t1.m_size + t2.m_size);
+
                 BigInteger::mult(&z1, &t1, &t2);
 
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  t2=x1+x0 " << t2.toHexString() << std::endl;
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  z1=t1*t2 " << z1.toHexString() << std::endl;
 
                 z1.subtract(&z2);
+                
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  z1=z1-z2 " << z1.toHexString() << std::endl;
+                
                 z1.subtract(&z0);
 
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  z1=z1-z0 " << z1.toHexString() << std::endl;
+                
                 // r = z2 << hs*2  + z1 << hs + z0
                 BigInteger z1z2;
-                z1z2.initSize(maxSize);
+                z1z2.initSize(maxVal(z1.m_size, z2.m_size+halfSize));
                 z1z2.zero();
                 r->zero();
                 BigInteger::addShifted(&z1z2, &z1, &z2, halfSize*32);
+                
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  z1z2=z1+z2<< " << halfSize << "*32  " << z1z2.toHexString() << std::endl;
+                
                 BigInteger::addShifted(r, &z0, &z1z2, halfSize*32);
                 
+                if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  r=z0+z1z2<<  " << halfSize << "*32  " << r->toHexString() << std::endl;
             }            
             
 //            BigInteger r2(*r);
@@ -1296,6 +1249,74 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             div_naive(&m, mod, &q, r);
         }
         
+        
+void BigInteger::parseString(const char* str)
+{
+    // multiply by x*10 is x*(8+2) -> 8*x + 2*x
+    int l = strlen(str);
+
+    zero();
+
+    BigInteger digit;
+    digit.initSize(1);
+
+    // V = V*10+s[i];
+    for (int i=0; i < l; i++)
+    {
+        //  x=x*10
+        BigInteger ref(*this);
+        ref.shiftLeft(1);
+        shiftLeft(3);
+        add(&ref);
+
+//                std::cout << toString() << " + " << str[i] << " = "; 
+
+        digit.setIntValue(str[i]-'0');
+        add(&digit);
+
+//                std::cout << toString() << std::endl;
+    }
+}
+        
+/**
+ * Parses an hexadecimal string
+ * @param str
+ */
+void BigInteger::parseHexString(const char* str)
+{
+    // multiply by x*10 is x*(8+2) -> 8*x + 2*x
+    int l = strlen(str);
+
+    zero();
+
+    BigInteger digit;
+    digit.initSize(1);
+
+    // V = V*10+s[i];
+    for (int i=0; i < l; i++)
+    {
+        //  x=x*10
+        shiftLeft(4); // *16
+
+
+        if ((str[i] >= '0') && (str[i] <= '9'))
+            digit.setIntValue(str[i]-'0');
+        else if ((str[i] >= 'A') && (str[i] <= 'F'))
+            digit.setIntValue(10 + (str[i]-'A'));
+        else
+            digit.setIntValue(10 + (str[i]-'a'));
+
+        if (verbosity > 10)
+            std::cout << toHexString() << " + " << digit.toHexString() << " = "; 
+
+        add(&digit);
+
+        if (verbosity > 10)
+            std::cout << toHexString() << std::endl;
+    }
+}
+        
+        
         /**
          * 
          * @param r
@@ -1305,22 +1326,33 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
          */
         void BigInteger::powerMod(BigInteger* r, BigInteger* v, BigInteger* power, BigInteger* mod)
         {
+            if (extraChecks)
+            {
+                assert(r != v);
+                assert(r != power);
+                assert(r != mod);
+            }
+            
             BigInteger x(*v);
             BigInteger y(*power);
 
             // we use a simple square-and-multiply algorithm,
+            if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod v " << v->toHexString() << std::endl;
+            if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod power " << power->toHexString() << std::endl;
+            if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod mod " << mod->toHexString() << std::endl;
         
             r->setIntValue(1);
 
             while(!y.isZero())
             {
                     if (y.isOdd())
-                        multMod(r, r, &x, mod);
+                        r->multMod(&x, mod);
 
-                    shiftRight(&y, &y, 1);    // / 2
-                    squareMod(&x, &x, mod); 
+                    y.shiftRight(1);    // / 2
+                    x.squareMod(mod); 
             }
-            return;
+            
+            if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod r " << r->toHexString() << std::endl;
 	}
         
         /**
@@ -1336,22 +1368,27 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             {
                 assert(!m->isZero());
                 assert(!mprime->isZero());
+                assert(r != x);
+                assert(r != e);
+                assert(r != m);
+                assert(r != mprime);
+                assert(r != radix);
             }
             BigInteger radix2;
             radix2.initSize(m->m_size);
             squareMod(&radix2, radix, m);
 
-            if (verbosity)
+            if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
                 std::cout << "BigInteger::powerModMontgomery radix: " << radix->toHexString() << std::endl;
-            if (verbosity)
+            if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
                 std::cout << "BigInteger::powerModMontgomery m: " << m->toHexString() << std::endl;
-            if (verbosity)
+            if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
                 std::cout << "BigInteger::powerModMontgomery radix ^2 mod m: " << radix2.toHexString() << std::endl;
             
             BigInteger xprime;
             xprime.initSize(m->m_size);
             
-            multMontgomeryForm(&xprime, x, &radix2, m, mprime);
+            multMontgomeryForm2(&xprime, x, &radix2, m, mprime);
             
             BigInteger a(*radix);
             a.mod(m);
@@ -1364,12 +1401,12 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
                 int ei = e->getBit(i);
                 
                 BigInteger temp(a);
-                multMontgomeryForm(&a, &temp, &temp, m, mprime);
+                multMontgomeryForm2(&a, &temp, &temp, m, mprime);
                 
                 if (ei)
                 {
                     temp.copy(&a);
-                    multMontgomeryForm(&a, &temp, &xprime, m, mprime);
+                    multMontgomeryForm2(&a, &temp, &xprime, m, mprime);
                 }   
             }
             
@@ -1377,7 +1414,7 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             one.initSize(1);
             one.setIntValue(1);
             
-            multMontgomeryForm(r, &a, &one, m, mprime);
+            multMontgomeryForm2(r, &a, &one, m, mprime);
         }
         
 
@@ -1387,11 +1424,56 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
          */
         void BigInteger::reduceWorkingSize(int s)
         {
+            assert(m_size >= s);
             for (int i=s; i < m_size; i++)
                 assert(m_data[i] == 0);
             
             m_size = s;
         }
+
+/**
+ * 
+ * @param r
+ * @param x
+ * @param y
+ */
+void BigInteger::subtract(BigInteger* r, BigInteger* x, BigInteger* y)
+{
+    unsigned int* px = x->m_data;
+    unsigned int* py = y->m_data;
+    unsigned int* pr = r->m_data;
+
+    unsigned int carryIn = 0;
+    unsigned int carryOut = 0;
+
+    if (extraChecks)
+    {
+        assert(r != x);
+        assert(r != y);
+    }
+    
+    for (int i=0; i < x->m_size; i++)
+    {
+        unsigned int sum = 0;
+
+        if (i < x->m_size) sum += px[i];
+        if (i < y->m_size) sum -= py[i];
+
+        if (sum > px[i])
+        {
+            if (carryIn) sum--;
+            carryOut = 1;
+        }
+        else if (carryIn)
+        {
+            carryOut = (sum == 0)? 1: 0;
+            sum--;
+        }
+
+        carryIn = carryOut;
+        pr[i] = sum;
+    }
+}
 
         /**
          * Computes r = v^2 mod m
@@ -1402,6 +1484,12 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
          */
         void BigInteger::squareMod(BigInteger* r, BigInteger* v, BigInteger* m)
         {
+            if (extraChecks) 
+            {
+                assert(r != v);
+                assert(r != m);
+            }
+            
             multMod(r, v, v, m);
         }
         
@@ -1411,17 +1499,71 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             squareMod(this, &ref, m);
         }
         
-        void BigInteger::shiftLeft(int bits)
-        {
-            BigInteger ref(*this);
-            BigInteger::shiftLeft(this, &ref, bits );
-        }
+void BigInteger::shiftLeft(int bits)
+{
+    BigInteger ref(*this);
+    BigInteger::shiftLeft(this, &ref, bits );
+}
+
+
+/**
+ * 
+ * @param r
+ * @param a
+ * @param sv
+ */
+void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
+{
+    unsigned int* pa = a->m_data;
+    unsigned int* pr = r->m_data;
+    
+    unsigned int carry = 0;
         
-        void BigInteger::shiftRight(int bits)
+    if (extraChecks)
+        assert(r != a);
+    
+    // 
+    unsigned int limbsShifted = sv / 32;
+    
+    if (limbsShifted)    // (sv == 32)
+    {
+        int slots = limbsShifted;
+
+        for (int i=r->m_size-1; i >= slots; i--)
         {
-            BigInteger ref(*this);
-            BigInteger::shiftRight(this, &ref, bits );
+            pr[i] = pa[i-slots];
         }
+        for (int i=slots-1; i >= 0; i--)
+             pr[i] = 0;
+        
+        sv -= limbsShifted * 32;
+    }
+    else
+        if (r != a)
+            r->copy(a);
+    
+    if (sv != 0)
+    {
+        int cs = 32-sv;
+
+        for (int i=0; i < r->m_size; i++)
+        {
+            unsigned int nv = (pr[i] << sv) | carry;
+
+            carry = ~((0xFFFFFFFF << sv) >> sv);
+            carry &= pr[i];
+            carry = carry >> cs;
+
+            pr[i] = nv;
+        }
+    }
+}
+
+void BigInteger::shiftRight(int bits)
+{
+    BigInteger ref(*this);
+    BigInteger::shiftRight(this, &ref, bits );
+}
         
         void BigInteger::subtract(BigInteger* y)
         {
@@ -1453,73 +1595,76 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             subtract(x);
         }
 
-        
-        void BigInteger::parseString(const char* str)
+
+/**
+ * Shift right a number of bits, zeros are inserted at the left
+ * First we move slots (limb multiples)
+ * 
+ *  For instance if slots is 2
+ * 
+ *  ... a[6] a[5] a[4] a[3] a[2]
+ *  ... r[4] r[3] r[2] r[1] r[0]
+ * 
+ * @param r retsult r = a >> sv
+ * @param a
+ * @param sv    number of bits to shift to the right
+ */
+void BigInteger::shiftRight(BigInteger* r, BigInteger* a, int sv)
+{
+    if (extraChecks)
+    {
+        assert(r != a);
+        // check that the result number can hold the resulting value
+        int targetLen = r->m_size*32;
+        int reqLen = a->getLength() - sv;
+        assert(targetLen >= reqLen);
+    }
+
+    unsigned int* pa = a->m_data;
+    unsigned int* pr = r->m_data;
+    unsigned int carry = 0;
+
+    unsigned int limbsShifted = sv / 32;
+
+    if (limbsShifted)
+    {
+        // number of limbs we are jumping r[i] = a[i+slots]
+        int slots = sv / 32;
+        unsigned int val;
+        for (int i=0; i < r->m_size; i++)
         {
-            // multiply by x*10 is x*(8+2) -> 8*x + 2*x
-            int l = strlen(str);
-            
-            zero();
-            
-            BigInteger digit;
-            digit.initSize(1);
-            
-            // V = V*10+s[i];
-            for (int i=0; i < l; i++)
-            {
-                //  x=x*10
-                BigInteger ref(*this);
-                BigInteger::shiftLeft(&ref, &ref, 1);
-                BigInteger::shiftLeft(this, this, 3);
-                BigInteger::add(this, this, &ref);
-                
-//                std::cout << toString() << " + " << str[i] << " = "; 
-                
-                digit.setIntValue(str[i]-'0');
-                BigInteger::add(this, this, &digit);
-                
-//                std::cout << toString() << std::endl;
-            }
+            val = ((i + slots) < a->m_size) ?  pa[i + slots] : 0;
+            if (i < r->m_size) pr[i] = val;
         }
-        
-        /**
-         * Parses an hexadecimal string
-         * @param str
-         */
-        void BigInteger::parseHexString(const char* str)
+
+        // set zero to slots r[a->m_size-slot] to r[rize]
+//            for (int i=(a->m_size-slots); i < r->m_size; i++)
+//                pr[i] = 0;
+
+        sv -= limbsShifted * 32;
+    }
+    else 
+        if (r != a)
+            r->copy(a);
+
+    if (sv != 0)
+    {
+        int cs = 32-sv;
+
+        for (int i=r->m_size-1; i >= 0; i--)
         {
-            // multiply by x*10 is x*(8+2) -> 8*x + 2*x
-            int l = strlen(str);
-            
-            zero();
-            
-            BigInteger digit;
-            digit.initSize(1);
-            
-            // V = V*10+s[i];
-            for (int i=0; i < l; i++)
-            {
-                //  x=x*10
-                BigInteger::shiftLeft(this, this, 4); // *16
-                
-                
-                if ((str[i] >= '0') && (str[i] <= '9'))
-                    digit.setIntValue(str[i]-'0');
-                else if ((str[i] >= 'A') && (str[i] <= 'F'))
-                    digit.setIntValue(10 + (str[i]-'A'));
-                else
-                    digit.setIntValue(10 + (str[i]-'a'));
-                
-                if (verbosity > 10)
-                    std::cout << toHexString() << " + " << digit.toHexString() << " = "; 
-                
-                BigInteger::add(this, this, &digit);
-                
-                if (verbosity > 10)
-                    std::cout << toHexString() << std::endl;
-            }
+            unsigned int nv = (pr[i] >> sv) | carry;
+
+            carry = ~((0xFFFFFFFF >> sv) << sv);
+            carry &= pr[i];
+            carry = carry << cs;
+
+            pr[i] = nv;
         }
-        
+    }
+}
+    
+
         std::string BigInteger::toHexString()
         {
             std::string s = "";
@@ -1613,15 +1758,15 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             temp.initSize(nprime->m_size+Rinv->m_size);
             BigInteger::mult(&temp, nprime, Rinv);
            
-            if (verbosity) std::cout << "temp:" << temp.toHexString() << std::endl;
-            if (verbosity) std::cout << "m:" << m->toHexString() << std::endl;
+            if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::fromMontgomeryDomain temp:" << temp.toHexString() << std::endl;
+            if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::fromMontgomeryDomain m:" << m->toHexString() << std::endl;
             
             BigInteger q; 
             q.initSize(n->m_size);
             BigInteger::div_naive(&temp, m, &q, n);
             
-            if (verbosity) std::cout << "q:" << q.toHexString() << std::endl;
-            if (verbosity) std::cout << "n:" << n->toHexString() << std::endl;
+            if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::fromMontgomeryDomain q:" << q.toHexString() << std::endl;
+            if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::fromMontgomeryDomain n:" << n->toHexString() << std::endl;
         }
         
         
@@ -1663,7 +1808,7 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             BigInteger nr; nr.initSize(maxSize);
             BigInteger q; q.initSize(maxSize);
             BigInteger tmp; tmp.initSize(maxSize);
-            BigInteger p; p.initSize(maxSize);
+            BigInteger p; p.initSize(maxSize*2);
             
             t.zero();                       // t = 0;  
             nt.setIntValue(1);              // nt = 1;  
@@ -1702,12 +1847,12 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             
             if (one.isLessThan(&r))     // if (r > 1) return -1;  / * No inverse * /
             {
-                if (verbosity)
+                if (verbosity > VERBOSITY_LEVEL_INV_MOD)
                 {
-                    std::cerr << "Number not invertible " << std::endl;
-                    std::cerr << "a: " << a->toHexString() << std::endl;
-                    std::cerr << "b: " << b->toHexString() << std::endl;
-                    std::cerr << "r: " << r.toHexString() << std::endl;
+                    std::cerr << "BigInteger::inverseMod Number not invertible " << std::endl;
+                    std::cerr << "BigInteger::inverseMod a: " << a->toHexString() << std::endl;
+                    std::cerr << "BigInteger::inverseMod b: " << b->toHexString() << std::endl;
+                    std::cerr << "BigInteger::inverseMod r: " << r.toHexString() << std::endl;
                 }
                 //assert(false);
                 t.zero();
@@ -1716,7 +1861,7 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             {
                 t.add(b);       //  t += b;
                 
-                if (verbosity) std::cerr << "t: " << t.toHexString() << std::endl;
+                if (verbosity > VERBOSITY_LEVEL_INV_MOD) std::cerr << "BigInteger::inverseMod t: " << t.toHexString() << std::endl;
             }
             
             ret->copy(&t);

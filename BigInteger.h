@@ -83,6 +83,7 @@ public:
     static void addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shift);
     static void subtract(BigInteger* r, BigInteger* x, BigInteger* y);
     static void mult(BigInteger* r, BigInteger* a, BigInteger* b);
+    static void mult_naive(BigInteger* r, BigInteger* a, BigInteger* b);
     static void mult_karatsuba(BigInteger* r, BigInteger* x, BigInteger* y);
     static void mult_karatsubaRecursive(BigInteger* r, BigInteger* x, BigInteger* y);
     static void multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod);
@@ -112,7 +113,8 @@ public:
     static int extraChecks;
     
 private:
-    void mult(unsigned int x, unsigned int y, unsigned int *rHight, unsigned int *rLow);
+    static int maxVal( int x,  int y);
+    static void mult(unsigned int x, unsigned int y, unsigned int *rHight, unsigned int *rLow);
 
 public:
     unsigned int* m_data;
