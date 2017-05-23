@@ -37,11 +37,22 @@ PerformanceTestZZ::~PerformanceTestZZ()
 {
 }
 
+void PerformanceTestZZ::run()
+{
+    cout << "[Performance TESTS ZZ]" << endl;
+    
+//    BigInteger::extraChecks = 1;
+
+    testPerformanceFinalModPow();
+   
+    cout << "[Complete]" << endl;
+
+}
 
 /**
  * 
  */
-void PerformanceTestZZ::run()
+void PerformanceTestZZ::runAll()
 {
    cout << "[Performance TESTS ZZ]" << endl;
     
@@ -238,4 +249,75 @@ void PerformanceTestZZ::testPerformanceModPow()
 
     }
 
+}
+
+void PerformanceTestZZ::testPerformanceFinalModPow()
+{
+    double seconds;
+    int numReps = 100;
+    int maxBits = 2048;
+    cout << "MODULAR EXPONENTIATION)" << endl;
+    cout << "Modular Exponentiation two random numbers ("<< (numReps)<<" times)" << endl;
+    cout << "Details;\t\tbits;\ttime;" << endl;
+    
+   
+ 
+    
+//    for (int bits = 32; bits <= maxBits; bits *= 2)
+//    {
+//        PerformanceLap lap;
+//     
+//        a.initSize(bits/32);
+//        e.initSize(bits/32);
+//        m.initSize(bits/32);
+//        r.initSize(bits/32);
+//        r2.initSize(bits/32);
+//        a.random();
+//        e.random();
+//        
+//        BigInteger radix;
+//        radix.initSize(m.m_size+1);
+//        BigInteger mprime;
+//        mprime.initSize(radix.m_size);        
+//
+//        m.random();
+//        
+//        lap.start();
+//        for (int rep=0; rep < numReps; rep++)
+//            BigInteger::powerModSlidingWindow(&r, &a, &e, &m);
+//        seconds = lap.stop();
+//        
+//        cout << "Sliding Window Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+//
+//    }    
+    
+    ZZ a;
+    ZZ e;
+    ZZ m;
+    ZZ r, r2;
+ 
+    
+    for (int bits = 32; bits <= 4096; bits *= 2)
+    {
+        PerformanceLap lap;
+     
+        RandomBits(a, bits);
+        RandomBits(e, bits);
+        
+        ZZ radix;
+        ZZ mprime;
+        
+        RandomBits(m, bits);
+        
+        a = a%m;
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            PowerMod(r, a, e, m);
+        seconds = lap.stop();
+        
+        cout << "ZZ Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+
+    }
+    
 }

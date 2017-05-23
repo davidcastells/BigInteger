@@ -26,6 +26,7 @@ public:
 
 public:
     void run();
+    void runAll();
     
 private:
     void testPerformanceRange();
@@ -34,6 +35,7 @@ private:
     void testPerformanceMult();
     void testPerformanceModMult();
     void testPerformanceModPow();
+    void testPerformanceFinalModPow();
 };
 
 #endif	/* PERFORMANCETESTZZ_H */
