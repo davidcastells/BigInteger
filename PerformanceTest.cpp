@@ -90,7 +90,7 @@ void PerformanceTest::testPerformanceRange()
         for (int rep=0; rep < 10000; rep++)
         {
             int cutPoint = bits/2 + 1;
-            BigInteger::range(&b, &a, bits+1, cutPoint);
+            BigInteger::range(&b, &a, bits-1, cutPoint);
             BigInteger::range(&r, &a, cutPoint-1, 0);
         }
         seconds = lap.stop();
@@ -422,6 +422,8 @@ void PerformanceTest::testPerformanceModPow()
         
         cout << "Sliding Window Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
 
+        if (seconds > 10)
+            bits = maxBits;
     }    
     
     
@@ -461,6 +463,9 @@ void PerformanceTest::testPerformanceModPow()
         seconds = lap.stop();
         
         cout << "Montgomery Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+        
+        if (seconds > 10)
+            bits = maxBits;
     }
     
     for (int bits = 32; bits <= maxBits; bits *= 2)
@@ -488,6 +493,9 @@ void PerformanceTest::testPerformanceModPow()
         seconds = lap.stop();
         
         cout << "Standard Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+        
+        if (seconds > 10)
+            bits = maxBits;
 
     }
     
@@ -535,6 +543,8 @@ void PerformanceTest::testPerformanceFinalModPow()
         
         cout << "Sliding Window Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
 
+        if (seconds > 10)
+            bits = maxBits;
     }    
     
     for (int bits = 32; bits <= maxBits; bits *= 2)
@@ -573,6 +583,9 @@ void PerformanceTest::testPerformanceFinalModPow()
         seconds = lap.stop();
         
         cout << "Montgomery Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+        
+        if (seconds > 10)
+            bits = maxBits;
     }
     
 }
