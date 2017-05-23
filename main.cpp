@@ -31,7 +31,8 @@ void printUsage()
     printf("[options]\n");
     printf("  --help                        prints this message\n");
     printf("  --test-correctness            test the correctness of all the algorithms\n");
-    printf("  --test-performance            test the performance of all the algorithms\n");
+    printf("  --test-performance            test the performance the most demanding algorithms\n");
+    printf("  --test-all-performance        test the performance of all the algorithms\n");
 }
 
 

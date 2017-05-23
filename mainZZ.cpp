@@ -32,11 +32,13 @@ void printUsage()
     printf("  --help                        prints this message\n");
     printf("  --test-correctness            test the correctness of all the algorithms\n");
     printf("  --test-performance            test the performance of all the algorithms\n");
+    printf("  --test-all-performance        test the performance of all the algorithms\n");
 }
 
 
 int doTestCorrectness = 0;
 int doTestPerformance = 0;
+int doTestAllPerformance = 0;
 int doHelp = 0;
 
 void parseArgs(int argc, char* args[])
@@ -47,6 +49,8 @@ void parseArgs(int argc, char* args[])
             doTestCorrectness = 1;
         if (strcmp(args[i], "--test-performance") == 0)
             doTestPerformance = 1;
+        if (strcmp(args[i], "--test-all-performance") == 0)
+            doTestAllPerformance = 1;
         if (strcmp(args[i], "--help") == 0)
             doHelp = 1;
     }
@@ -74,9 +78,19 @@ int main(int argc, char** argv)
 //        test.run();
 //    }
     
+    if (doTestAllPerformance)
+    {
+        PerformanceTestZZ test;
+//        BigInteger::verbosity = verbosity;
+//        test.verbosity = verbosity;
+        test.runAll();
+    }
+
     if (doTestPerformance)
     {
         PerformanceTestZZ test;
+//        BigInteger::verbosity = verbosity;
+//        test.verbosity = verbosity;
         test.run();
     }
     
