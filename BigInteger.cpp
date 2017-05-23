@@ -587,40 +587,94 @@ void BigInteger::mod(BigInteger* m)
     BigInteger::div_naive(&ref, m, &q, this);
 }
         
+/**
+ * from https://github.com/adamwalker/mmul/blob/master/crypto.c (big_mul_low)
+ */        
+void BigInteger::multLow(BigInteger* r, BigInteger* a, BigInteger* b)
+{
+    if (extraChecks) 
+    {
+        assert(r->m_size >= a->m_size);
+        assert(r->m_size >= b->m_size);
+    }
+
+    int i, j;
+
+    r->zero();
+
+    int asize = a->m_size;
+    int bsize = b->m_size;
+    int rsize = r->m_size;
+    
+    uint32_t lo, hi;
+    
+    for(i=0; i<asize; i++)
+    {
+        uint64_t carry = 0;
+        for(j=0; j<bsize; j++)
+        {
+            int idx = i + j;
+            if (idx < rsize)
+            {
+                mult(a->m_data[i], b->m_data[j], &hi, &lo);
+
+                uint64_t accum  = r->m_data[idx] + carry + lo;
+                carry           = (accum >> 32) + hi;
+                r->m_data[idx]          = accum;
+            }
+        }
+    }
+}
 
 /**
  * from https://github.com/adamwalker/mmul/blob/master/crypto.c (mulhilo)
  */        
 void BigInteger::mult(BigInteger* r, BigInteger* a, BigInteger* b)
 {
-    if (extraChecks) assert(r->m_size >= (a->m_size + b->m_size));
+    if (extraChecks) 
+    {
+        assert(r->m_size >= (a->m_size + b->m_size));
+    }
+    
     r->zero();
 
     int asize = a->m_size;
     int bsize = b->m_size;
+    int rsize = r->m_size;
     uint64_t carry;
     uint64_t accum;
     unsigned int adata;
+    int idx;
+    uint32_t lo, hi;
+    unsigned int* prdata;
     
     for (int i=0; i< asize; i++)
     {
         carry = 0;
         adata = a->m_data[i];
+        prdata = &r->m_data[i];
         
-        for(register int j=0; j<bsize; j++)
+        for (int j=0; j<bsize; j++)
         {
-            int idx = i + j;
+            idx = i + j;
 
-            uint32_t lo, hi;
             BigInteger::mult(adata, b->m_data[j], &hi, &lo);
 
-            if (extraChecks) assert(idx < r->m_size);
-            accum = r->m_data[idx] + carry + lo;
-            carry = (accum >> 32) + hi;
-            r->m_data[idx] = accum;
+            //accum = r->m_data[idx] + carry + lo;
+            accum = *prdata;
+            accum += carry;
+            accum += lo;
+            
+            carry = (accum >> 32);
+            carry += hi;
+            
+            //r->m_data[idx] = accum;
+            *prdata = accum;
+            
+            prdata++;
         }
         
-        if ((i + b->m_size)< r->m_size)
+        if ((i + bsize)< rsize)
             r->m_data[i + b->m_size] = carry;
     }
 }        
@@ -723,9 +777,9 @@ void BigInteger::mult_naive(BigInteger* r, BigInteger* a, BigInteger* b)
                 x0.initSize(halfSize);
                 y1.initSize(halfSize);
                 y0.initSize(halfSize);
-                BigInteger::range(&x1, x, maxSize*32-1, halfSize*32);
+                BigInteger::range(&x1, x, x->getNumBits()-1, halfSize*32);
                 BigInteger::range(&x0, x, halfSize*32-1, 0);
-                BigInteger::range(&y1, y, maxSize*32-1, halfSize*32);
+                BigInteger::range(&y1, y, y->getNumBits()-1, halfSize*32);
                 BigInteger::range(&y0, y, halfSize*32-1, 0);
 
                 //const int m = numBits/2;
@@ -932,7 +986,7 @@ void BigInteger::multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y
     BigInteger t;
     t.initSize(x->m_size + y->m_size);
     BigInteger pretm;
-    pretm.initSize(mprime->m_size+t.m_size);
+    pretm.initSize(t.m_size);
     
     BigInteger tm;
     tm.initSize(m->m_size);
@@ -940,7 +994,7 @@ void BigInteger::multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y
     tmm.initSize(tm.m_size + m->m_size);
     
     BigInteger::mult(&t, x, y);
-    BigInteger::mult(&pretm, &t, mprime);  // was mult low
+    BigInteger::multLow(&pretm, &t, mprime);  // was mult low
     tm.copy(&pretm);
     BigInteger::mult(&tmm, &tm, m);
 
@@ -1054,7 +1108,14 @@ void BigInteger::range(int up, int down)
 */
 void BigInteger::range(BigInteger* r, BigInteger* x, int upper, int lower)
 {
-   r->zero();
+    if (extraChecks)
+    {
+        assert(upper <= x->getNumBits());
+        assert(lower <= x->getNumBits());
+        //assert((upper-lower) <= r->getNumBits());
+    }
+    
+    r->zero();
 
    int maxSize = (r->m_size > x->m_size)? r->m_size : x->m_size;
    BigInteger temp, temp2;
@@ -1063,6 +1124,9 @@ void BigInteger::range(BigInteger* r, BigInteger* x, int upper, int lower)
 
   int zl = temp.getNumBits() -1-(upper); 
 
+    if (extraChecks)
+        assert(zl >= 0);
+  
   if (verbosity > VERBOSITY_LEVEL_RANGE) std::cout << "BigInteger.range x = " << x->toHexString() << std::endl;
 
   BigInteger::shiftLeft(&temp, x, zl);
@@ -1145,9 +1209,9 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
                 x0.initSize(halfSize);
                 y1.initSize(halfSize);
                 y0.initSize(halfSize);
-                BigInteger::range(&x1, x, maxSize*32-1, halfSize*32);
+                BigInteger::range(&x1, x, x->getNumBits()-1, halfSize*32);
                 BigInteger::range(&x0, x, halfSize*32-1, 0);
-                BigInteger::range(&y1, y, maxSize*32-1, halfSize*32);
+                BigInteger::range(&y1, y, y->getNumBits()-1, halfSize*32);
                 BigInteger::range(&y0, y, halfSize*32-1, 0);
 
                 if (verbosity > VERBOSITY_LEVEL_MULT_KARATSUBA) std::cout << "  x " << x->toHexString() << std::endl;
@@ -1872,4 +1936,144 @@ void BigInteger::zero()
 {
     for (int i=0; i < m_size; i++)
         m_data[i] = 0;    
+}
+
+
+#define SLIDING_WINDOW_SIZE 5
+
+/**
+ *  Sliding Window Exponentiation 
+ * @from https://github.com/an4/Applied-Security-Mod/blob/master/modmul.c
+ */
+int BigInteger::binary_to_decimal(int start, int end) 
+{
+    int i;
+    int result = 0;
+    int g = 1;
+    for(i = end; i<=start; i++) 
+    {
+        int bit = getBit(i);; // mpz_tstbit(input, i);
+        if(bit) 
+        {
+            result += g * bit;
+        }
+        g <<= 1;
+    }
+    return result;
+}
+
+/**
+ * Computes the modular exponentiation using the sliding window algorithm, which
+ * precomputes a table of products to reuse them
+ * 
+ * Inspired in https://github.com/an4/Applied-Security-Mod/blob/master/modmul.c
+ *
+ * @param r return value
+ * @param v
+ * @param exp
+ * @param m
+ */
+void BigInteger::powerModSlidingWindow(BigInteger* r, BigInteger* v, BigInteger* exp, BigInteger* m)
+{
+    const int table_length = 1 << (SLIDING_WINDOW_SIZE - 1);
+    BigInteger table[table_length];
+    BigInteger square_base;
+    BigInteger temp;
+    int i;
+    int exp_length;
+    int l;
+    // value in window
+    int u;
+
+    temp.initSize(r->m_size);
+    
+    //mpz_init(temp);
+    //mpz_init(square_base);
+
+    // T[0] = x
+    table[0].initSize(v->m_size);
+    table[0].copy(v);
+    
+    //mpz_init_set(table[0], base);
+    
+    // x^2 mod N
+    square_base.initSize(m->m_size);
+    square_base.copy(v);
+    square_base.squareMod(m);
+    
+    //mpz_mul(square_base, base, base);
+    //mpz_mod(square_base, square_base, modulus);
+    
+    // Compute lookup table.
+    for(i = 1; i < table_length; i++) 
+    {
+        // table[i] = table[i-1] * v ^ 2 mod m
+        table[i].initSize(m->m_size);
+        BigInteger::multMod(&table[i], &table[i-1], &square_base, m);
+//        mpz_init(table[i]);
+//        mpz_mul(table[i], table[i-1], square_base);
+//        mpz_mod(table[i], table[i], modulus);
+    }
+    
+    // t = 1
+    r->setIntValue(1);
+    //mpz_init_set_ui(output, 1);
+    
+    // |y|
+    exp_length = exp->getNumBits();
+    //exp_length = mpz_size(exp) * mp_bits_per_limb;
+    
+    // |y| - 1
+    i = exp_length - 1;
+    while(i >= 0) 
+    {
+        if(! exp->getBit(i))    // mpz_tstbit(exp, i)) 
+        {
+            l = i;
+            u = 0;
+        }
+        else
+        {
+            l = ((i - SLIDING_WINDOW_SIZE + 1) > 0) ? (i - SLIDING_WINDOW_SIZE + 1) : 0;
+
+            while(! exp->getBit(l)) // mpz_tstbit(exp,l)) 
+            {
+                l++;
+            }
+            // Set u = exp bits between i and l
+            u = exp->binary_to_decimal(i, l);
+        }
+
+        // t' = t
+        temp.copy(r);
+        
+        // t^p
+        int p = 1 << (i - l + 1);
+        if(p>0) 
+        {
+            // t = t'^p (mod N)
+            BigInteger bip;
+            bip.initSize(1);
+            bip.setIntValue(p);
+            
+            BigInteger::powerMod(r, &temp, &bip, m);
+            //mpz_powm_ui(output, temp, p, modulus);
+        }
+        
+        if(u != 0) 
+        {
+            // t = t * T[(u-1)/2] mod N
+            
+            r->multMod(&table[(u-1)/2], m);
+            //mpz_mul(output, output, table[(u-1)/2]);
+            //mpz_mod(output, output, modulus);
+        }
+        i = l - 1;
+    }
+
+//    mpz_clear(square_base);
+//    mpz_clear(temp);
+//    for(i=0 ; i<table_length; i++) {
+//        mpz_clear(table[i]);
+//    }
 }

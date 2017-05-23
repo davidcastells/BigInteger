@@ -162,6 +162,11 @@ void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char*
     cout << msg << " (mont) " ;
     checkResultMatchsExpected(&r2, &r);
     
+    BigInteger::powerModSlidingWindow(&r2, &a, &e, &m);
+    
+    cout << msg << " (sliding window) " ;
+    checkResultMatchsExpected(&r2, &r);
+    
 }
 
 void CorrectnessTest::checkDivision(const char* msg, const char* a, const char* b, const char* eq, const char* er)

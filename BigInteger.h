@@ -77,18 +77,24 @@ public:
     void subtract(BigInteger* y);
     void subtractMod(BigInteger* x, BigInteger* m);
     
+    int binary_to_decimal(int start, int end);
+    
 // Static functions
 public:
     static void add(BigInteger* r, BigInteger* a, BigInteger* b);
     static void addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shift);
     static void subtract(BigInteger* r, BigInteger* x, BigInteger* y);
     static void mult(BigInteger* r, BigInteger* a, BigInteger* b);
+    static void multLow(BigInteger* r, BigInteger* a, BigInteger* b);
     static void mult_naive(BigInteger* r, BigInteger* a, BigInteger* b);
     static void mult_karatsuba(BigInteger* r, BigInteger* x, BigInteger* y);
     static void mult_karatsubaRecursive(BigInteger* r, BigInteger* x, BigInteger* y);
     static void multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod);
     static void squareMod(BigInteger* r, BigInteger* v, BigInteger* mod);
     static void powerMod(BigInteger* r, BigInteger* v, BigInteger* p, BigInteger* mod);
+    static void powerModSlidingWindow(BigInteger* r, BigInteger* v, BigInteger* exp, BigInteger* mod);
+    
+    
     //static void mod(BigInteger* r, BigInteger* v, BigInteger* mod);
     static void shiftLeft(BigInteger* r, BigInteger* a, int shift);
     static void shiftRight(BigInteger* r, BigInteger* a, int shift);

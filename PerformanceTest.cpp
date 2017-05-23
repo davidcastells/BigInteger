@@ -396,7 +396,33 @@ void PerformanceTest::testPerformanceModPow()
     BigInteger m;
     BigInteger r, r2;
  
-    
+    for (int bits = 32; bits <= maxBits; bits *= 2)
+    {
+        PerformanceLap lap;
+     
+        a.initSize(bits/32);
+        e.initSize(bits/32);
+        m.initSize(bits/32);
+        r.initSize(bits/32);
+        r2.initSize(bits/32);
+        a.random();
+        e.random();
+        
+        BigInteger radix;
+        radix.initSize(m.m_size+1);
+        BigInteger mprime;
+        mprime.initSize(radix.m_size);        
+
+        m.random();
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::powerModSlidingWindow(&r, &a, &e, &m);
+        seconds = lap.stop();
+        
+        cout << "Sliding Window Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+
+    }    
     
     
     for (int bits = 32; bits <= maxBits; bits *= 2)
@@ -464,6 +490,8 @@ void PerformanceTest::testPerformanceModPow()
         cout << "Standard Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
 
     }
+    
+
 }
 
 void PerformanceTest::testPerformanceFinalModPow()
@@ -481,7 +509,33 @@ void PerformanceTest::testPerformanceFinalModPow()
     BigInteger r, r2;
  
     
-    
+    for (int bits = 32; bits <= maxBits; bits *= 2)
+    {
+        PerformanceLap lap;
+     
+        a.initSize(bits/32);
+        e.initSize(bits/32);
+        m.initSize(bits/32);
+        r.initSize(bits/32);
+        r2.initSize(bits/32);
+        a.random();
+        e.random();
+        
+        BigInteger radix;
+        radix.initSize(m.m_size+1);
+        BigInteger mprime;
+        mprime.initSize(radix.m_size);        
+
+        m.random();
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::powerModSlidingWindow(&r, &a, &e, &m);
+        seconds = lap.stop();
+        
+        cout << "Sliding Window Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+
+    }    
     
     for (int bits = 32; bits <= maxBits; bits *= 2)
     {
