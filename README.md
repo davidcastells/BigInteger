@@ -1,5 +1,5 @@
 # BigInteger
-Simple BigInteger C++ class 
+Simple BigInteger C++ class , and a simple C alternative version
 
 By BigInteger I mean an integer number with a large number of bits, much more 
 than 32 or 64, which are the sizes that we commonly found in digital computers.
@@ -19,3 +19,4 @@ So my goals are:
 
 * Readible Code
 * Small Size
+* Be able to use it as a baseline for GPU/FPGA optimization (this is why basic C is handy)
