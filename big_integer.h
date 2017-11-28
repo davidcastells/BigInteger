@@ -51,6 +51,7 @@ void big_integer_parseHexString(unsigned int* data, unsigned int base, unsigned 
 void big_integer_parseString(unsigned int * data, unsigned int base, unsigned int size, const char* str);
 void big_integer_random(unsigned int* data, unsigned int base, unsigned int size);
 void big_integer_random_bits(unsigned int* data, unsigned int base, unsigned int size, int n);
+void big_integer_zeroHighBits(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, int fromBit);
 
 const char* big_integer_toHexString(unsigned int* data, unsigned int base, unsigned int size);
 
