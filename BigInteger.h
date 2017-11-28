@@ -120,6 +120,7 @@ public:
     
 private:
     static int maxVal( int x,  int y);
+    static void zeroHighBits(BigInteger* r, int fromBit);
     static void mult(unsigned int x, unsigned int y, unsigned int *rHight, unsigned int *rLow);
 
 public:

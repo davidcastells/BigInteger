@@ -53,7 +53,8 @@ std::string to_string(T value)
 
 
 int BigInteger::verbosity = 0;
-int BigInteger::extraChecks = 0;
+int BigInteger::extraChecks = 1;
+
 /**
  * Default constructor 
  */
@@ -115,7 +116,12 @@ BigInteger::~BigInteger()
     m_data = NULL;
 }
 
-
+void BigInteger::add(BigInteger* y)
+{
+    BigInteger ref(*this);
+    BigInteger::add(this, &ref, y);
+}
+     
 void BigInteger::add(BigInteger* r, BigInteger* a, BigInteger* b)
 {
     unsigned int carryIn = 0;
@@ -224,45 +230,45 @@ int BigInteger::getBit(int bitnum)
  /**
   * @return the number of bits that the number can store
   */
-    int BigInteger::getNumBits()
+int BigInteger::getNumBits()
+{
+    return m_size * 32;
+}
+
+/**
+ * 
+ * @return the number of the most significant active bit
+ */
+int BigInteger::getLength()
+{
+    int len = 0;
+    int greaterActiveLimb = 0;
+
+    // find the highest limb with an active bit
+    for (int i=m_size-1; (i > 0) && (greaterActiveLimb == 0); i--)
     {
-        return m_size * 32;
+        if (m_data[i] > 0)
+            greaterActiveLimb = i;
     }
 
-        /**
-         * 
-         * @return the number of the most significant active bit
-         */
-        int BigInteger::getLength()
-        {
-            int len = 0;
-            int greaterActiveLimb = 0;
-            
-            // find the highest limb with an active bit
-            for (int i=m_size-1; (i > 0) && (greaterActiveLimb == 0); i--)
-            {
-                if (m_data[i] > 0)
-                    greaterActiveLimb = i;
-            }
-            
-            if (verbosity > VERBOSITY_LEVEL_GET_LENGTH) std::cout << "BigInteger::getLength greaterActiveLimb = " << greaterActiveLimb << std::endl;
-            
-            // find the highest bit 
-            unsigned int test = m_data[greaterActiveLimb];
-            int numActiveBits = 0;
-            
-            if (verbosity > VERBOSITY_LEVEL_GET_LENGTH) std::cout << "BigInteger::getLength test = " << test << std::endl;
-            
-            while (test > 0)
-            {
-                test = test >> 1;
-                numActiveBits++;
-            }
-            
-            len = (numActiveBits + greaterActiveLimb * 32);
-            
-            return len;
-        }
+    if (verbosity > VERBOSITY_LEVEL_GET_LENGTH) std::cout << "BigInteger::getLength greaterActiveLimb = " << greaterActiveLimb << std::endl;
+
+    // find the highest bit 
+    unsigned int test = m_data[greaterActiveLimb];
+    int numActiveBits = 0;
+
+    if (verbosity > VERBOSITY_LEVEL_GET_LENGTH) std::cout << "BigInteger::getLength test = " << test << std::endl;
+
+    while (test > 0)
+    {
+        test = test >> 1;
+        numActiveBits++;
+    }
+
+    len = (numActiveBits + greaterActiveLimb * 32);
+
+    return len;
+}
         
         /**
          * Based of parseStr_shiftAdd
@@ -325,36 +331,36 @@ int BigInteger::getBit(int bitnum)
             return true;
         }
         
-        /**
-         * Returns true if this < v
-         * Returns false if this >= v
-         * 
-         * @param v
-         * @return 
-         */
-        int BigInteger::isLessThan(BigInteger* v)
+/**
+ * Returns true if this < v
+ * Returns false if this >= v
+ * 
+ * @param v
+ * @return 
+ */
+int BigInteger::isLessThan(BigInteger* v)
+{
+    unsigned int* pv = v->m_data;
+
+    // if there is any 1 in a bigger size v before the range of this
+    // then return true
+    for (int i=v->m_size-1; i >= m_size; i--)
+        if (pv[i])
+            return true;
+
+    for (int i=m_size-1; i >= 0; i--)
+        if (i >= v->m_size)
         {
-            unsigned int* pv = v->m_data;
-            
-            // if there is any 1 in a bigger size v before the range of this
-            // then return true
-            for (int i=v->m_size-1; i >= m_size; i--)
-                if (pv[i])
-                    return true;
-            
-            for (int i=m_size-1; i >= 0; i--)
-                if (i >= v->m_size)
-                {
-                    if (m_data[i] != 0)
-                        return false;
-                }
-                else if (m_data[i] < pv[i])
-                    return true;
-                else if (m_data[i] > pv[i])
-                    return false;
-                
-            return false;
+            if (m_data[i] != 0)
+                return false;
         }
+        else if (m_data[i] < pv[i])
+            return true;
+        else if (m_data[i] > pv[i])
+            return false;
+
+    return false;
+}
         
 /**
  * Initializes size and parses hex string
@@ -387,136 +393,125 @@ void BigInteger::initSize(int s)
         
         
         
-        void BigInteger::add(BigInteger* y)
+   
+        
+        
+void BigInteger::div(BigInteger* m)
+{
+    BigInteger ref(*this);
+    BigInteger r(*this);
+
+    BigInteger::div_naive(&ref, m, this, &r);
+}
+        
+        
+/**
+ * Compute division, so that
+ *  nq = x / y
+ *  nr = x % y
+ * 
+ * @param x
+ * @param y
+ * @param nq
+ * @param nr
+ */
+void BigInteger::div_naive(BigInteger* x,
+        BigInteger* y, 
+        BigInteger* q, 
+        BigInteger* r)
+{
+    if (verbosity> VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div x = " << x->toHexString() << std::endl;
+    if (verbosity> VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div /   " << y->toHexString() << std::endl;
+
+    
+    //q.initSize(x->m_size);
+    //r.initSize(x->m_size);
+    q->zero();
+
+    if (x->isLessThan(y))
+    {
+        r->copy(x);
+        //q->copy(&q);
+        return;
+    }
+
+
+    // get the length of y
+    int yl = y->getLength();
+    int rl = x->getLength();
+
+    int downBit = rl-yl;
+
+    if (extraChecks) assert(downBit >= 0);
+
+    // get the yl most significant bits of ref
+    //r->copy(&ref);
+    //if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r " <<  r->toHexString() << std::endl;
+
+    BigInteger::range(r, x, rl-1, downBit--);
+
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r->toHexString() << std::endl;
+
+    if (r->isLessThan(y))
+    {
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r < divisor" << std::endl;
+
+        // take another bit from ref
+        BigInteger::range(r, x, rl-1, downBit--);
+
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r->toHexString() << std::endl;
+    }
+
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r->toHexString() << std::endl;
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      - " << y->toHexString() << std::endl;
+
+    q->inc();
+    r->subtract(y);
+
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      = " << r->toHexString() << std::endl;
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div    q = " << q->toHexString() << std::endl;
+
+    // take another bit
+    while (downBit >= 0)
+    {
+        r->shiftLeft(1);
+        if (x->getBit(downBit--))
+            r->inc();
+
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r->toHexString() << std::endl;
+
+        if (r->isLessThan(y))
         {
-            BigInteger ref(*this);
-            BigInteger::add(this, &ref, y);
+            q->shiftLeft(1);    // put a zero in q
+            //goto loop;
+
+            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div  0 q = " << q->toHexString() << std::endl;
         }
-        
-        
-        
-        void BigInteger::div(BigInteger* m)
+        else
         {
-            BigInteger ref(*this);
-            BigInteger r(*this);
-            
-            BigInteger::div_naive(&ref, m, this, &r);
+            q->shiftLeft(1);     // put a one in q
+            q->inc();
+
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div  1 q = " << q->toHexString() << std::endl;
+
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r->toHexString() << std::endl;
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      - " << y->toHexString() << std::endl;
+
+            r->subtract(y);
+            //goto loop;
+
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      = " << r->toHexString() << std::endl;
+
         }
-        
-        
-        /**
-         * Compute division, so that
-         *  nq = x / y
-         *  nr = x % y
-         * 
-         * @param x
-         * @param y
-         * @param nq
-         * @param nr
-         */
-        void BigInteger::div_naive(BigInteger* x,
-                BigInteger* y, 
-                BigInteger* nq, BigInteger* nr)
-        {
-            BigInteger ref(*x);
-            
-            BigInteger divisor(*y);
-            BigInteger q;
-            BigInteger r;
+    } 
 
 
-            if (verbosity> VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div x = " << ref.toHexString() << std::endl;
-            if (verbosity> VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div /   " << divisor.toHexString() << std::endl;
+    //nr->copy(&r);
+    //nq->copy(&q);
 
-            q.initSize(x->m_size);
-            r.initSize(x->m_size);
-            q.zero();
-            
-            if (x->isLessThan(y))
-            {
-                nr->copy(x);
-                nq->copy(&q);
-                return;
-            }
-            
-            
-            // get the length of y
-            int yl = y->getLength();
-            int rl = ref.getLength();
-            
-            int downBit = rl-yl;
-            
-            if (extraChecks) assert(downBit >= 0);
-            
-            // get the yl most significant bits of ref
-            r.copy(&ref);
-            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r " <<  r.toHexString() << std::endl;
-
-            r.range(rl-1, downBit--);
-            
-            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r.toHexString() << std::endl;
-
-            if (r.isLessThan(&divisor))
-            {
-                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r < divisor" << std::endl;
-
-                // take another bit from ref
-                r.copy(&ref);
-                r.range(rl-1, downBit--);
-
-                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r.toHexString() << std::endl;
-            }
-            
-            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
-            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      - " << divisor.toHexString() << std::endl;
-            
-            q.inc();
-            r.subtract(&divisor);
-
-            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      = " << r.toHexString() << std::endl;
-            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div    q = " << q.toHexString() << std::endl;
-            
-            // take another bit
-            while (downBit >= 0)
-            {
-                r.shiftLeft(1);
-                if (ref.getBit(downBit--))
-                    r.inc();
-
-                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
-
-                if (r.isLessThan(&divisor))
-                {
-                    q.shiftLeft(1);    // put a zero in q
-                    //goto loop;
-                    
-                    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div  0 q = " << q.toHexString() << std::endl;
-                }
-                else
-                {
-                    q.shiftLeft(1);     // put a one in q
-                    q.inc();
-
-                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div  1 q = " << q.toHexString() << std::endl;
-      
-                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r.toHexString() << std::endl;
-                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      - " << divisor.toHexString() << std::endl;
-
-                    r.subtract(&divisor);
-                    //goto loop;
-                    
-                if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      = " << r.toHexString() << std::endl;
-        
-                }
-            } 
-            
-            
-            nr->copy(&r);
-            nq->copy(&q);
-            
-            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div     nr = " << nr->toHexString() << std::endl;
-            if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div     nq = " << nq->toHexString() << std::endl;
-        }
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div     nr = " << r->toHexString() << std::endl;
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div     nq = " << q->toHexString() << std::endl;
+}
         
         
         /**
@@ -559,24 +554,24 @@ void BigInteger::initSize(int s)
             return m_data[m_size-1] & 0x80000000;
         }
         
-        /**
-         * Increment a big number
-         */
-        void BigInteger::inc()
-        {
-            int i = 0;
-            int doRun;
-            do
-            {                
-                m_data[i]++;
+/**
+ * Increment a big number
+ */
+void BigInteger::inc()
+{
+    int i = 0;
+    int doRun;
+    do
+    {                
+        m_data[i]++;
 
-                doRun = (m_data[i] == 0);
+        doRun = (m_data[i] == 0);
 
-                i++;
-                
- 
-            } while(doRun);
-        }
+        i++;
+
+
+    } while(doRun);
+}
         
 
 void BigInteger::mod(BigInteger* m)
@@ -1105,7 +1100,7 @@ void BigInteger::range(int up, int down)
 * @param x
 * @param upper
 * @param lower
-*/
+* /
 void BigInteger::range(BigInteger* r, BigInteger* x, int upper, int lower)
 {
     if (extraChecks)
@@ -1139,7 +1134,61 @@ void BigInteger::range(BigInteger* r, BigInteger* x, int upper, int lower)
 
   r->copy(&temp2);
 
+}*/
+
+/**
+ * Sets to zero the higher bits
+ * if the number has less bits, ignore it 
+ */
+void BigInteger::zeroHighBits(BigInteger* r, int fromBit)
+{
+    int fromLimb = fromBit / 32;
+    int fromLimbBit = fromBit % 32;
+    
+    if ((fromLimb == r->m_size) && (fromLimbBit == 0))
+        return;
+    
+    if (fromLimb >= r->m_size)
+        return;    
+    
+    int mask = ((1 << fromLimbBit)-1);
+    
+    r->m_data[fromLimb] = r->m_data[fromLimb] & mask;
+    fromLimb++;
+    
+    while (fromLimb < r->m_size)
+    {
+        r->m_data[fromLimb] = 0;
+        fromLimb++;
+    }
 }
+
+/**
+ * copy [upper, lower] bits from x to r
+ * 
+ * @param r return value
+ * @param x original value
+ * @param upper the index of the upper bit
+ * @param lower the index of the lower bit (zero is the minimum value)
+ */
+void BigInteger::range(BigInteger* r, BigInteger* x, int upper, int lower)
+{
+    if (extraChecks)
+    {
+        assert(upper <= x->getNumBits());
+        assert(lower <= x->getNumBits());
+        assert(r->getNumBits() >= (upper-lower));
+    }
+ 
+    // we move 
+    if (lower > 0)
+        shiftRight(r, x, lower);
+    else
+        r->copy(x);
+    
+    zeroHighBits(r, upper-lower+1);
+}
+
 
 int BigInteger::maxVal( int x,  int y)
 {
@@ -1302,16 +1351,16 @@ void BigInteger::mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, Bi
             BigInteger::multMod(this, &ref, b, m);
         }
         
-        void BigInteger::multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod)
-        {
-            BigInteger m;
-            m.initSize(a->m_size + b->m_size);
-            BigInteger q;
-            q.initSize(a->m_size);
-            
-            mult(&m, a, b);
-            div_naive(&m, mod, &q, r);
-        }
+void BigInteger::multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod)
+{
+    BigInteger m;
+    m.initSize(a->m_size + b->m_size);
+    BigInteger q;
+    q.initSize(a->m_size);
+
+    mult(&m, a, b);
+    div_naive(&m, mod, &q, r);
+}
         
         
 void BigInteger::parseString(const char* str)
@@ -1539,23 +1588,23 @@ void BigInteger::subtract(BigInteger* r, BigInteger* x, BigInteger* y)
     }
 }
 
-        /**
-         * Computes r = v^2 mod m
-         * 
-         * @param r
-         * @param v
-         * @param mod
-         */
-        void BigInteger::squareMod(BigInteger* r, BigInteger* v, BigInteger* m)
-        {
-            if (extraChecks) 
-            {
-                assert(r != v);
-                assert(r != m);
-            }
-            
-            multMod(r, v, v, m);
-        }
+/**
+ * Computes r = v^2 mod m
+ * 
+ * @param r
+ * @param v
+ * @param mod
+ */
+void BigInteger::squareMod(BigInteger* r, BigInteger* v, BigInteger* m)
+{
+    if (extraChecks) 
+    {
+        assert(r != v);
+        assert(r != m);
+    }
+
+    multMod(r, v, v, m);
+}
         
         void BigInteger::squareMod(BigInteger* m)
         {
@@ -1679,9 +1728,9 @@ void BigInteger::shiftRight(BigInteger* r, BigInteger* a, int sv)
     {
         assert(r != a);
         // check that the result number can hold the resulting value
-        int targetLen = r->m_size*32;
-        int reqLen = a->getLength() - sv;
-        assert(targetLen >= reqLen);
+//        int targetLen = r->m_size*32;
+//        int reqLen = a->getLength() - sv;
+//        assert(targetLen >= reqLen);
     }
 
     unsigned int* pa = a->m_data;
@@ -1689,43 +1738,64 @@ void BigInteger::shiftRight(BigInteger* r, BigInteger* a, int sv)
     unsigned int carry = 0;
 
     unsigned int limbsShifted = sv / 32;
-
-    if (limbsShifted)
+    unsigned int limbBitsShifted = sv % 32;
+    unsigned int cs = 32 - limbBitsShifted;
+    
+    for (int i=r->m_size; i >= 0; i--)
     {
-        // number of limbs we are jumping r[i] = a[i+slots]
-        int slots = sv / 32;
-        unsigned int val;
-        for (int i=0; i < r->m_size; i++)
+        if (limbsShifted+i >= a->m_size)
         {
-            val = ((i + slots) < a->m_size) ?  pa[i + slots] : 0;
-            if (i < r->m_size) pr[i] = val;
+            if (i < r->m_size)
+                pr[i] = 0;
+            continue;
         }
+        
+        unsigned int nv = (pa[limbsShifted+i] >> limbBitsShifted) | carry;
 
-        // set zero to slots r[a->m_size-slot] to r[rize]
-//            for (int i=(a->m_size-slots); i < r->m_size; i++)
-//                pr[i] = 0;
+        carry = ~((0xFFFFFFFF >> limbBitsShifted) << limbBitsShifted);
+        carry &= pa[limbsShifted+i];
+        carry = carry << cs;
 
-        sv -= limbsShifted * 32;
-    }
-    else 
-        if (r != a)
-            r->copy(a);
-
-    if (sv != 0)
-    {
-        int cs = 32-sv;
-
-        for (int i=r->m_size-1; i >= 0; i--)
-        {
-            unsigned int nv = (pr[i] >> sv) | carry;
-
-            carry = ~((0xFFFFFFFF >> sv) << sv);
-            carry &= pr[i];
-            carry = carry << cs;
-
+        if (i < r->m_size)
             pr[i] = nv;
-        }
     }
+    
+//    if (limbsShifted)
+//    {
+//        // number of limbs we are jumping r[i] = a[i+slots]
+//        int slots = sv / 32;
+//        unsigned int val;
+//        for (int i=0; i < r->m_size; i++)
+//        {
+//            val = ((i + slots) < a->m_size) ?  pa[i + slots] : 0;
+//            if (i < r->m_size) pr[i] = val;
+//        }
+//
+//        // set zero to slots r[a->m_size-slot] to r[rize]
+////            for (int i=(a->m_size-slots); i < r->m_size; i++)
+////                pr[i] = 0;
+//
+//        sv -= limbsShifted * 32;
+//    }
+//    else 
+//        if (r != a)
+//            r->copy(a);
+//
+//    if (sv != 0)
+//    {
+//        int cs = 32-sv;
+//
+//        for (int i=r->m_size-1; i >= 0; i--)
+//        {
+//            unsigned int nv = (pr[i] >> sv) | carry;
+//
+//            carry = ~((0xFFFFFFFF >> sv) << sv);
+//            carry &= pr[i];
+//            carry = carry << cs;
+//
+//            pr[i] = nv;
+//        }
+//    }
 }
     
 
