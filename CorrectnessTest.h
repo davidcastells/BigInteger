@@ -31,15 +31,20 @@ public:
     
     
     void testAdd();
+    void testAddC();
     void testAddShifted();
     void testDiv();
+    void testDivC();
     void testModBase();
     void testMult();
+    void testMultC();
     void testMultMod();
     void testInverseMod();
     void testIsLessThan();
+    void testIsLessThanC();
     void testMultMontgomeryForm();
     void testParseNumbers();
+    void testParseNumbersC();
     void testPowerMod();
     void testRandom();
     void testRange();
@@ -48,10 +53,13 @@ public:
     void testSquareMod();
     
     void checkResultMatchsExpected(BigInteger* r, BigInteger* expected);
+    void checkResultMatchsExpectedC(unsigned int * r_data, unsigned int r_base, unsigned int r_size, unsigned int * exp_data, unsigned int exp_base, unsigned int exp_size);
     void checkAddShifted(const char* msg, const char* sa, const char* sb, int shift, const char* sexp);
     void checkMult(const char* msg, const char* sa, const char* sb, const char* sexp);
+    void checkMultC(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkMultMod(const char* msg, const char* a, const char* b, const char* m, const char* exp );
     void checkDivision(const char* msg, const char* a, const char* b, const char* eq, const char* er);
+    void checkDivisionC(const char* msg, const char* a, const char* b, const char* eq, const char* er);
     void checkPowerMod(const char* msg, const char* sa, const char* se, const char* sm, const char* ser);
     
 private:
