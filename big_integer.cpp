@@ -180,7 +180,7 @@ void big_integer_mult(unsigned int* r_data, const unsigned int r_base, const uns
             
         }
         
-        if ((i + b_size)< r_size)
+        if ((i + b_top)< r_size)
             r_data[r_base + i + b_top] = carry;
     }
 }        
@@ -543,7 +543,7 @@ void big_integer_zeroHighBits(unsigned int* r_data, const unsigned int r_base, c
     r_data[r_base+fromLimb] = r_data[r_base+fromLimb] & mask;
     fromLimb++;
     
-    while (fromLimb < r->m_size)
+    while (fromLimb < r_size)
     {
         r_data[r_base+fromLimb] = 0;
         fromLimb++;
