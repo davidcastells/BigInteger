@@ -1759,43 +1759,6 @@ void BigInteger::shiftRight(BigInteger* r, BigInteger* a, int sv)
         if (i < r->m_size)
             pr[i] = nv;
     }
-    
-//    if (limbsShifted)
-//    {
-//        // number of limbs we are jumping r[i] = a[i+slots]
-//        int slots = sv / 32;
-//        unsigned int val;
-//        for (int i=0; i < r->m_size; i++)
-//        {
-//            val = ((i + slots) < a->m_size) ?  pa[i + slots] : 0;
-//            if (i < r->m_size) pr[i] = val;
-//        }
-//
-//        // set zero to slots r[a->m_size-slot] to r[rize]
-////            for (int i=(a->m_size-slots); i < r->m_size; i++)
-////                pr[i] = 0;
-//
-//        sv -= limbsShifted * 32;
-//    }
-//    else 
-//        if (r != a)
-//            r->copy(a);
-//
-//    if (sv != 0)
-//    {
-//        int cs = 32-sv;
-//
-//        for (int i=r->m_size-1; i >= 0; i--)
-//        {
-//            unsigned int nv = (pr[i] >> sv) | carry;
-//
-//            carry = ~((0xFFFFFFFF >> sv) << sv);
-//            carry &= pr[i];
-//            carry = carry << cs;
-//
-//            pr[i] = nv;
-//        }
-//    }
 }
     
 
