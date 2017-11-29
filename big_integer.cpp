@@ -245,6 +245,33 @@ void big_integer_multMod(unsigned int* r_data, const unsigned int r_base, const 
     big_integer_div_naive(m_data, m_base, m_size, mod_data, mod_base, mod_size, q_data, q_base, q_size, r_data, r_base, r_size);
 }
 
+void big_integer_multMod_interleaved(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size,
+	unsigned int* a_data, const unsigned int a_base, const unsigned int a_size,
+	unsigned int* b_data, const unsigned int b_base, const unsigned int b_size,
+	unsigned int* mod_data, const unsigned int mod_base, const unsigned int mod_size)
+{
+//    assert(a->isLessThan(mod));
+//    assert(b->isLessThan(mod));
+    big_integer_zero(r_data, r_base, r_size);
+    
+    // @todo find the smallest number and change order accordingly
+    int n = big_integer_getLength(a_data, a_base, a_size);
+    for (int i=n-1; i>=0; i-- )
+    {
+        big_integer_shiftLeft_short(r_data, r_base, r_size, 1);
+        int xi = big_integer_getBit(a_data, a_base, a_size, i);
+        
+        if (xi)
+            big_integer_add_short(r_data, r_base, r_size, b_data, b_base, b_size);
+        
+        if (big_integer_isLessThanEqual(mod_data, mod_base, mod_size, r_data, r_base, r_size))
+            big_integer_subtract_short(r_data, r_base, r_size, mod_data, mod_base, mod_size);
+        if (big_integer_isLessThanEqual(mod_data, mod_base, mod_size, r_data, r_base, r_size))
+            big_integer_subtract_short(r_data, r_base, r_size, mod_data, mod_base, mod_size);
+    }
+}   
+
+
 void big_integer_add(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size,
 	unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, 
 	unsigned int* b_data, const unsigned int b_base, const unsigned int b_size)
@@ -597,12 +624,14 @@ void big_integer_inc(unsigned int* m_data, const unsigned int m_base, const unsi
 
 void big_integer_shiftLeft_short(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, int bits)
 {
-    unsigned int ref_data[r_size];
-    const unsigned int ref_base = 0;
-    const unsigned int ref_size = r_size;
-    big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
-	
-    big_integer_shiftLeft(r_data, r_base, r_size, ref_data, ref_base, ref_size, bits );
+//    unsigned int ref_data[r_size];
+//    const unsigned int ref_base = 0;
+//    const unsigned int ref_size = r_size;
+//    big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
+//	
+//    big_integer_shiftLeft(r_data, r_base, r_size, ref_data, ref_base, ref_size, bits );
+    
+    big_integer_shiftLeft(r_data, r_base, r_size, r_data, r_base, r_size, bits );
 }
 
 void big_integer_shiftRight_short(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, int bits)
@@ -618,12 +647,14 @@ void big_integer_shiftRight_short(unsigned int* r_data, const unsigned int r_bas
 void big_integer_subtract_short(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, 
 	unsigned int* y_data, const unsigned int y_base, const unsigned int y_size)
 {
-	unsigned int ref_data[r_size];
-	const unsigned int ref_base = 0;
-	const unsigned int ref_size = r_size;
-	big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
-   
-	big_integer_subtract(r_data, r_base, r_size, ref_data, ref_base, ref_size, y_data, y_base, y_size);
+//	unsigned int ref_data[r_size];
+//	const unsigned int ref_base = 0;
+//	const unsigned int ref_size = r_size;
+//	big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
+//   
+//	big_integer_subtract(r_data, r_base, r_size, ref_data, ref_base, ref_size, y_data, y_base, y_size);
+        
+        big_integer_subtract(r_data, r_base, r_size, r_data, r_base, r_size, y_data, y_base, y_size);
 }
 
 
@@ -711,42 +742,61 @@ void big_integer_shiftLeft(unsigned int* r_data, const unsigned int r_base, cons
     unsigned int carry = 0;
         
     unsigned int limbsShifted = sv / 32;
+    unsigned int limbBitsShifted = sv % 32;
+    unsigned int cs = 32 - limbBitsShifted;
+    
+    for (int i=0; i < r_size; i++)
+    {
+        if ((i-limbsShifted) < 0)
+        {
+            r_data[r_base+i] = 0;
+            continue;
+        }
+        
+        unsigned int nv = (a_data[a_base+i-limbsShifted] << sv) | carry;
+
+        carry = ~((0xFFFFFFFF << sv) >> sv);
+        carry &= r_data[r_base+i];
+        carry = carry >> cs;
+
+        r_data[r_base+i] = nv;
+    }
     
     // (sv == 32)
-    if (limbsShifted)    
-    {
-        int slots = limbsShifted;
-
-        for (int i=r_size-1; i >= slots; i--)
-        {
-            r_data[r_base+i] = a_data[a_base+i-slots];
-        }
-        for (int i=slots-1; i >= 0; i--)
-             r_data[r_base+i] = 0;
-        
-        sv -= limbsShifted * 32;
-    }
-    else
-        if (r_data != a_data)
-        {
-            big_integer_copy(r_data, r_base, r_size, a_data, a_base, a_size);
-        }
-    
-    if (sv != 0)
-    {
-        int cs = 32-sv;
-
-        for (int i=0; i < r_size; i++)
-        {
-            unsigned int nv = (r_data[r_base+i] << sv) | carry;
-
-            carry = ~((0xFFFFFFFF << sv) >> sv);
-            carry &= r_data[r_base+i];
-            carry = carry >> cs;
-
-            r_data[r_base+i] = nv;
-        }
-    }
+//    if (limbsShifted)    
+//    {
+//        int slots = limbsShifted;
+//
+//        for (int i=r_size-1; i >= slots; i--)
+//        {
+//            r_data[r_base+i] = a_data[a_base+i-slots];
+//        }
+//        for (int i=slots-1; i >= 0; i--)
+//             r_data[r_base+i] = 0;
+//        
+//        sv -= limbsShifted * 32;
+//    }
+//    else
+//        if (r_data != a_data)
+//        {
+//            big_integer_copy(r_data, r_base, r_size, a_data, a_base, a_size);
+//        }
+//    
+//    if (sv != 0)
+//    {
+//        int cs = 32-sv;
+//
+//        for (int i=0; i < r_size; i++)
+//        {
+//            unsigned int nv = (r_data[r_base+i] << sv) | carry;
+//
+//            carry = ~((0xFFFFFFFF << sv) >> sv);
+//            carry &= r_data[r_base+i];
+//            carry = carry >> cs;
+//
+//            r_data[r_base+i] = nv;
+//        }
+//    }
 }
 
 int big_integer_isZero(unsigned int * data, const unsigned int base, const unsigned int size)
@@ -1071,4 +1121,33 @@ void big_integer_random_bits(unsigned int* data, unsigned int base, unsigned int
     int shift = big_integer_getNumBits(data, base, size) - n;
     big_integer_shiftRight_short(data, base, size, shift);
     
+}
+
+int big_integer_isLessThanEqual(unsigned int* m_data, unsigned int m_base, unsigned int m_size,
+        unsigned int* v_data, unsigned int v_base, unsigned int v_size)
+{
+    return !big_integer_isBiggerThan(m_data, m_base, m_size, v_data, v_base, v_size);
+}
+
+int big_integer_isBiggerThan(unsigned int* m_data, unsigned int m_base, unsigned int m_size,
+        unsigned int* v_data, unsigned int v_base, unsigned int v_size)
+{
+    // if there is any 1 in a bigger size v before the range of this
+    // then return true
+    for (int i=v_size-1; i >= m_size; i--)
+        if (v_data[v_base+i])
+            return false;
+
+    for (int i=m_size-1; i >= 0; i--)
+        if (i >= v_size)
+        {
+            if (m_data[m_base+i] != 0)
+                return true;
+        }
+        else if (m_data[m_base+i] > v_data[v_base+i])
+            return true;
+        else if (m_data[m_base+i] < v_data[v_base+i])
+            return false;
+
+    return false;
 }

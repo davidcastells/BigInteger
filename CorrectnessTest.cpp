@@ -49,6 +49,7 @@ void CorrectnessTest::run()
     BigInteger::extraChecks = 1;
     
     testRandom();
+    testIsBiggerThan();
     testIsLessThan();
     testIsLessThanC();
     testParseNumbers();
@@ -59,11 +60,14 @@ void CorrectnessTest::run()
     testAdd();
     testAddC();
     testAddShifted();
+    testSubtract();
+    testSubtractC();
     testMult();
     testMultC();
     testDiv();
     testDivC();
     testMultMod();
+    testMultModC();
     testModBase();
     testInverseMod();
     testMultMontgomeryForm();
@@ -126,7 +130,7 @@ void CorrectnessTest::checkMultMod(const char* msg, const char* a, const char* b
     bm.initFromHexString(m);
     be.initFromHexString(exp);
     
-    cout << msg;
+    cout << msg << " (std) ";
     
     BigInteger r2;
     r2.initSize(bm.m_size);
@@ -143,6 +147,68 @@ void CorrectnessTest::checkMultMod(const char* msg, const char* a, const char* b
     }
     
     checkResultMatchsExpected(&r2, &be);
+    
+    cout << msg << " (interleaved) ";
+    BigInteger::multMod_interleaved(&r2, &ba, &bb, &bm);
+    checkResultMatchsExpected(&r2, &be);
+
+}
+
+void CorrectnessTest::checkMultModC(const char* msg, const char* sa, const char* sb, const char* sm, const char* sexp )
+{
+    const int bits = 2048;
+    const int limbs = bits/32;
+    const int index = 4;
+    const int base = 1*limbs;
+    
+    unsigned int ba_data[index*limbs];
+    unsigned int ba_base = base;
+    unsigned int ba_size = limbs;
+    unsigned int bb_data[index*limbs];
+    unsigned int bb_base = base;
+    unsigned int bb_size = limbs;
+    unsigned int bm_data[index*limbs];
+    unsigned int bm_base = base;
+    unsigned int bm_size = limbs;
+    unsigned int br_data[index*limbs];
+    unsigned int br_base = base;
+    unsigned int br_size = limbs;
+    unsigned int exp_data[index*limbs];
+    unsigned int exp_base = base;
+    unsigned int exp_size = limbs;
+    
+    big_integer_initFromHexString(ba_data, ba_base, ba_size, sa);
+    big_integer_initFromHexString(bb_data, bb_base, bb_size, sb);
+    big_integer_initFromHexString(bm_data, bm_base, bm_size, sm);
+    big_integer_initFromHexString(exp_data, exp_base, exp_size, sexp);
+        
+    cout << msg << " (std) ";
+    
+    
+//    BigInteger::verbosity = 1;
+    big_integer_multMod(br_data, br_base, br_size,
+            ba_data, ba_base, ba_size,
+            bb_data, bb_base, bb_size,
+            bm_data, bm_base, bm_size);
+    
+//    if (BigInteger::verbosity)
+//    {
+//        cout << " ba = " << ba.toHexString() << endl;
+//        cout << " bb = " << bb.toHexString() << endl;
+//        cout << " bm = " << bm.toHexString() << endl;
+//        cout << " r2 = " << r2.toHexString() << endl;
+//    }
+    
+    checkResultMatchsExpectedC(br_data, br_base, br_size, exp_data, exp_base, exp_size);
+    
+    cout << msg << " (interleaved) ";
+    big_integer_multMod_interleaved(br_data, br_base, br_size,
+            ba_data, ba_base, ba_size,
+            bb_data, bb_base, bb_size,
+            bm_data, bm_base, bm_size);
+    
+    checkResultMatchsExpectedC(br_data, br_base, br_size, exp_data, exp_base, exp_size);
+
 }
 
 void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char* se, const char* sm, const char* ser)
@@ -365,18 +431,23 @@ void CorrectnessTest::testAdd()
 
 void CorrectnessTest::testAddC()
 {
-    unsigned int a_data[2048/32];
-    unsigned int a_base = 0;
-    unsigned int a_size = 2048/32;
-    unsigned int b_data[2048/32];
-    unsigned int b_base = 0;
-    unsigned int b_size = 2048/32;
-    unsigned int r_data[2048/32];
-    unsigned int r_base = 0;
-    unsigned int r_size = 2048/32;
-    unsigned int exp_data[2048/32];
-    unsigned int exp_base = 0;
-    unsigned int exp_size = 2048/32;
+    const int bits = 2048;
+    const int limbs = bits/32;
+    const int index = 4;
+    const int base = 1*limbs;
+    
+    unsigned int a_data[index*limbs];
+    unsigned int a_base = base;
+    unsigned int a_size = limbs;
+    unsigned int b_data[index*limbs];
+    unsigned int b_base = base;
+    unsigned int b_size = limbs;
+    unsigned int r_data[index*limbs];
+    unsigned int r_base = base;
+    unsigned int r_size = limbs;
+    unsigned int exp_data[index*limbs];
+    unsigned int exp_base = base;
+    unsigned int exp_size = limbs;
     
     big_integer_initFromHexString(a_data, a_base, a_size, "000000000000000000000010");
     big_integer_initFromHexString(b_data, b_base, b_size, "00000000");
@@ -405,6 +476,72 @@ void CorrectnessTest::testAddC()
     big_integer_add_short(r_data, r_base, r_size, b_data, b_base, b_size);
     
     cout << "AddC (4) ";
+    checkResultMatchsExpectedC(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+}
+
+void CorrectnessTest::testSubtract()
+{
+    checkSubtract("Subtract (1) ", "1DFA3AFCF64353A34027", "FBB5742CF", "1DFA3AFCF633984BFD58");
+}
+
+void CorrectnessTest::testSubtractC()
+{
+    checkSubtractC("SubtractC (1) ", "1DFA3AFCF64353A34027", "FBB5742CF", "1DFA3AFCF633984BFD58");
+}
+
+
+void CorrectnessTest::checkSubtract(const char* msg, const char* sa, const char* sb, const char* sexp)
+{
+    BigInteger a;
+    BigInteger b;
+    BigInteger r;
+    BigInteger exp;
+    
+    a.initFromHexString(sa);
+    b.initFromHexString(sb);
+    r.initSize(a.m_size);
+    exp.initFromHexString(sexp);
+    
+    cout << msg ;
+    
+    BigInteger::subtract(&r, &a, &b);
+    
+    checkResultMatchsExpected(&r, &exp);
+}
+    
+void CorrectnessTest::checkSubtractC(const char* msg, const char* sa, const char* sb, const char* sexp)
+{
+    const int bits = 2048;
+    const int limbs = bits/32;
+    const int index = 4;
+    const int base = 1*limbs;
+    
+    unsigned int a_data[index*limbs];
+    unsigned int a_base = base;
+    unsigned int a_size = limbs;
+    unsigned int b_data[index*limbs];
+    unsigned int b_base = base;
+    unsigned int b_size = limbs;
+    unsigned int r_data[index*limbs];
+    unsigned int r_base = base;
+    unsigned int r_size = limbs;
+    unsigned int exp_data[index*limbs];
+    unsigned int exp_base = base;
+    unsigned int exp_size = limbs;
+    
+    big_integer_initFromHexString(a_data, a_base, a_size, sa);
+    big_integer_initFromHexString(b_data, b_base, b_size, sb);
+    big_integer_initFromHexString(exp_data, exp_base, exp_size, sexp);
+
+    big_integer_subtract(r_data, r_base, r_size, a_data, a_base, a_size, b_data, b_base, b_size);
+    
+    cout << msg << " (std) ";
+    checkResultMatchsExpectedC(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+    
+    big_integer_copy(r_data, r_base, r_size, a_data, a_base, a_size);
+    big_integer_subtract_short(r_data, r_base, r_size, b_data, b_base, b_size);
+    
+    cout << msg << " (short) ";
     checkResultMatchsExpectedC(r_data, r_base, r_size, exp_data, exp_base, exp_size);
 }
 
@@ -500,39 +637,45 @@ void CorrectnessTest::testDivC()
 {
     cout << "DivisionC and ModuloC " << flush;
     
-    const int bits = 512;
+    const int bits = 128;
+    const int index = 4;
+    const int base = 1*bits/32;
 
-    unsigned int x_data[bits/32];
-    unsigned int x_base = 0;
+    unsigned int x_data[index*bits/32];
+    unsigned int x_base = base;
     unsigned int x_size = bits/32;
-    unsigned int y_data[2*bits/32];
-    unsigned int y_base = 0;
-    unsigned int y_size = 2*bits/32;
-    unsigned int q_data[bits/32];
-    unsigned int q_base = 0;
+    unsigned int y_data[index*bits/32];
+    unsigned int y_base = base;
+    unsigned int y_size = bits/32;
+    unsigned int q_data[index*bits/32];
+    unsigned int q_base = base;
     unsigned int q_size = bits/32;
-    unsigned int r_data[bits/32];
-    unsigned int r_base = 0;
+    unsigned int r_data[index*bits/32];
+    unsigned int r_base = base;
     unsigned int r_size = bits/32;
     
-    big_integer_random(x_data, x_base, x_size);
-    big_integer_random(q_data, q_base, q_size);
+    big_integer_random_bits(x_data, x_base, x_size, bits/2);
+    big_integer_random_bits(q_data, q_base, q_size, bits/2);
     big_integer_random_bits(r_data, r_base, r_size, big_integer_getLength(x_data, x_base, x_size)-1);  // ensure r < x
     
-    big_integer_mult(y_data, y_base, y_size, x_data, x_base, x_size, q_data, q_base, q_size);
-    big_integer_add_short(y_data, y_base, y_size, r_data, r_base, r_size);                   // y = q*x + r
-
     cout << endl;
-    cout << big_integer_toHexString(x_data, x_base, x_size) << " * " << endl;
-    cout << big_integer_toHexString(q_data, q_base, q_size) << " = " << endl;
-    cout << big_integer_toHexString(y_data, y_base, y_size) << " + " << endl;
-    cout << big_integer_toHexString(r_data, r_base, r_size) << endl;
+    cout << " x = " << big_integer_toHexString(x_data, x_base, x_size) << " * " << endl;
+    cout << " q = " << big_integer_toHexString(q_data, q_base, q_size) << " = " << endl;
     
-    unsigned int qp_data[bits/32];
-    unsigned int qp_base = 0;
+    big_integer_mult(y_data, y_base, y_size, x_data, x_base, x_size, q_data, q_base, q_size);
+    cout << " y(1) = " <<big_integer_toHexString(y_data, y_base, y_size) << "+" << endl;
+    
+    big_integer_add_short(y_data, y_base, y_size, r_data, r_base, r_size);                   // y = q*x + r
+    
+    cout << " r = " <<big_integer_toHexString(r_data, r_base, r_size) << " = " << endl;
+    cout << " y = " <<big_integer_toHexString(y_data, y_base, y_size) << endl;
+    
+    
+    unsigned int qp_data[index*bits/32];
+    unsigned int qp_base = base;
     unsigned int qp_size = bits/32;
-    unsigned int rp_data[bits/32];
-    unsigned int rp_base = 0;
+    unsigned int rp_data[index*bits/32];
+    unsigned int rp_base = base;
     unsigned int rp_size = bits/32;
 
     big_integer_div_naive(y_data, y_base, y_size,
@@ -542,19 +685,26 @@ void CorrectnessTest::testDivC()
     
     if (!big_integer_isEqual(q_data, q_base, q_size, qp_data, qp_base, qp_size))
     {
-        cout << "### ERROR ###" << endl;
+        cout << "### ERROR ### q" << endl;
+        cout << " q' = " <<big_integer_toHexString(qp_data, qp_base, qp_size) << endl;
+        cout << " r' = " <<big_integer_toHexString(rp_data, rp_base, rp_size) << endl;
+        exit(-1);
     }
     else if (!big_integer_isEqual(r_data, r_base, r_size, rp_data, rp_base, rp_size))
     {
-        cout << "### ERROR ###" << endl;
+        cout << "### ERROR ### r" << endl;
+        cout << " q' = " <<big_integer_toHexString(qp_data, qp_base, qp_size) << endl;
+        cout << " r' = " <<big_integer_toHexString(rp_data, rp_base, rp_size) << endl;
+        exit(-1);
     }
     else
         cout << "[OK]" << endl;
     
     
-    checkDivisionC("Division (1)", "55B1742F2AFBE68D", "77B71DFED43", "B73F3", "13B49F796F4");
-    checkDivisionC("Division (2)", "15B1742F2AFBE68D0000000000000000", "45CB977B71DFED43", "4f91587a190a3d8c", "a6653828e63485c");
-    checkDivisionC("Division (3)", "3760E5AF3248DACA0000000000000001", "10000000000000000", "3760E5AF3248DACA", "000000000000000000001");
+    checkDivisionC("DivisionC (1)", "1DFA3AFCF64353A34027", "FBB5742CF", "1E7D100ACF5", "2693D3C0C");
+    checkDivisionC("DivisionC (1)", "55B1742F2AFBE68D", "77B71DFED43", "B73F3", "13B49F796F4");
+    checkDivisionC("DivisionC (2)", "15B1742F2AFBE68D0000000000000000", "45CB977B71DFED43", "4f91587a190a3d8c", "a6653828e63485c");
+    checkDivisionC("DivisionC (3)", "3760E5AF3248DACA0000000000000001", "10000000000000000", "3760E5AF3248DACA", "000000000000000000001");
     
 }
 
@@ -661,14 +811,47 @@ void CorrectnessTest::testIsLessThan()
         cout << "[OK]" << endl;
 }
 
+void CorrectnessTest::testIsBiggerThan()
+{
+    BigInteger a, b;
+    a.initFromHexString("3A35825373ADDCE6");
+    b.initFromHexString("000000010000000000000000");
+    
+    cout << "IsBiggerThan (B>a)? ";
+    
+    if (b.isBiggerThan(&a))
+        cout << "[OK]" << endl;
+    else
+    {
+        cout << "### ERROR ###" << endl;
+        exit(-1);
+    }
+    
+    cout << "IsBiggerThan (A>b)? ";
+    
+    if (a.isBiggerThan(&b))
+    {
+        cout << "### ERROR ###" << endl;
+        exit(-1);
+    }
+    else
+        cout << "[OK]" << endl;
+}
+
 void CorrectnessTest::testIsLessThanC()
 {
-    unsigned int a_data[2048/32];
-    unsigned int a_base = 0;
-    unsigned int a_size = 2048/32;
-    unsigned int b_data[2048/32];
-    unsigned int b_base = 0;
-    unsigned int b_size = 2048/32;
+    const int bits = 2048;
+    const int limbs = bits/32;
+    const int index = 4;
+    const int base = 1*limbs;
+    const int arraySize = index * limbs;
+    
+    unsigned int a_data[arraySize];
+    unsigned int a_base = base;
+    unsigned int a_size = limbs;
+    unsigned int b_data[arraySize];
+    unsigned int b_base = base;
+    unsigned int b_size = limbs;
     
     big_integer_initFromHexString(a_data, a_base, a_size, "3A35825373ADDCE6");
     big_integer_initFromHexString(b_data, b_base, b_size, "000000010000000000000000");
@@ -763,6 +946,7 @@ void CorrectnessTest::testModBase()
 void CorrectnessTest::testMult()
 {
     checkMult("Mult (1)", "5B8B8C8C3DC2206684", "51E7C8116D4A26C669FE2A", "1D4A09EF733CFB077101819A3A5356EA232BC9A8");
+    checkMult("Mult (1)", "16C45AF2414BDD05", "4B98092B71927474", "6B90C0BBD3F7C446BA6020638606A44");
     checkMult("Mult (2)", "5B8B8C8C3DC2206684A28191094E98A083E1912AE56FA3", "CDACA63DD6296E991945399FE030C3A8522C3A41BF10A", "498C7CC155A6D839E94640D834D747AC3BAE38BD908E8224402FE15DC19E8AE61A63C9FADE44991A9EDDD3FCF5E");
     checkMult("Mult (3)", "8C3DC2206684A28191094E98A083E1912AE56FA3", "CDACA63DD6296E991945399FE030C3A8522C3A41BF10A", "70AC09044BC7AE32F43AD3C90A7F13D5146014E6C048AFE15DC19E8AE61A63C9FADE44991A9EDDD3FCF5E");
     checkMult("Mult (4)", "5B8B8C8C3DC2206684A28191094E98A083E1912AE56FA3", "63DD6296E991945399FE030C3A8522C3A41BF10A", "23B62213F40B7EEEF0271F670D406D5A983B3472635F64FE15DC19E8AE61A63C9FADE44991A9EDDD3FCF5E");
@@ -772,6 +956,7 @@ void CorrectnessTest::testMult()
 void CorrectnessTest::testMultC()
 {
     checkMultC("MultC (1)", "5B8B8C8C3DC2206684", "51E7C8116D4A26C669FE2A", "1D4A09EF733CFB077101819A3A5356EA232BC9A8");
+    checkMultC("MultC (1)", "16C45AF2414BDD05", "4B98092B71927474", "6B90C0BBD3F7C446BA6020638606A44");
     checkMultC("MultC (2)", "5B8B8C8C3DC2206684A28191094E98A083E1912AE56FA3", "CDACA63DD6296E991945399FE030C3A8522C3A41BF10A", "498C7CC155A6D839E94640D834D747AC3BAE38BD908E8224402FE15DC19E8AE61A63C9FADE44991A9EDDD3FCF5E");
     checkMultC("MultC (3)", "8C3DC2206684A28191094E98A083E1912AE56FA3", "CDACA63DD6296E991945399FE030C3A8522C3A41BF10A", "70AC09044BC7AE32F43AD3C90A7F13D5146014E6C048AFE15DC19E8AE61A63C9FADE44991A9EDDD3FCF5E");
     checkMultC("MultC (4)", "5B8B8C8C3DC2206684A28191094E98A083E1912AE56FA3", "63DD6296E991945399FE030C3A8522C3A41BF10A", "23B62213F40B7EEEF0271F670D406D5A983B3472635F64FE15DC19E8AE61A63C9FADE44991A9EDDD3FCF5E");
@@ -825,9 +1010,9 @@ void CorrectnessTest::checkMultC(const char* msg, const char* sa, const char* sb
     unsigned int b_data[bits/32];
     unsigned int b_base = 0;
     unsigned int b_size = bits/32;
-    unsigned int r_data[2*bits/32];
+    unsigned int r_data[bits/32];
     unsigned int r_base = 0;
-    unsigned int r_size = 2*bits/32;
+    unsigned int r_size = bits/32;
     unsigned int exp_data[bits/32];
     unsigned int exp_base = 0;
     unsigned int exp_size = bits/32;
@@ -849,8 +1034,14 @@ void CorrectnessTest::checkMultC(const char* msg, const char* sa, const char* sb
 
 void CorrectnessTest::testMultMod()
 {
-    checkMultMod("Mult Mod (same size)", "8000000000000000", "2B62E85E55F7CD1A", "45CB977B71DFED43", "A6653828E63485C");
+    checkMultMod("Mult Mod (same size) ", "3A3468848E2012BD", "2B62E85E55F7CD1A", "45CB977B71DFED43", "A6653828E63485C");
     checkMultMod("Mult Mod ", "00000000CB1F03567C39076B", "45CB977B71DFED43", "000000010000000000000000", "00000001");
+}
+
+void CorrectnessTest::testMultModC()
+{
+    checkMultModC("Mult Mod C(same size) ", "3A3468848E2012BD", "2B62E85E55F7CD1A", "45CB977B71DFED43", "A6653828E63485C");
+    checkMultModC("Mult Mod C ", "00000000CB1F03567C39076B", "45CB977B71DFED43", "000000010000000000000000", "00000001");
 }
 
 void CorrectnessTest::testMultMontgomeryForm()

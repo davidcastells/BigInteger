@@ -39,7 +39,9 @@ public:
     void testMult();
     void testMultC();
     void testMultMod();
+    void testMultModC();
     void testInverseMod();
+    void testIsBiggerThan();
     void testIsLessThan();
     void testIsLessThanC();
     void testMultMontgomeryForm();
@@ -48,6 +50,8 @@ public:
     void testPowerMod();
     void testRandom();
     void testRange();
+    void testSubtract();
+    void testSubtractC();
     void testShiftRight();
     void testShiftLeft();
     void testSquareMod();
@@ -58,9 +62,12 @@ public:
     void checkMult(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkMultC(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkMultMod(const char* msg, const char* a, const char* b, const char* m, const char* exp );
+    void checkMultModC(const char* msg, const char* sa, const char* sb, const char* sm, const char* sexp );
     void checkDivision(const char* msg, const char* a, const char* b, const char* eq, const char* er);
     void checkDivisionC(const char* msg, const char* a, const char* b, const char* eq, const char* er);
     void checkPowerMod(const char* msg, const char* sa, const char* se, const char* sm, const char* ser);
+    void checkSubtract(const char* msg, const char* sa, const char* sb, const char* sexp);
+    void checkSubtractC(const char* msg, const char* sa, const char* sb, const char* sexp);
     
 private:
     int stopAtFirstError;

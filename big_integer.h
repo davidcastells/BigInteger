@@ -21,9 +21,12 @@ extern "C" {
 int big_integer_getBit(unsigned int* m_data, const unsigned int base, const unsigned int size, int bitnum);
 int big_integer_getLength(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size);
 int big_integer_isLessThan(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size,  unsigned int* v_data, const unsigned int v_base, const unsigned int v_size);
+int big_integer_isLessThanEqual(unsigned int* m_data, unsigned int m_base, unsigned int m_size, unsigned int* v_data, unsigned int v_base, unsigned int v_size);
 int big_integer_isZero(unsigned int * data, const unsigned int base, const unsigned int size);
 int big_integer_isOdd(unsigned int * data, const unsigned int base, const unsigned int size);
 int big_integer_isEqual(unsigned int * a_data, unsigned int a_base, unsigned int a_size, unsigned int * b_data, unsigned int b_base, unsigned int b_size);
+int big_integer_isBiggerThan(unsigned int* m_data, unsigned int m_base, unsigned int m_size, unsigned int* v_data, unsigned int v_base, unsigned int v_size);
+
 void big_integer_error(unsigned int*  r_data,unsigned int r_base,unsigned int r_size);
 void big_integer_zero(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size);
 void big_integer_inc(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size);
@@ -37,6 +40,7 @@ void big_integer_div_naive(unsigned int* x_data, const unsigned int x_base, cons
 void big_integer_mult(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size,  unsigned int* b_data, const unsigned int b_base, const unsigned int b_size);
 void big_integer_multLow(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size,  unsigned int* b_data, const unsigned int b_base, const unsigned int b_size);
 void big_integer_multMod(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, unsigned int* b_data, const unsigned int b_base, const unsigned int b_size, unsigned int* mod_data, const unsigned int mod_base, const unsigned int mod_size);
+void big_integer_multMod_interleaved(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, unsigned int* b_data, const unsigned int b_base, const unsigned int b_size, unsigned int* mod_data, const unsigned int mod_base, const unsigned int mod_size);
 void big_integer_multMod_short(unsigned int * r_data, unsigned int r_base, unsigned int r_size, unsigned int * b_data, unsigned int b_base, unsigned int b_size, unsigned int * m_data, unsigned int m_base, unsigned int m_size);void big_integer_squareMod(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* v_data, const unsigned int v_base, const unsigned int v_size, unsigned int* m_data, const unsigned int m_base, const unsigned int m_size);
 void big_integer_shiftRight(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, int sv);
 void big_integer_shiftRight_short(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, int bits);

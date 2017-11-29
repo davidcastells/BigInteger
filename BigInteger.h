@@ -45,7 +45,9 @@ public:
     void parseString(const char* str);
     void initFromHexString(const char* str);
     void parseHexString(const char* str);
+    int isBiggerThan(BigInteger* v);
     int isLessThan(BigInteger* v);
+    int isLessThanEqual(BigInteger* v);
     int isZero();
     int isOne();
     int isOdd();
@@ -68,6 +70,7 @@ public:
     void mod(BigInteger* m);
     void mult(BigInteger* m);
     void multMod(BigInteger* b, BigInteger* m);
+    void multMod_interleaved(BigInteger* b, BigInteger* mod);
     void random();
     void random(int bits);
     void range(int upper, int lower);
@@ -90,6 +93,7 @@ public:
     static void mult_karatsuba(BigInteger* r, BigInteger* x, BigInteger* y);
     static void mult_karatsubaRecursive(BigInteger* r, BigInteger* x, BigInteger* y);
     static void multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod);
+    static void multMod_interleaved(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod);
     static void squareMod(BigInteger* r, BigInteger* v, BigInteger* mod);
     static void powerMod(BigInteger* r, BigInteger* v, BigInteger* p, BigInteger* mod);
     static void powerModSlidingWindow(BigInteger* r, BigInteger* v, BigInteger* exp, BigInteger* mod);

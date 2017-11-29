@@ -361,6 +361,35 @@ int BigInteger::isLessThan(BigInteger* v)
 
     return false;
 }
+
+int BigInteger::isBiggerThan(BigInteger* v)
+{
+    unsigned int* pv = v->m_data;
+
+    // if there is any 1 in a bigger size v before the range of this
+    // then return true
+    for (int i=v->m_size-1; i >= m_size; i--)
+        if (pv[i])
+            return false;
+
+    for (int i=m_size-1; i >= 0; i--)
+        if (i >= v->m_size)
+        {
+            if (m_data[i] != 0)
+                return true;
+        }
+        else if (m_data[i] > pv[i])
+            return true;
+        else if (m_data[i] < pv[i])
+            return false;
+
+    return false;
+}
+
+int BigInteger::isLessThanEqual(BigInteger* v)
+{
+    return !isBiggerThan(v);
+}
         
 /**
  * Initializes size and parses hex string
@@ -1362,7 +1391,29 @@ void BigInteger::multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger
     div_naive(&m, mod, &q, r);
 }
         
+void BigInteger::multMod_interleaved(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod)
+{
+    assert(a->isLessThan(mod));
+    assert(b->isLessThan(mod));
+    r->zero();
+    // @todo find the smallest number and change order accordingly
+    int n = a->getLength();
+    for (int i=n-1; i>=0; i-- )
+    {
+        r->shiftLeft(1);
+        int xi = a->getBit(i);
         
+        if (xi)
+            r->add(b);
+        
+        if (mod->isLessThanEqual(r))
+            r->subtract(mod);
+        if (mod->isLessThanEqual(r))
+            r->subtract(mod);
+    }
+}   
+
+
 void BigInteger::parseString(const char* str)
 {
     // multiply by x*10 is x*(8+2) -> 8*x + 2*x
