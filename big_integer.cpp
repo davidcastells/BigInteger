@@ -405,7 +405,7 @@ void big_integer_div_naive(unsigned int* x_data, const unsigned int x_base, cons
 void big_integer_zero(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size)
 {
     for (int i=0; i < m_size; i++)
-        m_data[i] = 0;    
+        m_data[m_base+i] = 0;    
 }
 
 void big_integer_setIntValue(unsigned int* data, 
@@ -432,11 +432,11 @@ void big_integer_copy(unsigned int* m_data, const unsigned int m_base, const uns
     int minCopySize = (m_size < orig_size)? m_size : orig_size;
     int i;
     for (i=0; i < minCopySize; i++)
-        m_data[i] = orig_data[i];
+        m_data[m_base+i] = orig_data[orig_base+i];
     
     // zero the rest of the data 
     for (; i < m_size; i++)
-        m_data[i] = 0;
+        m_data[m_base+i] = 0;
 }
 
 /**
@@ -579,6 +579,7 @@ void big_integer_range(unsigned int* r_data, const unsigned int r_base, const un
 
 /**
  * Increment a big number
+ * @todo check m_size
  */
 void big_integer_inc(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size)
 {
@@ -586,9 +587,9 @@ void big_integer_inc(unsigned int* m_data, const unsigned int m_base, const unsi
     int doRun = 1;
     while (doRun)
     {                
-        m_data[i]++;
+        m_data[m_base+i]++;
 
-        doRun = (m_data[i] == 0);
+        doRun = (m_data[m_base+i] == 0);
 
         i++;
     }
@@ -637,10 +638,10 @@ void big_integer_subtract(unsigned int* r_data, const unsigned int r_base, const
     {
         unsigned int sum = 0;
 
-        if (i < x_size) sum += x_data[i];
-        if (i < y_size) sum -= y_data[i];
+        if (i < x_size) sum += x_data[x_base+i];
+        if (i < y_size) sum -= y_data[y_base+i];
 
-        if (sum > x_data[i])
+        if (sum > x_data[x_base+i])
         {
             if (carryIn) sum--;
             carryOut = 1;
@@ -652,7 +653,7 @@ void big_integer_subtract(unsigned int* r_data, const unsigned int r_base, const
         }
 
         carryIn = carryOut;
-        r_data[i] = sum;
+        r_data[r_base+i] = sum;
     }
 }
 
@@ -675,45 +676,26 @@ void big_integer_shiftRight(unsigned int* r_data, const unsigned int r_base, con
 {
     unsigned int carry = 0;
     unsigned int limbsShifted = sv / 32;
-
-    if (limbsShifted)
+    unsigned int limbBitsShifted = sv % 32;
+    unsigned int cs = 32 - limbBitsShifted;
+    
+    for (int i=r_size; i >= 0; i--)
     {
-        // number of limbs we are jumping r[i] = a[i+slots]
-        int slots = sv / 32;
-        unsigned int val;
-
-        for (int i=0; i < r_size; i++)
+        if (limbsShifted+i >= a_size)
         {
-            val = ((i + slots) < a_size) ?  a_data[i + slots] : 0;
-            if (i < r_size) r_data[i] = val;
+            if (i < r_size)
+                r_data[r_base+i] = 0;
+            continue;
         }
+        
+        unsigned int nv = (a_data[a_base+limbsShifted+i] >> limbBitsShifted) | carry;
 
-        // set zero to slots r[a->m_size-slot] to r[rize]
-//            for (int i=(a->m_size-slots); i < r->m_size; i++)
-//                pr[i] = 0;
+        carry = ~((0xFFFFFFFF >> limbBitsShifted) << limbBitsShifted);
+        carry &= a_data[a_base+limbsShifted+i];
+        carry = carry << cs;
 
-        sv -= limbsShifted * 32;
-    }
-    else 
-        if (r_data != a_data)
-        {
-            big_integer_copy(r_data, r_base, r_size, a_data, a_base, a_size);
-        }
-
-    if (sv != 0)
-    {
-        int cs = 32-sv;
-
-        for (int i=r_size-1; i >= 0; i--)
-        {
-            unsigned int nv = (r_data[i] >> sv) | carry;
-
-            carry = ~((0xFFFFFFFF >> sv) << sv);
-            carry &= r_data[i];
-            carry = carry << cs;
-
-            r_data[i] = nv;
-        }
+        if (i < r_size)
+            r_data[r_base+i] = nv;
     }
 }
 
@@ -737,10 +719,10 @@ void big_integer_shiftLeft(unsigned int* r_data, const unsigned int r_base, cons
 
         for (int i=r_size-1; i >= slots; i--)
         {
-            r_data[i] = a_data[i-slots];
+            r_data[r_base+i] = a_data[a_base+i-slots];
         }
         for (int i=slots-1; i >= 0; i--)
-             r_data[i] = 0;
+             r_data[r_base+i] = 0;
         
         sv -= limbsShifted * 32;
     }
@@ -756,13 +738,13 @@ void big_integer_shiftLeft(unsigned int* r_data, const unsigned int r_base, cons
 
         for (int i=0; i < r_size; i++)
         {
-            unsigned int nv = (r_data[i] << sv) | carry;
+            unsigned int nv = (r_data[r_base+i] << sv) | carry;
 
             carry = ~((0xFFFFFFFF << sv) >> sv);
-            carry &= r_data[i];
+            carry &= r_data[r_base+i];
             carry = carry >> cs;
 
-            r_data[i] = nv;
+            r_data[r_base+i] = nv;
         }
     }
 }
