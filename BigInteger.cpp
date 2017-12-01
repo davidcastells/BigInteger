@@ -541,7 +541,97 @@ void BigInteger::div_naive(BigInteger* x,
     if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div     nr = " << r->toHexString() << std::endl;
     if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div     nq = " << q->toHexString() << std::endl;
 }
-        
+
+void BigInteger::mod_naive(BigInteger* x,
+        BigInteger* y, 
+        BigInteger* r)
+{
+    if (verbosity> VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div x = " << x->toHexString() << std::endl;
+    if (verbosity> VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div /   " << y->toHexString() << std::endl;
+
+    
+    //q.initSize(x->m_size);
+    //r.initSize(x->m_size);
+
+
+    if (x->isLessThan(y))
+    {
+        r->copy(x);
+        //q->copy(&q);
+        return;
+    }
+
+
+    // get the length of y
+    int yl = y->getLength();
+    int rl = x->getLength();
+
+    int downBit = rl-yl;
+
+    if (extraChecks) assert(downBit >= 0);
+
+    // get the yl most significant bits of ref
+    //r->copy(&ref);
+    //if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r " <<  r->toHexString() << std::endl;
+
+    BigInteger::range(r, x, rl-1, downBit--);
+
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r->toHexString() << std::endl;
+
+    if (r->isLessThan(y))
+    {
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r < divisor" << std::endl;
+
+        // take another bit from ref
+        BigInteger::range(r, x, rl-1, downBit--);
+
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r->toHexString() << std::endl;
+    }
+
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r->toHexString() << std::endl;
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      - " << y->toHexString() << std::endl;
+
+
+    r->subtract(y);
+
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      = " << r->toHexString() << std::endl;
+
+
+    // take another bit
+    while (downBit >= 0)
+    {
+        r->shiftLeft(1);
+        if (x->getBit(downBit--))
+            r->inc();
+
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r->toHexString() << std::endl;
+
+        if (r->isLessThan(y))
+        {
+            //goto loop;
+        }
+        else
+        {
+
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div term = " << r->toHexString() << std::endl;
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      - " << y->toHexString() << std::endl;
+
+            r->subtract(y);
+            //goto loop;
+
+        if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div      = " << r->toHexString() << std::endl;
+
+        }
+    } 
+
+
+    //nr->copy(&r);
+    //nq->copy(&q);
+
+    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div     nr = " << r->toHexString() << std::endl;
+
+}
+
         
         /**
          * 
@@ -606,9 +696,8 @@ void BigInteger::inc()
 void BigInteger::mod(BigInteger* m)
 {
     BigInteger ref(*this);
-    BigInteger q(*this);
 
-    BigInteger::div_naive(&ref, m, &q, this);
+    BigInteger::mod_naive(&ref, m, this);
 }
         
 /**
@@ -1393,23 +1482,40 @@ void BigInteger::multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger
         
 void BigInteger::multMod_interleaved(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod)
 {
+    if (verbosity)
+    {
+        std::cout << "a: " << a->toHexString() << std::endl;
+        std::cout << "b: " << b->toHexString() << std::endl;
+        std::cout << "mod: " << mod->toHexString() << std::endl;
+    }
     assert(a->isLessThan(mod));
     assert(b->isLessThan(mod));
+    assert(r->getNumBits() > mod->getLength() + 1);
     r->zero();
     // @todo find the smallest number and change order accordingly
     int n = a->getLength();
     for (int i=n-1; i>=0; i-- )
     {
         r->shiftLeft(1);
+        if (verbosity) std::cout << "r: " << r->toHexString() << std::endl;
+        
         int xi = a->getBit(i);
         
         if (xi)
+        {
             r->add(b);
-        
+            if (verbosity) std::cout << "r: " << r->toHexString() << std::endl;
+        }
         if (mod->isLessThanEqual(r))
+        {
             r->subtract(mod);
+            if (verbosity) std::cout << "r: " << r->toHexString() << std::endl;
+        }
         if (mod->isLessThanEqual(r))
+        {
             r->subtract(mod);
+            if (verbosity) std::cout << "r: " << r->toHexString() << std::endl;
+        }
     }
 }   
 
@@ -1656,17 +1762,31 @@ void BigInteger::squareMod(BigInteger* r, BigInteger* v, BigInteger* m)
 
     multMod(r, v, v, m);
 }
+
+void BigInteger::squareMod_interleaved(BigInteger* r, BigInteger* v, BigInteger* m)
+{
+    if (extraChecks) 
+    {
+        assert(r != v);
+        assert(r != m);
+        assert(v->isLessThan(m));
+    }
+
+    multMod_interleaved(r, v, v, m);
+}
         
-        void BigInteger::squareMod(BigInteger* m)
-        {
-            BigInteger ref(*this);
-            squareMod(this, &ref, m);
-        }
+void BigInteger::squareMod(BigInteger* m)
+{
+    BigInteger ref(*this);
+    ref.mod(m);
+    squareMod_interleaved(this, &ref, m);
+}
         
 void BigInteger::shiftLeft(int bits)
 {
-    BigInteger ref(*this);
-    BigInteger::shiftLeft(this, &ref, bits );
+//    BigInteger ref(*this);
+//    BigInteger::shiftLeft(this, &ref, bits );
+    BigInteger::shiftLeft(this, this, bits );
 }
 
 
@@ -1678,55 +1798,30 @@ void BigInteger::shiftLeft(int bits)
  */
 void BigInteger::shiftLeft(BigInteger* r, BigInteger* a, int sv)
 {
-    unsigned int* pa = a->m_data;
-    unsigned int* pr = r->m_data;
-    
-    unsigned int carry = 0;
         
-    if (extraChecks)
-        assert(r != a);
+    int limbsShifted = sv / 32;
+    int limbBitsShifted = sv % 32;
+    int cs = (limbBitsShifted == 0) ? 0 : 32 - limbBitsShifted;
     
-    // 
-    unsigned int limbsShifted = sv / 32;
-    
-    if (limbsShifted)    // (sv == 32)
+    for (int i= r->m_size-1; i >= 0; i--)
     {
-        int slots = limbsShifted;
-
-        for (int i=r->m_size-1; i >= slots; i--)
-        {
-            pr[i] = pa[i-slots];
-        }
-        for (int i=slots-1; i >= 0; i--)
-             pr[i] = 0;
+        unsigned int v1 = 0;
+        unsigned int v2 = 0;
         
-        sv -= limbsShifted * 32;
-    }
-    else
-        if (r != a)
-            r->copy(a);
-    
-    if (sv != 0)
-    {
-        int cs = 32-sv;
-
-        for (int i=0; i < r->m_size; i++)
-        {
-            unsigned int nv = (pr[i] << sv) | carry;
-
-            carry = ~((0xFFFFFFFF << sv) >> sv);
-            carry &= pr[i];
-            carry = carry >> cs;
-
-            pr[i] = nv;
-        }
+        if ((i-limbsShifted) >= 0 && (i-limbsShifted) < a->m_size)
+            v1 = a->m_data[i-limbsShifted] << limbBitsShifted;
+        if ((i-limbsShifted-1) >= 0 && (i-limbsShifted-1) < a->m_size && cs)
+            v2 = a->m_data[i-limbsShifted-1] >> cs;
+        r->m_data[i] = v1 | v2;
     }
 }
 
 void BigInteger::shiftRight(int bits)
 {
-    BigInteger ref(*this);
-    BigInteger::shiftRight(this, &ref, bits );
+//    BigInteger ref(*this);
+//    BigInteger::shiftRight(this, &ref, bits );
+    
+    BigInteger::shiftRight(this, this, bits );
 }
         
         void BigInteger::subtract(BigInteger* y)
@@ -1775,40 +1870,21 @@ void BigInteger::shiftRight(int bits)
  */
 void BigInteger::shiftRight(BigInteger* r, BigInteger* a, int sv)
 {
-    if (extraChecks)
-    {
-        assert(r != a);
-        // check that the result number can hold the resulting value
-//        int targetLen = r->m_size*32;
-//        int reqLen = a->getLength() - sv;
-//        assert(targetLen >= reqLen);
-    }
-
-    unsigned int* pa = a->m_data;
-    unsigned int* pr = r->m_data;
     unsigned int carry = 0;
-
-    unsigned int limbsShifted = sv / 32;
-    unsigned int limbBitsShifted = sv % 32;
-    unsigned int cs = 32 - limbBitsShifted;
+    int limbsShifted = sv / 32;
+    int limbBitsShifted = sv % 32;
+    int cs = (limbBitsShifted == 0) ? 0 : 32 - limbBitsShifted;
     
-    for (int i=r->m_size; i >= 0; i--)
+    for (int i=0; i < r->m_size; i++)
     {
-        if (limbsShifted+i >= a->m_size)
-        {
-            if (i < r->m_size)
-                pr[i] = 0;
-            continue;
-        }
+        unsigned int v1 = 0;
+        unsigned int v2 = 0;
         
-        unsigned int nv = (pa[limbsShifted+i] >> limbBitsShifted) | carry;
-
-        carry = ~((0xFFFFFFFF >> limbBitsShifted) << limbBitsShifted);
-        carry &= pa[limbsShifted+i];
-        carry = carry << cs;
-
-        if (i < r->m_size)
-            pr[i] = nv;
+        if ((i+limbsShifted) < a->m_size)
+            v1 = a->m_data[i+limbsShifted] >> limbBitsShifted;
+        if ((i+limbsShifted+1) < a->m_size && cs)
+            v2 = a->m_data[i+limbsShifted+1] << cs;
+        r->m_data[i] = v1 | v2;
     }
 }
     
@@ -1929,17 +2005,19 @@ void BigInteger::shiftRight(BigInteger* r, BigInteger* a, int sv)
          * If the number is non invertible returns zero
          * 
          * @param fr    result
-         * @param x     number we are computing the inverse
-         * @param n     modulo   
+         * @param a     number we are computing the inverse
+         * @param b     modulo   
          */
         void BigInteger::inverseMod(BigInteger* ret, BigInteger* a, BigInteger* b)
         {
             if (extraChecks)
             {
-                //assert(a->isLessThan(n));
-                //assert(n->m_size == fr->m_size);
-                //assert(a->m_size == fr->m_size);
+                assert(a->isLessThan(b));
+//                assert(b->m_size == ret->m_size);
+//                assert(a->m_size == ret->m_size);
             }
+            
+            
             
             int maxSize = ret->m_size;
             if (a->m_size > maxSize) maxSize = a->m_size;
@@ -1965,10 +2043,13 @@ void BigInteger::shiftRight(BigInteger* r, BigInteger* a, int sv)
             
             while (!nr.isZero())            // while (nr != 0) 
             {
-//                std::cerr << "r: " << r.toHexString() << std::endl;
-//                std::cerr << "nr: " << nr.toHexString() << std::endl;
-//                std::cerr << "t: " << t.toHexString() << std::endl;
-//                std::cerr << "nt: " << nt.toHexString() << std::endl;
+                if (verbosity)
+                {
+                    std::cerr << "r: " << r.toHexString() << std::endl;
+                    std::cerr << "nr: " << nr.toHexString() << std::endl;
+                    std::cerr << "t: " << t.toHexString() << std::endl;
+                    std::cerr << "nt: " << nt.toHexString() << std::endl;
+                }
                 
                 BigInteger::div_naive(&r, &nr, &q, &tmp);   // q = r/nr;
                 tmp.copy(&nt);                              // tmp = nt;
@@ -1977,10 +2058,13 @@ void BigInteger::shiftRight(BigInteger* r, BigInteger* a, int sv)
                 nt.subtract(&p);                            // nt = t - q*nt;
                 t.copy(&tmp);                               // t = tmp;
                 
-//                std::cerr << "r: " << r.toHexString() << std::endl;
-//                std::cerr << "nr: " << nr.toHexString() << std::endl;
-//                std::cerr << "t: " << t.toHexString() << std::endl;
-//                std::cerr << "nt: " << nt.toHexString() << std::endl;
+                if (verbosity)
+                {
+                    std::cerr << "r: " << r.toHexString() << std::endl;
+                    std::cerr << "nr: " << nr.toHexString() << std::endl;
+                    std::cerr << "t: " << t.toHexString() << std::endl;
+                    std::cerr << "nt: " << nt.toHexString() << std::endl;
+                }
                 
                 tmp.copy(&nr);                              // tmp = nr; 
                 BigInteger::mult(&p, &q, &nr);

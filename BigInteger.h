@@ -95,6 +95,7 @@ public:
     static void multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod);
     static void multMod_interleaved(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod);
     static void squareMod(BigInteger* r, BigInteger* v, BigInteger* mod);
+    static void squareMod_interleaved(BigInteger* r, BigInteger* v, BigInteger* m);
     static void powerMod(BigInteger* r, BigInteger* v, BigInteger* p, BigInteger* mod);
     static void powerModSlidingWindow(BigInteger* r, BigInteger* v, BigInteger* exp, BigInteger* mod);
     
@@ -103,6 +104,7 @@ public:
     static void shiftLeft(BigInteger* r, BigInteger* a, int shift);
     static void shiftRight(BigInteger* r, BigInteger* a, int shift);
     static void div_naive(BigInteger* x, BigInteger* divisor, BigInteger* q, BigInteger* r);
+    static void mod_naive(BigInteger* x, BigInteger* y, BigInteger* r);
     static void range(BigInteger* r, BigInteger* v, int upper, int lower);
     static void inverseMod(BigInteger* fr, BigInteger* x, BigInteger* mod);
     
