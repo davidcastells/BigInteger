@@ -43,8 +43,31 @@ int big_integer_getBit(unsigned int* m_data,
 
 
 
-
-
+/**
+ * Ensure that r and v are < than m
+ * @param r_data
+ * @param r_base
+ * @param r_size
+ * @param v_data
+ * @param v_base
+ * @param v_size
+ * @param m_data
+ * @param m_base
+ * @param m_size
+ */
+void big_integer_squareMod_interleaved(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size,
+	unsigned int* v_data, const unsigned int v_base, const unsigned int v_size,
+	unsigned int* m_data, const unsigned int m_base, const unsigned int m_size)
+{
+    assert(r_data != v_data);
+    assert(r_data != m_data);
+    assert(big_integer_isLessThan(v_data, v_base, v_size, m_data, m_base, m_size));
+        
+    big_integer_multMod_interleaved(r_data, r_base, r_size,
+        v_data, v_base, v_size,
+    	v_data, v_base, v_size,
+    	m_data, m_base, m_size);
+}
 
 
 
@@ -250,10 +273,13 @@ void big_integer_multMod_interleaved(unsigned int* r_data, const unsigned int r_
 	unsigned int* b_data, const unsigned int b_base, const unsigned int b_size,
 	unsigned int* mod_data, const unsigned int mod_base, const unsigned int mod_size)
 {
-//    assert(a->isLessThan(mod));
-//    assert(b->isLessThan(mod));
+    assert(big_integer_isLessThan(a_data, a_base, a_size, mod_data, mod_base, mod_size));
+    assert(big_integer_isLessThan(b_data, b_base, b_size, mod_data, mod_base, mod_size));
+    assert(big_integer_getNumBits(r_data, r_base, r_size) > (big_integer_getLength(mod_data, mod_base, mod_size) + 1));
+    
     big_integer_zero(r_data, r_base, r_size);
     
+    // @todo apply mod to a and b before proceeding
     // @todo find the smallest number and change order accordingly
     int n = big_integer_getLength(a_data, a_base, a_size);
     for (int i=n-1; i>=0; i-- )
@@ -307,12 +333,14 @@ void big_integer_add(unsigned int* r_data, const unsigned int r_base, const unsi
 void big_integer_add_short(unsigned int * r_data, unsigned int r_base, unsigned int r_size,
         unsigned int* b_data, const unsigned int b_base, const unsigned int b_size)
 {
-    unsigned int ref_data[r_size];
-    const unsigned int ref_base = 0;
-    const unsigned int ref_size = r_size;
-    big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
-    
-    big_integer_add(r_data, r_base, r_size, ref_data, ref_base, ref_size, b_data, b_base, b_size);
+//    unsigned int ref_data[r_size];
+//    const unsigned int ref_base = 0;
+//    const unsigned int ref_size = r_size;
+//    big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
+//    
+//    big_integer_add(r_data, r_base, r_size, ref_data, ref_base, ref_size, b_data, b_base, b_size);
+//    
+    big_integer_add(r_data, r_base, r_size, r_data, r_base, r_size, b_data, b_base, b_size);
 }
 
 void big_integer_mod_short(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, 
@@ -365,6 +393,8 @@ void big_integer_div_naive(unsigned int* x_data, const unsigned int x_base, cons
 		int yl = big_integer_getLength(y_data, y_base, y_size);
 		int rl = big_integer_getLength(x_data, x_base, x_size);
 	
+                assert(rl);
+                
 		int downBit = rl-yl;
 	
 		// get the yl most significant bits of ref
@@ -420,6 +450,89 @@ void big_integer_div_naive(unsigned int* x_data, const unsigned int x_base, cons
 			}
                         
                         if (verbosity> 6) std::cout << "big_integer_div_naive q=" << big_integer_toHexString(q_data, q_base, q_size) << std::endl;
+                        if (verbosity> 6) std::cout << "big_integer_div_naive r=" << big_integer_toHexString(r_data, r_base, r_size) << std::endl;
+		} 
+	
+//		big_integer_copy(nr_data, nr_base, nr_size, r_data, r_base, r_size);
+//		big_integer_copy(nq_data, nq_base, nq_size, q_data, q_base, q_size);
+	}
+    
+}
+
+void big_integer_mod_naive(unsigned int* x_data, const unsigned int x_base, const unsigned int x_size,
+        unsigned int* y_data, const unsigned int y_base, const unsigned int y_size, 
+        unsigned int* r_data, const unsigned int r_base, const unsigned int r_size)
+{
+    if (verbosity> 6) std::cout << "big_integer_div_naive x = " << big_integer_toHexString(x_data, x_base, x_size) << std::endl;
+    if (verbosity> 6) std::cout << "big_integer_div_naive /   " << big_integer_toHexString(y_data, y_base, y_size) << std::endl;
+    
+
+    int ret = big_integer_isLessThan(x_data, x_base, x_size, y_data, y_base, y_size);
+    
+    if (ret)
+    {
+    	big_integer_copy(r_data, r_base, r_size, x_data, x_base, x_size);
+//        big_integer_copy(nq_data, nq_base, nq_size, q_data, q_base, q_size);
+    }
+    else
+    {
+		// get the length of y
+		int yl = big_integer_getLength(y_data, y_base, y_size);
+		int rl = big_integer_getLength(x_data, x_base, x_size);
+	
+		int downBit = rl-yl;
+	
+		// get the yl most significant bits of ref
+		big_integer_range(r_data, r_base, r_size, x_data, x_base, x_size, rl-1, downBit);
+		
+                if (verbosity> 6) std::cout << "big_integer_div_naive x[" << (rl-1) << ","<< downBit <<" ]   " << big_integer_toHexString(r_data, r_base, r_size) << std::endl;
+                
+                downBit--;
+	
+                
+		ret = big_integer_isLessThan(r_data, r_base, r_size, y_data, y_base, y_size);
+		if (ret)
+		{
+	
+			// take another bit from ref
+			big_integer_range(r_data, r_base, r_size, x_data, x_base, x_size, rl-1, downBit);
+                        
+                        if (verbosity> 6) std::cout << "big_integer_div_naive x[" << (rl-1) << ","<< downBit <<" ]   " << big_integer_toHexString(r_data, r_base, r_size) << std::endl;
+                        
+			downBit--;	
+		}
+	
+		big_integer_subtract_short(r_data, r_base, r_size, y_data, y_base, y_size);	
+	
+                if (verbosity> 6) std::cout << "big_integer_div_naive r=" << big_integer_toHexString(r_data, r_base, r_size) << std::endl;
+                
+		// take another bit
+		while (downBit >= 0)
+		{
+			big_integer_shiftLeft_short(r_data, r_base, r_size, 1);
+
+			if (big_integer_getBit(x_data, x_base, x_size, downBit))
+			{
+				big_integer_inc(r_data, r_base, r_size);
+			}
+			
+			downBit--;
+
+			ret = big_integer_isLessThan(r_data, r_base, r_size, y_data, y_base, y_size);
+
+			if (ret)
+			{
+//				big_integer_shiftLeft_short(q_data, q_base, q_size, 1);	// put a zero in q
+			}
+			else
+			{
+//				big_integer_shiftLeft_short(q_data, q_base, q_size, 1);	// put a one in q
+//				big_integer_inc(q_data, q_base, q_size);
+	
+				big_integer_subtract_short(r_data, r_base, r_size, y_data, y_base, y_size);	
+			}
+                        
+//                        if (verbosity> 6) std::cout << "big_integer_div_naive q=" << big_integer_toHexString(q_data, q_base, q_size) << std::endl;
                         if (verbosity> 6) std::cout << "big_integer_div_naive r=" << big_integer_toHexString(r_data, r_base, r_size) << std::endl;
 		} 
 	
@@ -636,12 +749,13 @@ void big_integer_shiftLeft_short(unsigned int* r_data, const unsigned int r_base
 
 void big_integer_shiftRight_short(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, int bits)
 {
-    unsigned int ref_data[r_size];
-    const unsigned int ref_base = 0;
-    const unsigned int ref_size = r_size;
-    big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
-    
-    big_integer_shiftRight(r_data, r_base, r_size, ref_data, ref_base, ref_size, bits );
+//    unsigned int ref_data[r_size];
+//    const unsigned int ref_base = 0;
+//    const unsigned int ref_size = r_size;
+//    big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
+//    
+//    big_integer_shiftRight(r_data, r_base, r_size, ref_data, ref_base, ref_size, bits );
+    big_integer_shiftRight(r_data, r_base, r_size, r_data, r_base, r_size, bits );
 }
 
 void big_integer_subtract_short(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, 
@@ -706,27 +820,20 @@ void big_integer_shiftRight(unsigned int* r_data, const unsigned int r_base, con
 	unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, int sv)
 {
     unsigned int carry = 0;
-    unsigned int limbsShifted = sv / 32;
-    unsigned int limbBitsShifted = sv % 32;
-    unsigned int cs = 32 - limbBitsShifted;
+    int limbsShifted = sv / 32;
+    int limbBitsShifted = sv % 32;
+    int cs = (limbBitsShifted == 0) ? 0 : 32 - limbBitsShifted;
     
-    for (int i=r_size; i >= 0; i--)
+    for (int i=0; i < r_size; i++)
     {
-        if (limbsShifted+i >= a_size)
-        {
-            if (i < r_size)
-                r_data[r_base+i] = 0;
-            continue;
-        }
+        unsigned int v1 = 0;
+        unsigned int v2 = 0;
         
-        unsigned int nv = (a_data[a_base+limbsShifted+i] >> limbBitsShifted) | carry;
-
-        carry = ~((0xFFFFFFFF >> limbBitsShifted) << limbBitsShifted);
-        carry &= a_data[a_base+limbsShifted+i];
-        carry = carry << cs;
-
-        if (i < r_size)
-            r_data[r_base+i] = nv;
+        if ((i+limbsShifted) < a_size)
+            v1 = a_data[a_base+i+limbsShifted] >> limbBitsShifted;
+        if ((i+limbsShifted+1) < a_size && cs)
+            v2 = a_data[a_base+i+limbsShifted+1] << cs;
+        r_data[r_base+i] = v1 | v2;
     }
 }
 
@@ -739,64 +846,21 @@ void big_integer_shiftRight(unsigned int* r_data, const unsigned int r_base, con
 void big_integer_shiftLeft(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size,
 	unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, int sv)
 {
-    unsigned int carry = 0;
-        
-    unsigned int limbsShifted = sv / 32;
-    unsigned int limbBitsShifted = sv % 32;
-    unsigned int cs = 32 - limbBitsShifted;
+    int limbsShifted = sv / 32;
+    int limbBitsShifted = sv % 32;
+    int cs = (limbBitsShifted == 0) ? 0 : 32 - limbBitsShifted;
     
-    for (int i=0; i < r_size; i++)
+    for (int i= r_size-1; i >= 0; i--)
     {
-        if ((i-limbsShifted) < 0)
-        {
-            r_data[r_base+i] = 0;
-            continue;
-        }
+        unsigned int v1 = 0;
+        unsigned int v2 = 0;
         
-        unsigned int nv = (a_data[a_base+i-limbsShifted] << sv) | carry;
-
-        carry = ~((0xFFFFFFFF << sv) >> sv);
-        carry &= r_data[r_base+i];
-        carry = carry >> cs;
-
-        r_data[r_base+i] = nv;
+        if ((i-limbsShifted) >= 0 && (i-limbsShifted) < a_size)
+            v1 = a_data[a_base+i-limbsShifted] << limbBitsShifted;
+        if ((i-limbsShifted-1) >= 0 && (i-limbsShifted-1) < a_size && cs)
+            v2 = a_data[a_base+i-limbsShifted-1] >> cs;
+        r_data[r_base+i] = v1 | v2;
     }
-    
-    // (sv == 32)
-//    if (limbsShifted)    
-//    {
-//        int slots = limbsShifted;
-//
-//        for (int i=r_size-1; i >= slots; i--)
-//        {
-//            r_data[r_base+i] = a_data[a_base+i-slots];
-//        }
-//        for (int i=slots-1; i >= 0; i--)
-//             r_data[r_base+i] = 0;
-//        
-//        sv -= limbsShifted * 32;
-//    }
-//    else
-//        if (r_data != a_data)
-//        {
-//            big_integer_copy(r_data, r_base, r_size, a_data, a_base, a_size);
-//        }
-//    
-//    if (sv != 0)
-//    {
-//        int cs = 32-sv;
-//
-//        for (int i=0; i < r_size; i++)
-//        {
-//            unsigned int nv = (r_data[r_base+i] << sv) | carry;
-//
-//            carry = ~((0xFFFFFFFF << sv) >> sv);
-//            carry &= r_data[r_base+i];
-//            carry = carry >> cs;
-//
-//            r_data[r_base+i] = nv;
-//        }
-//    }
 }
 
 int big_integer_isZero(unsigned int * data, const unsigned int base, const unsigned int size)
@@ -870,9 +934,9 @@ void big_integer_squareMod_short(unsigned int * r_data, unsigned int r_base, uns
     unsigned int ref_data[r_size];
     const unsigned int ref_base = 0;
     const unsigned int ref_size = r_size;
-    big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
+    big_integer_mod_naive(r_data, r_base, r_size, m_data, m_base, m_size, ref_data, ref_base, ref_size);
     
-    big_integer_squareMod(r_data, r_base, r_size,
+    big_integer_squareMod_interleaved(r_data, r_base, r_size,
             ref_data, ref_base, ref_size,
             m_data, m_base, m_size);
 }
