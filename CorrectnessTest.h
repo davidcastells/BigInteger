@@ -35,6 +35,8 @@ public:
     void testAddShifted();
     void testDiv();
     void testDivC();
+    void testMod();
+    void testModC();
     void testModBase();
     void testMult();
     void testMultC();
@@ -49,13 +51,19 @@ public:
     void testParseNumbersC();
     void testPowerMod();
     void testRandom();
+    void testRandomC();
     void testRange();
     void testSubtract();
     void testSubtractC();
     void testShiftRight();
     void testShiftLeft();
     void testSquareMod();
+    void testSquareModC();
     
+    void checkShiftRight(const char* msg, const char* sa, int bits, const char* sexp);
+    void checkShiftLeft(const char* msg, const char* sa, int bits, const char* sexp);
+    void checkRandomValid(BigInteger* a, int expBits);
+    void checkRandomValidC(unsigned int* a_data, unsigned int a_base, unsigned int a_size, int expBits);
     void checkResultMatchsExpected(BigInteger* r, BigInteger* expected);
     void checkResultMatchsExpectedC(unsigned int * r_data, unsigned int r_base, unsigned int r_size, unsigned int * exp_data, unsigned int exp_base, unsigned int exp_size);
     void checkAddShifted(const char* msg, const char* sa, const char* sb, int shift, const char* sexp);
@@ -68,6 +76,8 @@ public:
     void checkPowerMod(const char* msg, const char* sa, const char* se, const char* sm, const char* ser);
     void checkSubtract(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkSubtractC(const char* msg, const char* sa, const char* sb, const char* sexp);
+    void checkSquareMod(const char* msg, const char* sa, const char* sm, const char* sexp);
+    void checkInverseMod(const char* msg, const char* sa, const char* sm, const char* sexp);
     
 private:
     int stopAtFirstError;
