@@ -77,6 +77,7 @@ public:
     void shiftLeft(int shift);
     void shiftRight(int shift);
     void squareMod(BigInteger* m);
+    void squareMod_interleaved(BigInteger* m);
     void subtract(BigInteger* y);
     void subtractMod(BigInteger* x, BigInteger* m);
     
@@ -97,6 +98,7 @@ public:
     static void squareMod(BigInteger* r, BigInteger* v, BigInteger* mod);
     static void squareMod_interleaved(BigInteger* r, BigInteger* v, BigInteger* m);
     static void powerMod(BigInteger* r, BigInteger* v, BigInteger* p, BigInteger* mod);
+    static void powerMod_interleaved(BigInteger* r, BigInteger* v, BigInteger* p, BigInteger* mod);
     static void powerModSlidingWindow(BigInteger* r, BigInteger* v, BigInteger* exp, BigInteger* mod);
     
     
