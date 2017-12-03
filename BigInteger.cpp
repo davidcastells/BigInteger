@@ -1115,6 +1115,7 @@ void BigInteger::multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y
     if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
     {
         std::cout << "BigInteger::multMontgomeryForm2 t:" << t.toHexString() << std::endl;
+        std::cout << "BigInteger::multMontgomeryForm2 m:" << m->toHexString() << std::endl;
         std::cout << "BigInteger::multMontgomeryForm2 mprime:" << mprime->toHexString() << std::endl;
         std::cout << "BigInteger::multMontgomeryForm2 pretm:" << pretm.toHexString() << std::endl;
         std::cout << "BigInteger::multMontgomeryForm2 tm:" << tm.toHexString() << std::endl;
@@ -1479,18 +1480,37 @@ void BigInteger::multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger
     mult(&m, a, b);
     div_naive(&m, mod, &q, r);
 }
+
+void BigInteger::multMod_interleaved(BigInteger* b, BigInteger* m)
+{
+    assert(isLessThan(m));
+    assert(b->isLessThan(m));
+    
+    BigInteger ref(*this);
+    BigInteger::multMod_interleaved(this, &ref, b, m);
+}
         
+/**
+ * 
+ * @param r the size of r must be bigger that the length of mod, because it 
+ *          should be able to accommodate values bigger than 2*mod
+ * @param a
+ * @param b
+ * @param mod
+ */
 void BigInteger::multMod_interleaved(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod)
 {
+    assert(a->isLessThan(mod));
+    assert(b->isLessThan(mod));
+    assert(r->getNumBits() > mod->getLength() + 1);
+    
     if (verbosity)
     {
         std::cout << "a: " << a->toHexString() << std::endl;
         std::cout << "b: " << b->toHexString() << std::endl;
         std::cout << "mod: " << mod->toHexString() << std::endl;
     }
-    assert(a->isLessThan(mod));
-    assert(b->isLessThan(mod));
-    assert(r->getNumBits() > mod->getLength() + 1);
+    
     r->zero();
     // @todo find the smallest number and change order accordingly
     int n = a->getLength();
@@ -1586,10 +1606,69 @@ void BigInteger::parseHexString(const char* str)
     }
 }
         
+
+    /**
+     * 
+     * @param r must be bigger than mod
+     * @param v
+     * @param power
+     * @param mod
+     */
+    void BigInteger::powerMod_interleaved(BigInteger* r, BigInteger* v, BigInteger* power, BigInteger* mod)
+    {
+        if (extraChecks)
+        {
+            assert(r != v);
+            assert(r != power);
+            assert(r != mod);
+            assert(r->getNumBits() > v->getLength());
+            assert(r->getNumBits() > power->getLength());
+            assert(r->getNumBits() > mod->getLength());
+        }
+
+        BigInteger x;
+        x.initSize(mod->m_size+1); // for interleaved operations
+        x.copy(v);
+        BigInteger y(*power);   // @todo remove y
         
+        int maxBit = y.getLength();
+
+        // When using interleaved we need to apply mod before
+        x.mod(mod);
+        // y.mod(mod);
+
+        // we use a simple square-and-multiply algorithm,
+        if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod v " << x.toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod power " << y.toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod mod " << mod->toHexString() << std::endl;
+
+        r->setIntValue(1);
+
+//        while(!y.isZero())
+        for (int i=0; i < maxBit; i++)
+        {
+                //if (y.isOdd())
+            if (y.getBit(i))
+                {
+//                    std::cout << " r " << r->toHexString() << std::endl;
+//                    std::cout << "  * x " << x.toHexString() << std::endl;
+//                    std::cout << " mod mod " << mod->toHexString() << std::endl;
+
+                    r->multMod_interleaved(&x, mod);
+                    
+//                    std::cout << " = r " << r->toHexString() << std::endl;
+                }
+
+                // y.shiftRight(1);    // / 2
+                x.squareMod_interleaved(mod); 
+        }
+
+        if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod r " << r->toHexString() << std::endl;
+    }
+                
         /**
          * 
-         * @param r
+         * @param r in interleaved operation r must be bigger than m
          * @param x
          * @param power
          * @param mod
@@ -1603,8 +1682,11 @@ void BigInteger::parseHexString(const char* str)
                 assert(r != mod);
             }
             
-            BigInteger x(*v);
+            BigInteger x;
+            x.initSize(mod->m_size+1); // for interleaved operations
+            x.copy(v);
             BigInteger y(*power);
+            
 
             // we use a simple square-and-multiply algorithm,
             if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod v " << v->toHexString() << std::endl;
@@ -1763,6 +1845,13 @@ void BigInteger::squareMod(BigInteger* r, BigInteger* v, BigInteger* m)
     multMod(r, v, v, m);
 }
 
+/**
+ * 
+ * @param r the size of r must be bigger that the length of mod, because it 
+ *          should be able to accommodate values bigger than 2*mod
+ * @param v
+ * @param m
+ */
 void BigInteger::squareMod_interleaved(BigInteger* r, BigInteger* v, BigInteger* m)
 {
     if (extraChecks) 
@@ -1770,16 +1859,29 @@ void BigInteger::squareMod_interleaved(BigInteger* r, BigInteger* v, BigInteger*
         assert(r != v);
         assert(r != m);
         assert(v->isLessThan(m));
+        assert(r->getNumBits() > m->getLength() + 1);
     }
 
     multMod_interleaved(r, v, v, m);
 }
-        
+
+/**
+ * Assume that the value is already smaller than m
+ * @param m the modulo
+ */
+void BigInteger::squareMod_interleaved(BigInteger* m)
+{
+    assert(isLessThan(m));
+    BigInteger ref(*this);
+    //ref.mod(m);
+    squareMod_interleaved(this, &ref, m);
+}
+
 void BigInteger::squareMod(BigInteger* m)
 {
     BigInteger ref(*this);
-    ref.mod(m);
-    squareMod_interleaved(this, &ref, m);
+    //ref.mod(m);
+    squareMod(this, &ref, m);
 }
         
 void BigInteger::shiftLeft(int bits)

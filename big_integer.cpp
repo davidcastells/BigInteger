@@ -879,6 +879,21 @@ int big_integer_isOdd(unsigned int * data, const unsigned int base, const unsign
     return data[base+0] & 0x1;
 }
 
+/**
+ * 
+ * @param r_data
+ * @param r_base
+ * @param r_size
+ * @param v_data
+ * @param v_base
+ * @param v_size
+ * @param power_data
+ * @param power_base
+ * @param power_size
+ * @param mod_data
+ * @param mod_base
+ * @param mod_size
+ */
 void big_integer_powerMod(unsigned int * r_data, const unsigned int r_base, const unsigned int r_size,
         unsigned int * v_data, const unsigned int v_base, const unsigned int v_size,
         unsigned int * power_data, const unsigned int power_base, const unsigned int power_size,
@@ -903,7 +918,7 @@ void big_integer_powerMod(unsigned int * r_data, const unsigned int r_base, cons
     while(!big_integer_isZero(y_data, y_base, y_size))
     {
             if (big_integer_isOdd(y_data, y_base, y_size))
-                big_integer_multMod_short(r_data, r_base, r_size, x_data, x_base, x_size, mod_data, mod_base, mod_size);
+                big_integer_multMod_interleaved_short(r_data, r_base, r_size, x_data, x_base, x_size, mod_data, mod_base, mod_size);
 
             big_integer_shiftRight_short(y_data, y_base, y_size, 1);     // / 2
             big_integer_squareMod_short(x_data, x_base, x_size, mod_data, mod_base, mod_size);
@@ -927,6 +942,21 @@ void big_integer_multMod_short(unsigned int * r_data, unsigned int r_base, unsig
     big_integer_multMod(r_data, r_base, r_size, ref_data, ref_base, ref_size,
             b_data, b_base, b_size, m_data, m_base, m_size);
 }
+
+void big_integer_multMod_interleaved_short(unsigned int * r_data, unsigned int r_base, unsigned int r_size,
+        unsigned int * b_data, unsigned int b_base, unsigned int b_size,
+        unsigned int * m_data, unsigned int m_base, unsigned int m_size)
+{
+    unsigned int ref_data[r_size];
+    const unsigned int ref_base = 0;
+    const unsigned int ref_size = r_size;
+    big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
+
+    
+    big_integer_multMod_interleaved(r_data, r_base, r_size, ref_data, ref_base, ref_size,
+            b_data, b_base, b_size, m_data, m_base, m_size);
+}
+
 
 void big_integer_squareMod_short(unsigned int * r_data, unsigned int r_base, unsigned int r_size,
         unsigned int * m_data, unsigned int m_base, unsigned int m_size)
@@ -1214,4 +1244,76 @@ int big_integer_isBiggerThan(unsigned int* m_data, unsigned int m_base, unsigned
             return false;
 
     return false;
+}
+
+void big_integer_powerMod_interleaved(unsigned int * r_data, const unsigned int r_base, const unsigned int r_size,
+        unsigned int * v_data, const unsigned int v_base, const unsigned int v_size,
+        unsigned int * power_data, const unsigned int power_base, const unsigned int power_size,
+        unsigned int * mod_data, const unsigned int mod_base, const unsigned int mod_size)
+{
+        //if (extraChecks)
+        {
+            assert(r_data != v_data);
+            assert(r_data != power_data);
+            assert(r_data != mod_data);
+            assert(big_integer_getNumBits(r_data, r_base, r_size) > big_integer_getLength(v_data, v_base, v_size));
+            assert(big_integer_getNumBits(r_data, r_base, r_size) > big_integer_getLength(power_data, power_base, power_size));
+            assert(big_integer_getNumBits(r_data, r_base, r_size) > big_integer_getLength(mod_data, mod_base, mod_size));
+        }
+
+        unsigned int x_data[mod_size+1];
+        unsigned int x_base = 0;
+        unsigned int x_size = mod_size+1;
+        big_integer_mod_naive(v_data, v_base, v_size, mod_data, mod_base, mod_size, x_data, x_base, x_size);
+
+        
+        int maxBit = big_integer_getLength(power_data, power_base, power_size);
+
+        
+        // we use a simple square-and-multiply algorithm,
+//        if (verbosity) std::cout << "BigInteger::powerMod v " << x.toHexString() << std::endl;
+//        if (verbosity) std::cout << "BigInteger::powerMod power " << y.toHexString() << std::endl;
+//        if (verbosity) std::cout << "BigInteger::powerMod mod " << mod->toHexString() << std::endl;
+
+        big_integer_setIntValue(r_data, r_base, r_size, 1);
+
+//        while(!y.isZero())
+        for (int i=0; i < maxBit; i++)
+        {
+                //if (y.isOdd())
+            if (big_integer_getBit(power_data, power_base, power_size, i))
+            {
+//                    std::cout << " r " << r->toHexString() << std::endl;
+//                    std::cout << "  * x " << x.toHexString() << std::endl;
+//                    std::cout << " mod mod " << mod->toHexString() << std::endl;
+
+                    big_integer_multMod_interleaved_short(r_data, r_base, r_size,
+                            x_data, x_base, x_size,
+                            mod_data, mod_base, mod_size);
+                    
+//                    std::cout << " = r " << r->toHexString() << std::endl;
+                }
+
+                // y.shiftRight(1);    // / 2
+                big_integer_squareMod_interleaved_short(x_data, x_base, x_size, mod_data, mod_base, mod_size); 
+        }
+
+//        if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod r " << r->toHexString() << std::endl;
+    }
+
+void big_integer_squareMod_interleaved_short(unsigned int * r_data, const unsigned int r_base, const unsigned int r_size,
+        unsigned int * m_data, const unsigned int m_base, const unsigned int m_size)
+{
+    assert(r_data != m_data);
+    assert(big_integer_isLessThan(r_data, r_base, r_size, m_data, m_base, m_size));
+    assert(big_integer_getNumBits(r_data, r_base, r_size) > big_integer_getLength(m_data, m_base, m_size));
+            
+    
+    unsigned int ref_data[r_size];
+    unsigned int ref_base = 0;
+    unsigned int ref_size = r_size;
+    big_integer_copy(ref_data, ref_base, ref_size, r_data, r_base, r_size);
+
+    //ref.mod(m);
+    big_integer_squareMod_interleaved(r_data, r_base, r_size, ref_data, ref_base, ref_size, m_data, m_base, m_size);
 }

@@ -73,13 +73,14 @@ void CorrectnessTest::run()
     testMultModC();
     testModBase();
     testInverseMod();
-    testMultMontgomeryForm();
+//    testMultMontgomeryForm();
 
 
     testSquareMod();
     testSquareModC();
 //    BigInteger::verbosity = verbosity = 3;
     testPowerMod();
+    testPowerModC();
     
     BigInteger::extraChecks = 0;
     
@@ -226,9 +227,9 @@ void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char*
     e.initFromHexString(se);
     m.initFromHexString(sm);
     r.initFromHexString(ser);
-    r2.initSize(r.m_size);
+    r2.initSize(m.m_size+1);
         
-    verbosity = 1;
+//    verbosity = 1;
     if (verbosity) cout << "a: " << a.toHexString() << endl;
     if (verbosity) cout << "e: " << e.toHexString() << endl;
 
@@ -244,14 +245,17 @@ void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char*
         
     assert(!mprime.isZero());
 
-    BigInteger::powerMod(&r2, &a, &e, &m);
+    BigInteger::powerMod_interleaved(&r2, &a, &e, &m);
         
     if (verbosity)  cout << "r (std): " << r2.toHexString() << endl;
 
     cout << msg << " (std) " ;
     checkResultMatchsExpected(&r2, &r);
         
-    // BigInteger::verbosity = 1;
+    if (1<2)
+        return;
+    
+    BigInteger::verbosity = 20;
     BigInteger::powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
 
     if (verbosity)  cout << "r (mont): " << r2.toHexString() << endl;
@@ -263,6 +267,81 @@ void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char*
     
     cout << msg << " (sliding window) " ;
     checkResultMatchsExpected(&r2, &r);
+    
+}
+
+void CorrectnessTest::checkPowerModC(const char* msg, const char* sa, const char* se, const char* sm, const char* sexp)
+{
+    unsigned int a_data[2048/32];
+    unsigned int a_base = 0;
+    unsigned int a_size = 2048/32;
+    unsigned int e_data[2048/32];
+    unsigned int e_base = 0;
+    unsigned int e_size = 2048/32;
+    unsigned int m_data[2048/32];
+    unsigned int m_base = 0;
+    unsigned int m_size = 2048/32;
+    unsigned int exp_data[2048/32];
+    unsigned int exp_base = 0;
+    unsigned int exp_size = 2048/32;
+
+    unsigned int r_data[2048/32];
+    unsigned int r_base = 0;
+    unsigned int r_size = 2048/32;
+    unsigned int r2_data[2048/32];
+    unsigned int r2_base = 0;
+    unsigned int r2_size = 2048/32;
+    
+    big_integer_initFromHexString(a_data, a_base, a_size, sa);
+    big_integer_initFromHexString(e_data, e_base, e_size, se);
+    big_integer_initFromHexString(m_data, m_base, m_size, sm);
+    big_integer_initFromHexString(exp_data, exp_base, exp_size, sexp);
+
+        
+//    verbosity = 1;
+    if (verbosity) cout << "a: " << big_integer_toHexString(a_data, a_base, a_size) << endl;
+    if (verbosity) cout << "e: " << big_integer_toHexString(e_data, e_base, e_size) << endl;
+
+//    unsigned int radix_data[2048/32];
+//    unsigned int radix_base = 0;
+//    unsigned int radix_size = 2048/32;
+//    unsigned int mprime_data[2048/32];
+//    unsigned int mprime_base = 0;
+//    unsigned int mprime_size = 2048/32;
+//    
+//    
+    if (verbosity) cout << "m: " << big_integer_toHexString(m_data, m_base, m_size) << endl;
+//
+//    big_integer_radixFromMontgomeryMod(&radix, &m);        
+//    BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+//        
+//    assert(!mprime.isZero());
+
+    big_integer_powerMod_interleaved(r2_data, r2_base, r2_size,
+            a_data, a_base, a_size,
+            e_data, e_base, e_size,
+            m_data, m_base, m_size);
+        
+    if (verbosity)  cout << "r (std): " << big_integer_toHexString(r2_data, r2_base, r2_size) << endl;
+
+    cout << msg << " (std) " ;
+    checkResultMatchsExpectedC(r2_data, r2_base, r2_size, exp_data, exp_base, exp_size);
+        
+//    if (1<2)
+//        return;
+//    
+//    BigInteger::verbosity = 20;
+//    BigInteger::powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
+//
+//    if (verbosity)  cout << "r (mont): " << r2.toHexString() << endl;
+//
+//    cout << msg << " (mont) " ;
+//    checkResultMatchsExpected(&r2, &r);
+//    
+//    BigInteger::powerModSlidingWindow(&r2, &a, &e, &m);
+//    
+//    cout << msg << " (sliding window) " ;
+//    checkResultMatchsExpected(&r2, &r);
     
 }
 
@@ -1472,6 +1551,9 @@ void CorrectnessTest::testSquareMod()
  
     checkSquareMod("SquareMod (1)", "6AED2278", "70E6AC98", "3A079890");
     checkSquareMod("SquareMod (1)", "6AED227828246725", "70E6AC982D43A9FA", "4859F46B3B11B1F7");
+    checkSquareMod("SquareMod (3)", "3A1740240B326EB5234E39D61D3D3E912E73719319674F9657460BC44A7627A76DA97978136944F5", 
+            "64FF67807FBE1E8C2B6F5032241E425F2AFB729B1C653F7D203947293C3603AF105A2D74137D40DF",
+            "3BE2447FDC117220741755CC8841D0B22A249FFA2B113CE1FDF7B6D332DDD2BE93AECBFA4F1AD9FD");
     
     for (int bits=32; bits < 4096; bits*=2)
     {
@@ -1546,9 +1628,35 @@ void CorrectnessTest::testSquareModC()
     }
 }
 
+void CorrectnessTest::testPowerModC()
+{
+    checkPowerModC("PowerModC (1)", "2E70041164DB2E1", "23041164DB2E1", "55CE28B1", "1D68E58E");
+    checkPowerModC("PowerModC (2)", "2E7004114A7627A76DA97978136944F5", "3ED452B2489C045C2E70041164DB2E1F", "67F4258D3ED452B297952DEB", "2704D2FC0A8413A6C989C345");
+    checkPowerModC("PowerModC (3)", "64DB2E1F2E7004114A7627A76DA97978136944F5", "6DA979783ED452B2489C045C2E70041164DB2E1F", "136944F567F4258D3ED452B297952DEB", "73162639794173336F1FFA5DFCDCE3B");
+    checkPowerModC("PowerModC (4)", "3A1740240B326EB5234E39D61D3D3E912E73719319674F9657460BC44A7627A76DA97978136944F5", 
+            "413D1C0873F436AE79FF7D9073B77F342DDF71BF59E73792636F005572C136FE33715778136C6EF1", "64FF67807FBE1E8C2B6F5032241E425F2AFB729B1C653F7D203947293C3603AF105A2D74137D40DF",
+            "57F1F631F6D2EAD5E4D1269AAFD57555359B6E4EABF1CEDBD300F512A48016D0018CE3E16C7EB079");
+    
+    checkPowerModC("PowerModC (1)", "2E70041164DB2E1F67F4258C3ED452B2489C045C57952DEB3A1740240B326EB5234E39D61D3D3E912E73719319674F9657460BC44A7627A76DA97978136944F5",
+            "3A2956A20BE47DC03B3165E777DF7DE503431FC3042C6A64413D1C0873F436AE79FF7D9073B77F342DDF71BF59E73792636F005572C136FE33715778136C6EF1",
+            "74C673764F100BE55B6027B2151655E3288528C3632218C164FF67807FBE1E8C2B6F5032241E425F2AFB729B1C653F7D203947293C3603AF105A2D74137D40DF",
+            "53843786EA27F4A23F3636910AA846B2D3AE258CDFC8AD43197A7A1904DD213155589B25D578DC9B478A5E218397BD5560D19A2781E0820073DBCFD654128F70");
+    checkPowerModC("PowerMod (2)", "39054AD14F8573D335E363401280522B328735171CC458F40BDA7E053A28119C3D052DFE36176BCE30EE62C3682F07A438F073B10C191E0F44DB39C920A95385", 
+            "44BD1D62768E43740920239C4B8B7D5E6D2E507D495C156D130059E922EA599513B571B80C922C70305A62EF28AE6FA04519684234632D660AA417C920AC7D81",
+            "50766FF31D9713155C5D63F80496289027D56BE475F351E61A2735CE0BAC218E6A653572630D6D122FC6631C692E579C51415CD35CAE3CBC506C75C820AF277D",
+            "22424FE41686F0EFBE62BA53979420C606D5C334D1EDEDA95FB44E3039BF99A3D0D402519CBAD661E2AC33907AE81EE49FE3CEE923670A669FEC903B739559FF");
+
+}
+
 void CorrectnessTest::testPowerMod()
 {
     checkPowerMod("PowerMod (1)", "2E70041164DB2E1", "23041164DB2E1", "55CE28B1", "1D68E58E");
+    checkPowerMod("PowerMod (2)", "2E7004114A7627A76DA97978136944F5", "3ED452B2489C045C2E70041164DB2E1F", "67F4258D3ED452B297952DEB", "2704D2FC0A8413A6C989C345");
+    checkPowerMod("PowerMod (3)", "64DB2E1F2E7004114A7627A76DA97978136944F5", "6DA979783ED452B2489C045C2E70041164DB2E1F", "136944F567F4258D3ED452B297952DEB", "73162639794173336F1FFA5DFCDCE3B");
+    checkPowerMod("PowerMod (4)", "3A1740240B326EB5234E39D61D3D3E912E73719319674F9657460BC44A7627A76DA97978136944F5", 
+            "413D1C0873F436AE79FF7D9073B77F342DDF71BF59E73792636F005572C136FE33715778136C6EF1", "64FF67807FBE1E8C2B6F5032241E425F2AFB729B1C653F7D203947293C3603AF105A2D74137D40DF",
+            "57F1F631F6D2EAD5E4D1269AAFD57555359B6E4EABF1CEDBD300F512A48016D0018CE3E16C7EB079");
+    
     checkPowerMod("PowerMod (1)", "2E70041164DB2E1F67F4258C3ED452B2489C045C57952DEB3A1740240B326EB5234E39D61D3D3E912E73719319674F9657460BC44A7627A76DA97978136944F5",
             "3A2956A20BE47DC03B3165E777DF7DE503431FC3042C6A64413D1C0873F436AE79FF7D9073B77F342DDF71BF59E73792636F005572C136FE33715778136C6EF1",
             "74C673764F100BE55B6027B2151655E3288528C3632218C164FF67807FBE1E8C2B6F5032241E425F2AFB729B1C653F7D203947293C3603AF105A2D74137D40DF",
@@ -1557,53 +1665,6 @@ void CorrectnessTest::testPowerMod()
             "44BD1D62768E43740920239C4B8B7D5E6D2E507D495C156D130059E922EA599513B571B80C922C70305A62EF28AE6FA04519684234632D660AA417C920AC7D81",
             "50766FF31D9713155C5D63F80496289027D56BE475F351E61A2735CE0BAC218E6A653572630D6D122FC6631C692E579C51415CD35CAE3CBC506C75C820AF277D",
             "22424FE41686F0EFBE62BA53979420C606D5C334D1EDEDA95FB44E3039BF99A3D0D402519CBAD661E2AC33907AE81EE49FE3CEE923670A669FEC903B739559FF");
-    
-    BigInteger a;
-    BigInteger e;
-    BigInteger m;
-    BigInteger r, r2;
- 
-    for (int bits=32; bits < 1024; bits*=2)
-    {
-        a.initSize(bits/32);
-        e.initSize(bits/32);
-        m.initSize(bits/32);
-        r.initSize(bits/32);
-        r2.initSize(bits/32);
-        a.random();
-        e.random();
-        
-        if (verbosity) cout << "a: " << a.toHexString() << endl;
-        if (verbosity) cout << "e: " << e.toHexString() << endl;
-
-        BigInteger radix;
-        radix.initSize(m.m_size+1);
-        BigInteger mprime;
-        mprime.initSize(radix.m_size);        
-
-        do
-        {
-
-            m.random();
-            if (verbosity) cout << "m: " << m.toHexString() << endl;
-
-            BigInteger::radixFromMontgomeryMod(&radix, &m);
-        
-            BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
-        
-        } while (mprime.isZero());
-
-        BigInteger::powerMod(&r, &a, &e, &m);
-        
-        if (verbosity)  cout << "r: " << r.toHexString() << endl;
-        
-        // BigInteger::verbosity = 1;
-        BigInteger::powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
-
-        cout << "Power Mod Montgomery ("<< bits<<" bits) " ;
-
-        checkResultMatchsExpected(&r2, &r);
-    }
 }
 
 //function inverseModInt(x,n) {

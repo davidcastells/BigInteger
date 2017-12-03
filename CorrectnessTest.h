@@ -50,6 +50,7 @@ public:
     void testParseNumbers();
     void testParseNumbersC();
     void testPowerMod();
+    void testPowerModC();
     void testRandom();
     void testRandomC();
     void testRange();
@@ -74,6 +75,7 @@ public:
     void checkDivision(const char* msg, const char* a, const char* b, const char* eq, const char* er);
     void checkDivisionC(const char* msg, const char* a, const char* b, const char* eq, const char* er);
     void checkPowerMod(const char* msg, const char* sa, const char* se, const char* sm, const char* ser);
+    void checkPowerModC(const char* msg, const char* sa, const char* se, const char* sm, const char* ser);
     void checkSubtract(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkSubtractC(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkSquareMod(const char* msg, const char* sa, const char* sm, const char* sexp);
