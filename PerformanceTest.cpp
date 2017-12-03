@@ -545,6 +545,36 @@ void PerformanceTest::testPerformanceFinalModPow()
 
         if (seconds > 10)
             bits = maxBits;
+    }
+
+for (int bits = 32; bits <= maxBits; bits *= 2)
+    {
+        PerformanceLap lap;
+     
+        a.initSize(bits/32);
+        e.initSize(bits/32);
+        m.initSize(bits/32);
+        r.initSize(bits/32);
+        r2.initSize(bits/32);
+        a.random();
+        e.random();
+        
+        BigInteger radix;
+        radix.initSize(m.m_size+1);
+        BigInteger mprime;
+        mprime.initSize(radix.m_size);        
+
+        m.random(bits-1);
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::powerMod_interleaved(&r, &a, &e, &m);
+        seconds = lap.stop();
+        
+        cout << "Interleaved Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+
+        if (seconds > 10)
+            bits = maxBits;
     }    
     
     for (int bits = 32; bits <= maxBits; bits *= 2)
