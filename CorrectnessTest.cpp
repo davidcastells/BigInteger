@@ -73,12 +73,14 @@ void CorrectnessTest::run()
     testMultModC();
     testModBase();
     testInverseMod();
-//    testMultMontgomeryForm();
-
-
     testSquareMod();
     testSquareModC();
 //    BigInteger::verbosity = verbosity = 3;
+
+    testMontgomeryReduction();
+    testMontgomeryMult();
+    testMultMontgomeryForm();
+
     testPowerMod();
     testPowerModC();
     
@@ -251,11 +253,8 @@ void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char*
 
     cout << msg << " (std) " ;
     checkResultMatchsExpected(&r2, &r);
-        
-    if (1<2)
-        return;
-    
-    BigInteger::verbosity = 20;
+            
+//    BigInteger::verbosity = 3;
     BigInteger::powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
 
     if (verbosity)  cout << "r (mont): " << r2.toHexString() << endl;
@@ -1292,8 +1291,144 @@ void CorrectnessTest::testMultModC()
     checkMultModC("Mult Mod C ", "00000000CB1F03567C39076B", "45CB977B71DFED43", "000000010000000000000000", "00000001");
 }
 
+void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const char* sy, const char* sradix, 
+        const char* sm, const char* smprime, const char* sexp)
+{
+    cout << msg << " (own)";
+    
+    BigInteger x, y, radix, m, mprime, exp, r;
+    x.initFromHexString(sx);
+    y.initFromHexString(sy);
+    radix.initFromHexString(sradix);
+    m.initFromHexString(sm);
+    mprime.initFromHexString(smprime);
+    exp.initFromHexString(sexp);
+    
+    r.initSize(m.m_size+1);
+    
+    // make sure x < m
+    x.mod(&m);
+    y.mod(&m);
+    
+    BigInteger::montgomeryMult(&r, &x, &y, &m, &radix, mprime.m_data[0]);
+    checkResultMatchsExpected(&r, &exp);
+    
+    cout << msg << " (v2) ";
+    r.initSize(exp.m_size);
+    BigInteger::multMontgomeryForm2(&r, &x, &y, &m, &mprime);
+    checkResultMatchsExpected(&r, &exp);
+    
+    cout << msg << " (v3) ";
+    r.initSize(exp.m_size);
+    BigInteger::multMontgomeryForm3(&r, &x, &y, &m, &mprime);
+    checkResultMatchsExpected(&r, &exp);
+
+}
+
+void CorrectnessTest::checkMontgomeryReduction(const char* msg, const char* sx,
+        const char* sradix, const char* sm, const char* sexp)
+{
+    cout << msg ;
+    
+    BigInteger x;
+    BigInteger radix;
+    BigInteger m;
+    BigInteger exp;
+    x.initFromHexString(sx);
+    radix.initFromHexString(sradix);
+    m.initFromHexString(sm);
+    exp.initFromHexString(sexp);
+    
+    BigInteger r(exp);
+    
+    BigInteger mprime(m);
+    BigInteger::inverseMod(&mprime, &m, &radix);
+    
+    BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+    
+    BigInteger::montgomeryReduction(&r, &x, &m, &radix, mprime.m_data[0]);
+    
+    checkResultMatchsExpected(&r, &exp);
+}
+
+void CorrectnessTest::testMontgomeryMult()
+{
+    checkMontgomeryMult("Montgomery Mult (1)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "94A0DFAF", "ACA3D7A");
+    checkMontgomeryMult("Montgomery Mult (2)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "00000094A0DFAF", "ACA3D7A");
+}
+
+void CorrectnessTest::testMontgomeryReduction()
+{
+    checkMontgomeryReduction("Montgomery Reduction (1)", "124DCA37", "100000000", "443A5BB3", "15F96733");
+    checkMontgomeryReduction("Montgomery Reduction (2)", "2E70041164DB2E1", "100000000", "55CE28B1", "4822EAE4");
+    checkMontgomeryReduction("Montgomery Reduction (3)", "090D8865", "100000000", "67C76889", "34B94381");
+    
+    for (int bits = 32; bits <= 2048; bits *= 2)
+    {
+        cout << "Montgomery Reduction " << to_string(bits) << " bits " ;
+        BigInteger a;
+        a.initSize(bits/32);
+        a.random();
+
+        BigInteger m;
+        m.initSize(bits/32);
+
+        do
+        m.random(); while (!m.isOdd());
+
+
+        BigInteger radix;
+        radix.initSize(bits/32+1);
+        radix.setIntValue(1);
+        radix.shiftLeft(bits);
+
+
+        BigInteger mprime;
+        mprime.initSize(m.m_size);
+
+//        cout << " m = " << m.toHexString() << endl; 
+//        cout << " radixSmall = " << radixSmall.toHexString() << endl; 
+
+        // BigInteger::inverseMod(&mprime, &m, &radixSmall);
+
+        BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+//        cout << " mprime= " << mprime.toHexString() << endl; 
+        //cout << " radix = " << radix.toHexString() << endl; 
+
+        BigInteger r(a);
+        BigInteger radixInv(radix);
+        BigInteger radixM(radix);
+        radixM.mod(&m);
+
+        BigInteger::inverseMod(&radixInv, &radixM, &m);
+
+//        cout << " radix = " << radix.toHexString() << endl; 
+//        cout << " radix^-1 mod m= " << radixInv.toHexString() << endl; 
+//        cout << " m= " << m.toHexString() << endl; 
+
+
+        BigInteger::montgomeryReduction(&r, &a, &m, &radix, mprime.m_data[0]);
+
+//        cout << " a' = " << r.toHexString() << endl;
+
+        BigInteger na(a);
+        BigInteger::multMod(&na, &a, &radixInv, &m);
+
+//        cout << " a = " << a.toHexString() << endl;
+//        cout << " exp a'= a * R^1 mod m= " << na.toHexString() << endl;
+        
+        checkResultMatchsExpected(&r, &na);
+    }
+}
+
+/**
+ * We check the montgomery form
+ */
 void CorrectnessTest::testMultMontgomeryForm()
 {     
+    
+    
+    
     for (int bits = 32; bits <= 4096; bits *= 2)
     {
         cout << "Mult Montgomery Form (" << bits << ") ";
@@ -1376,6 +1511,8 @@ void CorrectnessTest::testMultMontgomeryForm()
         }
 
         BigInteger rprime(m);
+        BigInteger r2prime;
+        r2prime.initSize(m.m_size+1);
         BigInteger r(m);
         BigInteger x(m);
         BigInteger y(m);
@@ -1390,8 +1527,16 @@ void CorrectnessTest::testMultMontgomeryForm()
 
         BigInteger::extraChecks = false;
         BigInteger::multMontgomeryForm2(&rprime, &xprime, &yprime, &m, &mprime);
+        BigInteger::montgomeryMult(&r2prime, &xprime, &yprime, &m, &radix, mprime.m_data[0]);
         BigInteger::extraChecks = true;
 
+        if (!BigInteger::isEqual(&rprime, &r2prime))
+        {
+            cerr << "## ERROR ##" << endl;
+            cerr << "rprime = " << rprime.toHexString() << endl;
+            cerr << "r2prime = " << r2prime.toHexString() << endl;
+            //assert(false);
+        }
         BigInteger::fromMontgomeryDomain(&r, &rprime, &radixInv, &m);
 
         BigInteger r2(r);

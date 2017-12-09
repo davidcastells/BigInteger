@@ -38,6 +38,8 @@ public:
     void testMod();
     void testModC();
     void testModBase();
+    void testMontgomeryReduction();
+    void testMontgomeryMult();
     void testMult();
     void testMultC();
     void testMultMod();
@@ -80,6 +82,8 @@ public:
     void checkSubtractC(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkSquareMod(const char* msg, const char* sa, const char* sm, const char* sexp);
     void checkInverseMod(const char* msg, const char* sa, const char* sm, const char* sexp);
+    void checkMontgomeryReduction(const char* msg, const char* sx, const char* sradix, const char* sm, const char* sexp);
+    void checkMontgomeryMult(const char* msg, const char* sx, const char* sy, const char* sradix, const char* sm, const char* smprime, const char* sexp);
     
 private:
     int stopAtFirstError;
