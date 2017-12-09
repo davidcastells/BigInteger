@@ -19,9 +19,19 @@
 #define	BIGINTEGER_H
 
 #include <string>
+#include <sstream> 
+#include <iostream>
 
-class BigNumBase;
+//class BigNumBase;
 
+#define VERBOSITY_LEVEL_DIV             5
+#define VERBOSITY_LEVEL_GET_LENGTH      6
+#define VERBOSITY_LEVEL_MULT_KARATSUBA  5
+#define VERBOSITY_LEVEL_MULT_MONTGOMERY 3
+#define VERBOSITY_LEVEL_MONTGOMERY      4
+#define VERBOSITY_LEVEL_POWER_MOD       2
+#define VERBOSITY_LEVEL_INV_MOD         4
+#define VERBOSITY_LEVEL_RANGE           6
 
 /**
  * BigInteger contains an integer with variable precission
@@ -37,6 +47,7 @@ public:
     void initSize(int s);
     void reduceWorkingSize(int s);
     int getLength();
+    int getLimbLength();
     int getNumBits();
     void zero();
     void setIntValue(unsigned int v);
@@ -66,9 +77,11 @@ public:
 // non static operations    
 public:
     void add(BigInteger* y);
+    void add(unsigned int y);
     void div(BigInteger* m);
     void mod(BigInteger* m);
     void mult(BigInteger* m);
+    void mult(unsigned int digit);
     void multMod(BigInteger* b, BigInteger* m);
     void multMod_interleaved(BigInteger* b, BigInteger* mod);
     void random();
@@ -86,9 +99,11 @@ public:
 // Static functions
 public:
     static void add(BigInteger* r, BigInteger* a, BigInteger* b);
+    static void add(BigInteger* r, BigInteger* a, unsigned int b);
     static void addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shift);
     static void subtract(BigInteger* r, BigInteger* x, BigInteger* y);
     static void mult(BigInteger* r, BigInteger* a, BigInteger* b);
+    static void mult(BigInteger* r, BigInteger* a, unsigned int digit);
     static void multLow(BigInteger* r, BigInteger* a, BigInteger* b);
     static void mult_naive(BigInteger* r, BigInteger* a, BigInteger* b);
     static void mult_karatsuba(BigInteger* r, BigInteger* x, BigInteger* y);
@@ -115,11 +130,12 @@ public:
     static void fromMontgomeryDomain(BigInteger* n, BigInteger* nprime, BigInteger* Rinv, BigInteger* m);
     static void multMontgomeryForm(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
     static void multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
+    static void multMontgomeryForm3(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
     static void radixFromMontgomeryMod(BigInteger* radix, BigInteger* m);
     static void mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, BigInteger* radix);
     static void powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m, BigInteger* mprime, BigInteger* radix);
-
-
+    static void montgomeryReduction(BigInteger* r, BigInteger* x, BigInteger* m, BigInteger* radix, unsigned int mprime);
+    static void montgomeryMult(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* radix, unsigned int mprime);
     static int isEqual(BigInteger* a, BigInteger* b);
     
     
@@ -135,6 +151,32 @@ public:
     unsigned int* m_data;
     unsigned int m_size;
 };
+
+template <typename T>
+std::string to_string(T value)
+{
+  //create an output string stream
+  std::ostringstream os ;
+
+  //throw the value into the string stream
+  os << value ;
+
+  //convert the string stream into a string and return
+  return os.str() ;
+}
+
+template <typename T>
+std::string to_hex_string(T value)
+{
+  //create an output string stream
+  std::ostringstream os ;
+
+  //throw the value into the string stream
+  os << std::hex << value ;
+
+  //convert the string stream into a string and return
+  return os.str() ;
+}
 
 #endif	/* BIGINTEGER_H */
 
