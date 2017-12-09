@@ -772,6 +772,8 @@ void big_integer_subtract_short(unsigned int* r_data, const unsigned int r_base,
 }
 
 
+/**
+ */
 void big_integer_subtract(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size,
 	unsigned int* x_data, const unsigned int x_base, const unsigned int x_size,
 	unsigned int* y_data, const unsigned int y_base, const unsigned int y_size)

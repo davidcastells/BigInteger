@@ -1,14 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   big_integer.h
- * Author: dcr
+ * Copyright (C) 2017 Universitat Autonoma de Barcelona - David Castells-Rufas <david.castells@uab.cat>
  *
- * Created on November 22, 2017, 9:31 AM
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef BIG_INTEGER_H
@@ -18,6 +22,19 @@
 extern "C" {
 #endif
 
+/*
+ * I will refactor the code to use and structure instead of this 
+ * simplistic argument passing
+
+ typedef struct tag_big_integer
+ {
+  unsigned int* m_data;
+  unsigned int m_base;
+  unsigned int m_size;  
+ } big_integer;
+
+*/
+    
 int big_integer_getBit(unsigned int* m_data, const unsigned int base, const unsigned int size, int bitnum);
 int big_integer_getLength(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size);
 int big_integer_isLessThan(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size,  unsigned int* v_data, const unsigned int v_base, const unsigned int v_size);
