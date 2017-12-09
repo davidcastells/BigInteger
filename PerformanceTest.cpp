@@ -331,8 +331,8 @@ void PerformanceTest::testPerformanceModMult()
         
         BigInteger::radixFromMontgomeryMod(&radix, &m);
         
-        BigInteger radixInv(radix);
-        BigInteger::inverseMod(&radixInv, &radix, &m);         // radixInv = radix ^ (-1) mod m
+//        BigInteger radixInv(radix);
+//        BigInteger::inverseMod(&radixInv, &radix, &m);         // radixInv = radix ^ (-1) mod m
         
         BigInteger mprime(radix);
         BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
@@ -366,8 +366,8 @@ void PerformanceTest::testPerformanceModMult()
         
         BigInteger::radixFromMontgomeryMod(&radix, &m);
         
-        BigInteger radixInv(radix);
-        BigInteger::inverseMod(&radixInv, &radix, &m);         // radixInv = radix ^ (-1) mod m
+//        BigInteger radixInv(radix);
+//        BigInteger::inverseMod(&radixInv, &radix, &m);         // radixInv = radix ^ (-1) mod m
         
         BigInteger mprime(radix);
         BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
@@ -379,6 +379,45 @@ void PerformanceTest::testPerformanceModMult()
         seconds = lap.stop();
         
         cout << "Montgomery Modular Multiply (2);\t" << bits << ";\t" << seconds << ";" <<endl;
+    }
+    
+    
+    for (int bits = 32; bits <= 4096; bits *= 2)
+    {
+        PerformanceLap lap;
+        
+        BigInteger a;
+        BigInteger b;
+        BigInteger m;
+        BigInteger radix;
+        BigInteger r;
+        a.initSize(bits/32);
+        b.initSize(bits/32);
+        m.initSize(bits/32);
+        radix.initSize(m.m_size+1);
+        r.initSize(bits/32+1);
+        a.random();
+        b.random();
+        m.random();
+        
+        BigInteger::radixFromMontgomeryMod(&radix, &m);
+        
+//        BigInteger radixInv(radix);
+//        BigInteger::inverseMod(&radixInv, &radix, &m);         // radixInv = radix ^ (-1) mod m
+        
+        BigInteger mprime(radix);
+        BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+
+        // to avoid crashing montgomeryMult
+        a.mod(&m);  
+        b.mod(&m);
+
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::montgomeryMult(&r, &a, &b, &m, &radix, mprime.m_data[0]);
+        seconds = lap.stop();
+        
+        cout << "Montgomery Modular Multiply (3);\t" << bits << ";\t" << seconds << ";" <<endl;
     }
 }
 
@@ -517,7 +556,7 @@ void PerformanceTest::testPerformanceFinalModPow()
     BigInteger r, r2;
  
     
-    for (int bits = 32; bits <= maxBits; bits *= 2)
+    for (int bits = 32; bits <= 256; bits *= 2)
     {
         PerformanceLap lap;
      
@@ -547,7 +586,7 @@ void PerformanceTest::testPerformanceFinalModPow()
             bits = maxBits;
     }
 
-for (int bits = 32; bits <= maxBits; bits *= 2)
+for (int bits = 32; bits <= 256; bits *= 2)
     {
         PerformanceLap lap;
      
