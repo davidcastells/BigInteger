@@ -21,6 +21,30 @@
 
 using namespace std;
 
+void BigInteger::montgomeryMult(BigInteger* y, BigInteger* m, BigInteger* radix, unsigned int mprime)
+{
+    BigInteger ref(*this);
+    BigInteger::montgomeryMult(this, &ref, y, m, radix, mprime);
+}
+
+void BigInteger::montgomeryMult(BigInteger* y, BigInteger* m, BigInteger* radix, BigInteger* mprime)
+{
+    BigInteger ref(*this);
+    BigInteger::multMontgomeryForm3(this, &ref, y, m, mprime);
+}
+
+void BigInteger::montgomerySquare(BigInteger* m, BigInteger* radix, unsigned int mprime)
+{
+    BigInteger ref(*this);
+    BigInteger::montgomeryMult(this, &ref, &ref, m, radix, mprime);
+}
+
+void BigInteger::montgomerySquare(BigInteger* m, BigInteger* radix, BigInteger* mprime)
+{
+    BigInteger ref(*this);
+    BigInteger::multMontgomeryForm3(this, &ref, &ref, m, mprime);
+}
+
 /**
  * Algorithm 14.36 from Handbook from applied cryptography
  * Compute montgomery multiplication
@@ -143,16 +167,9 @@ void BigInteger::multMontgomeryForm3(BigInteger* r, BigInteger* x, BigInteger* y
         assert(y->isLessThan(m));
     }
     
-        
-    
-    BigInteger t;
-    t.initSize(x->m_size + y->m_size);
-    
-    BigInteger tm;
-    tm.initSize(m->m_size);
-
-    BigInteger tmm;
-    tmm.initSize(tm.m_size + m->m_size);
+    BigInteger t(x->m_size + y->m_size);
+    BigInteger tm(m->m_size);
+    BigInteger tmm(tm.m_size + m->m_size);
     
     BigInteger::mult(&t, x, y);
     BigInteger::multLow(&tm, &t, mprime);  // was mult low
