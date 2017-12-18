@@ -175,3 +175,18 @@ void BigInteger::addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shi
         r->m_data[ia] = sum;
     }
 }
+
+/**
+ * Add one word to the number a mlen words into a. Return the resulting
+ * carry.
+ */
+int BigInteger::incLimb(int limb, unsigned int carry) 
+{
+    assert(limb < m_size);
+    unsigned int p = m_data[limb];
+    unsigned int t = p  + carry ;
+    
+    m_data[limb] = t;
+    
+    return (t<p)? 1 : 0;
+}
