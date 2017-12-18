@@ -59,8 +59,8 @@ void BigInteger::mult(BigInteger* r, BigInteger* a, BigInteger* b)
     
     r->zero();
 
-    int asize = a->m_size;
-    int bsize = b->m_size;
+    int asize = a->getLimbLength();
+    int bsize = b->getLimbLength();
     int rsize = r->m_size;
     uint64_t carry;
     uint64_t accum;
@@ -88,7 +88,7 @@ void BigInteger::mult(BigInteger* r, BigInteger* a, BigInteger* b)
         }
         
         if ((i + bsize)< rsize)
-            r->m_data[i + b->m_size] = carry;
+            r->m_data[i + bsize] = carry;
     }
 }    
 
@@ -102,12 +102,12 @@ void BigInteger::mult(BigInteger* r, BigInteger* a, unsigned int digit)
 {
     if (extraChecks) 
     {
-        assert(r->getNumBits() >= (a->getLength() + 32));
+        assert(r->m_size >= (a->getLimbLength() + 1));
     }
     
     r->zero();
 
-    int asize = a->m_size;
+    int asize = a->getLimbLength();
     int bsize = 1; // b->m_size;
     int rsize = r->m_size;
     uint64_t carry;
