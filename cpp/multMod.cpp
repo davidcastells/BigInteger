@@ -28,6 +28,8 @@
  */        
 void BigInteger::multMod(BigInteger* r, BigInteger* a, BigInteger* b, BigInteger* mod)
 {
+    assert(r->m_size >= mod->getLimbLength());
+    
     BigInteger m;
     m.initSize(a->m_size + b->m_size);
 
@@ -107,3 +109,9 @@ void BigInteger::multMod_interleaved(BigInteger* r, BigInteger* a, BigInteger* b
         }
     }
 }   
+
+
+
+    
+    
+
