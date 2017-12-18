@@ -19,8 +19,6 @@
         
 void BigInteger::shiftLeft(int bits)
 {
-//    BigInteger ref(*this);
-//    BigInteger::shiftLeft(this, &ref, bits );
     BigInteger::shiftLeft(this, this, bits );
 }
 
