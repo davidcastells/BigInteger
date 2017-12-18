@@ -19,10 +19,12 @@
 #include <assert.h>
 #include <iostream>
 
+using namespace std;
                 
 /**
- * 
- * @param r in interleaved operation r must be bigger than m
+ *  This is the Additive Chaining algorithm which can be found on
+ * p. 244 of "Applied Cryptography, Second Edition" by Bruce Schneier.
+ * @param r 
  * @param x
  * @param power
  * @param mod
@@ -169,22 +171,15 @@ void BigInteger::powerModSlidingWindow(BigInteger* r, BigInteger* v, BigInteger*
 
     temp.initSize(r->m_size);
     
-    //mpz_init(temp);
-    //mpz_init(square_base);
-
     // T[0] = x
     table[0].initSize(v->m_size);
     table[0].copy(v);
-    
-    //mpz_init_set(table[0], base);
     
     // x^2 mod N
     square_base.initSize(m->m_size);
     square_base.copy(v);
     square_base.squareMod(m);
     
-    //mpz_mul(square_base, base, base);
-    //mpz_mod(square_base, square_base, modulus);
     
     // Compute lookup table.
     for(i = 1; i < table_length; i++) 
@@ -192,24 +187,19 @@ void BigInteger::powerModSlidingWindow(BigInteger* r, BigInteger* v, BigInteger*
         // table[i] = table[i-1] * v ^ 2 mod m
         table[i].initSize(m->m_size);
         BigInteger::multMod(&table[i], &table[i-1], &square_base, m);
-//        mpz_init(table[i]);
-//        mpz_mul(table[i], table[i-1], square_base);
-//        mpz_mod(table[i], table[i], modulus);
     }
     
     // t = 1
     r->setIntValue(1);
-    //mpz_init_set_ui(output, 1);
     
     // |y|
     exp_length = exp->getNumBits();
-    //exp_length = mpz_size(exp) * mp_bits_per_limb;
     
     // |y| - 1
     i = exp_length - 1;
     while(i >= 0) 
     {
-        if(! exp->getBit(i))    // mpz_tstbit(exp, i)) 
+        if(! exp->getBit(i))    
         {
             l = i;
             u = 0;
@@ -218,7 +208,7 @@ void BigInteger::powerModSlidingWindow(BigInteger* r, BigInteger* v, BigInteger*
         {
             l = ((i - SLIDING_WINDOW_SIZE + 1) > 0) ? (i - SLIDING_WINDOW_SIZE + 1) : 0;
 
-            while(! exp->getBit(l)) // mpz_tstbit(exp,l)) 
+            while(! exp->getBit(l)) 
             {
                 l++;
             }
@@ -239,23 +229,14 @@ void BigInteger::powerModSlidingWindow(BigInteger* r, BigInteger* v, BigInteger*
             bip.setIntValue(p);
             
             BigInteger::powerMod(r, &temp, &bip, m);
-            //mpz_powm_ui(output, temp, p, modulus);
         }
         
         if(u != 0) 
         {
             // t = t * T[(u-1)/2] mod N
-            
             r->multMod(&table[(u-1)/2], m);
-            //mpz_mul(output, output, table[(u-1)/2]);
-            //mpz_mod(output, output, modulus);
         }
         i = l - 1;
     }
-
-//    mpz_clear(square_base);
-//    mpz_clear(temp);
-//    for(i=0 ; i<table_length; i++) {
-//        mpz_clear(table[i]);
-//    }
 }
+
