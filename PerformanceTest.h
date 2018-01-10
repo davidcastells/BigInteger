@@ -31,6 +31,8 @@ public:
 private:
     void testPerformanceRange();
     void testPerformanceAdd();
+    void testPerformanceAddC();
+    void testPerformanceAddCBase();
     void testPerformanceSubtract();
     void testPerformanceMult();
     void testPerformanceModMult();
