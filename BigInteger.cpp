@@ -55,6 +55,14 @@ BigInteger::BigInteger(const BigInteger& orig)
     copy(&orig);
 }
 
+BigInteger::BigInteger(int size)
+{
+    m_data = NULL;
+    m_size = 0;
+    
+    initSize(size);
+}
+
 void BigInteger::setIntValue(unsigned int v)
 {
     zero();
@@ -62,7 +70,9 @@ void BigInteger::setIntValue(unsigned int v)
 }
 
 /**
- * 
+ * Copies the orig number into this object.
+ * If the destination object is bigger than the source, it sets all other limbs
+ * to zero
  * @param orig
  */
 void BigInteger::copy(const BigInteger* orig)
@@ -166,95 +176,7 @@ int BigInteger::getLength()
 }
         
 
-        
-/**
- * 
- * @param v
- * @return 1 if the two numbers are equal, ignoring their size
- */
-int BigInteger::isEqual(BigInteger* a, BigInteger* b)
-{
-    unsigned int* pa = a->m_data;
-    unsigned int* pb = b->m_data;
-
-    int minSize = (a->m_size > b->m_size)? b->m_size : a->m_size;
-
-    // check if there is any different limb
-    for (int i=minSize-1; i >= 0; i--)
-        if (pa[i] != pb[i])
-            return false;
-
-    // if sizes are different, ensure the bigger part is zero
-    for (int i=minSize; i < a->m_size; i++)
-        if (pa[i] != 0)
-            return false;
-
-    for (int i=minSize; i < b->m_size; i++)
-        if (pb[i] != 0)
-            return false;
-
-    return true;
-}
-        
-/**
- * Returns true if this < v
- * Returns false if this >= v
- * 
- * @param v
- * @return 
- */
-int BigInteger::isLessThan(BigInteger* v)
-{
-    unsigned int* pv = v->m_data;
-
-    // if there is any 1 in a bigger size v before the range of this
-    // then return true
-    for (int i=v->m_size-1; i >= m_size; i--)
-        if (pv[i])
-            return true;
-
-    for (int i=m_size-1; i >= 0; i--)
-        if (i >= v->m_size)
-        {
-            if (m_data[i] != 0)
-                return false;
-        }
-        else if (m_data[i] < pv[i])
-            return true;
-        else if (m_data[i] > pv[i])
-            return false;
-
-    return false;
-}
-
-int BigInteger::isBiggerThan(BigInteger* v)
-{
-    unsigned int* pv = v->m_data;
-
-    // if there is any 1 in a bigger size v before the range of this
-    // then return true
-    for (int i=v->m_size-1; i >= m_size; i--)
-        if (pv[i])
-            return false;
-
-    for (int i=m_size-1; i >= 0; i--)
-        if (i >= v->m_size)
-        {
-            if (m_data[i] != 0)
-                return true;
-        }
-        else if (m_data[i] > pv[i])
-            return true;
-        else if (m_data[i] < pv[i])
-            return false;
-
-    return false;
-}
-
-int BigInteger::isLessThanEqual(BigInteger* v)
-{
-    return !isBiggerThan(v);
-}
+       
         
 /**
  * Initializes size and parses hex string
@@ -283,45 +205,7 @@ void BigInteger::initSize(int s)
 }
 
         
-/**
- * 
- * @return true is the number is odd
- */
-int BigInteger::isOdd()
-{
-    return m_data[0] & 0x1;
-}
-        
-/**
- * 
- * @return true is the number is zero
- */
-int BigInteger::isZero()
-{
-    unsigned int* p = m_data;
 
-    for (int i=0; i<m_size; i++)
-    {
-        if (p[i] != 0)
-            return 0;   // exit if it is not zero
-    }
-
-    return 1;
-}
-        
-int BigInteger::isOne()
-{
-    for (int i=1; i<m_size; i++)
-        if (m_data[i] != 0)
-            return 0;   // exit if it is not zero
-
-    return (m_data[0] == 1);
-}
-
-int BigInteger::isNegative()
-{
-    return m_data[m_size-1] & 0x80000000;
-}
         
 /**
  * Increment a big number
@@ -377,6 +261,11 @@ int BigInteger::maxVal( int x,  int y)
     return (x > y) ? x:y;
 }
 
+int BigInteger::minVal( int x,  int y)
+{
+    return (x < y) ? x:y;
+}
+
 /**
  * Reduce the working size of the integer (without reallocating memory)
  * @param s new size
@@ -396,3 +285,20 @@ void BigInteger::zero()
         m_data[i] = 0;    
 }
 
+/**
+ * Returns the index of the rightmost (lowest-order) one bit in this
+ * BigInteger (the number of zero bits to the right of the rightmost
+ * one bit).  Returns -1 if this BigInteger contains no one bits.
+ * (Computes {@code (this==0? -1 : log2(this & -this))}.)
+ *
+ * @return index of the rightmost one bit in this BigInteger.
+ */
+int BigInteger::getLowestSetBit() 
+{
+    assert(!isNegative());
+
+    for (int i=0; i < getLength(); i++)
+        if (getBit(i))
+            return i;
+    return -1;        
+}
