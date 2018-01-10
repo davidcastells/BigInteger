@@ -18,6 +18,9 @@
 #include "PerformanceTest.h"
 #include "PerformanceLap.h"
 #include "BigInteger.h"
+#include "big_integer_base.h"
+#include "big_integer.h"
+
 #include <iostream>
 
 using namespace std;
@@ -57,6 +60,8 @@ void PerformanceTest::runAll()
 
     testPerformanceRange();
     testPerformanceAdd(); 
+    testPerformanceAddC(); 
+    testPerformanceAddCBase(); 
     testPerformanceSubtract(); 
     testPerformanceMult();
     testPerformanceModMult();
@@ -106,7 +111,9 @@ void PerformanceTest::testPerformanceAdd()
     cout << "Adding two random numbers (10k times)" << endl;
     cout << "Details;\tbits;\ttime;" << endl;
     
-    for (int bits = 32; bits <= 4096; bits *= 2)
+    int maxBits  = 4096*2;
+    
+    for (int bits = 32; bits <= maxBits; bits *= 2)
     {
         PerformanceLap lap;
         
@@ -125,6 +132,87 @@ void PerformanceTest::testPerformanceAdd()
         seconds = lap.stop();
         
         cout << "Add;\t" << bits << ";\t" << seconds << ";" <<endl;
+    }
+}
+
+void PerformanceTest::testPerformanceAddCBase()
+{
+    double seconds;
+    cout << "ADD)" << endl;
+    cout << "Adding two random numbers (10k times)" << endl;
+    cout << "Details;\tbits;\ttime;" << endl;
+    
+    int maxBits = 4096*2;
+    
+    unsigned int ba_data[maxBits/32];
+    unsigned int ba_base = 0;
+    unsigned int ba_size = maxBits/32;
+    unsigned int bb_data[maxBits/32];
+    unsigned int bb_base = 0;
+    unsigned int bb_size = maxBits/32;
+    unsigned int br_data[maxBits/32];
+    unsigned int br_base = 0;
+    unsigned int br_size = maxBits/32;
+    
+    for (int bits = 32; bits <= maxBits; bits *= 2)
+    {
+        PerformanceLap lap;
+        
+        ba_size = bits/32; 
+        bb_size = bits/32;
+        br_size = bits/32;
+        big_integer_base_initSize(ba_data, ba_base, ba_size, bits/32); 
+        big_integer_base_initSize(bb_data, bb_base, bb_size, bits/32); 
+        big_integer_base_initSize(br_data, br_base, br_size, bits/32);
+        big_integer_base_random(ba_data, ba_base, ba_size);
+        big_integer_base_random(bb_data, bb_base, bb_size);
+        
+        lap.start();
+        for (int rep=0; rep < 10000; rep++)
+            big_integer_base_add(br_data, br_base, br_size,
+                    ba_data, ba_base, ba_size, 
+                    bb_data, bb_base, bb_size);
+        seconds = lap.stop();
+        
+        cout << "AddCBase;\t" << bits << ";\t" << seconds << ";" <<endl;
+    }
+}
+
+void PerformanceTest::testPerformanceAddC()
+{
+    double seconds;
+    cout << "ADD)" << endl;
+    cout << "Adding two random numbers (10k times)" << endl;
+    cout << "Details;\tbits;\ttime;" << endl;
+    
+    int maxBits = 4096*2;
+    
+    unsigned int ba_data[maxBits/32];
+    unsigned int ba_size = maxBits/32;
+    unsigned int bb_data[maxBits/32];
+    unsigned int bb_size = maxBits/32;
+    unsigned int br_data[maxBits/32];
+    unsigned int br_size = maxBits/32;
+    
+    for (int bits = 32; bits <= maxBits; bits *= 2)
+    {
+        PerformanceLap lap;
+        
+        big_integer a;
+        big_integer b;
+        big_integer r;
+        big_integer_init(&a, ba_data, bits/32); 
+        big_integer_init(&b, bb_data, bits/32); 
+        big_integer_init(&r, br_data, bits/32); 
+        big_integer_base_random(a.m_data, 0, a.m_size);
+        big_integer_base_random(b.m_data, 0, b.m_size);
+        
+        lap.start();
+        for (int rep=0; rep < 10000; rep++)
+            big_integer_add(&r, &a, &b);
+        seconds = lap.stop();
+        
+        cout << "AddC;\t" << bits << ";\t" << seconds << ";" <<endl;
     }
 }
 
@@ -281,7 +369,7 @@ void PerformanceTest::testPerformanceModMult()
      
     double seconds;
     int numReps = 100;
-    int maxBits = 512;
+    int maxBits = 1024;
     cout << "MODULAR MULTIPLY)" << endl;
     cout << "Modular Multiplying two random numbers ("<< (numReps/1000)<<"k times)" << endl;
     cout << "Details;\t\tbits;\ttime;" << endl;
@@ -302,12 +390,45 @@ void PerformanceTest::testPerformanceModMult()
         b.random();
         m.random();
         
+        // to avoid crashing montgomeryMult
+        a.mod(&m);  
+        b.mod(&m);
+        
         lap.start();
         for (int rep=0; rep < numReps; rep++)
             BigInteger::multMod(&r, &a, &b, &m);
         seconds = lap.stop();
         
         cout << "Modular Multiply Simple;\t" << bits << ";\t" << seconds << ";" <<endl;
+    }
+    
+    
+    for (int bits = 32; bits <= maxBits; bits *= 2)
+    {
+        PerformanceLap lap;
+        
+        BigInteger a;
+        BigInteger b;
+        BigInteger m;
+        BigInteger r;
+        a.initSize(bits/32);
+        b.initSize(bits/32);
+        m.initSize(bits/32);
+        r.initSize(bits/32+1);
+        a.random();
+        b.random();
+        m.random();
+        
+        // to avoid crashing montgomeryMult
+        a.mod(&m);  
+        b.mod(&m);
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::multMod_interleaved(&r, &a, &b, &m);
+        seconds = lap.stop();
+        
+        cout << "Modular Multiply Interleaved;\t" << bits << ";\t" << seconds << ";" <<endl;
     }
     
      
@@ -337,6 +458,9 @@ void PerformanceTest::testPerformanceModMult()
         BigInteger mprime(radix);
         BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
 
+        // to avoid crashing montgomeryMult
+        a.mod(&m);  
+        b.mod(&m);
 
         lap.start();
         for (int rep=0; rep < numReps; rep++)
@@ -372,6 +496,9 @@ void PerformanceTest::testPerformanceModMult()
         BigInteger mprime(radix);
         BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
 
+        // to avoid crashing montgomeryMult
+        a.mod(&m);  
+        b.mod(&m);
 
         lap.start();
         for (int rep=0; rep < numReps; rep++)
@@ -381,6 +508,43 @@ void PerformanceTest::testPerformanceModMult()
         cout << "Montgomery Modular Multiply (2);\t" << bits << ";\t" << seconds << ";" <<endl;
     }
     
+    for (int bits = 32; bits <= 4096; bits *= 2)
+    {
+        PerformanceLap lap;
+        
+        BigInteger a;
+        BigInteger b;
+        BigInteger m;
+        BigInteger radix;
+        BigInteger r;
+        a.initSize(bits/32);
+        b.initSize(bits/32);
+        m.initSize(bits/32);
+        radix.initSize(m.m_size+1);
+        r.initSize(bits/32);
+        a.random();
+        b.random();
+        m.random();
+        
+        BigInteger::radixFromMontgomeryMod(&radix, &m);
+        
+//        BigInteger radixInv(radix);
+//        BigInteger::inverseMod(&radixInv, &radix, &m);         // radixInv = radix ^ (-1) mod m
+        
+        BigInteger mprime(radix);
+        BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+
+        // to avoid crashing montgomeryMult
+        a.mod(&m);  
+        b.mod(&m);
+
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::multMontgomeryForm3(&r, &a, &b, &m, &mprime);
+        seconds = lap.stop();
+        
+        cout << "Montgomery Modular Multiply (3);\t" << bits << ";\t" << seconds << ";" <<endl;
+    }
     
     for (int bits = 32; bits <= 4096; bits *= 2)
     {
@@ -417,15 +581,16 @@ void PerformanceTest::testPerformanceModMult()
             BigInteger::montgomeryMult(&r, &a, &b, &m, &radix, mprime.m_data[0]);
         seconds = lap.stop();
         
-        cout << "Montgomery Modular Multiply (3);\t" << bits << ";\t" << seconds << ";" <<endl;
+        cout << "Montgomery Modular Mult 1 limb mprime ;\t" << bits << ";\t" << seconds << ";" <<endl;
     }
 }
 
 void PerformanceTest::testPerformanceModPow()
 {
     double seconds;
+    double maxSeconds = 5;
     int numReps = 10;
-    int maxBits = 512;
+    int maxBits = 4096;
     cout << "MODULAR EXPONENTIATION)" << endl;
     cout << "Modular Exponentiation two random numbers ("<< (numReps)<<" times)" << endl;
     cout << "Details;\t\tbits;\ttime;" << endl;
@@ -453,15 +618,16 @@ void PerformanceTest::testPerformanceModPow()
         mprime.initSize(radix.m_size);        
 
         m.random();
+        a.mod(&m);
         
         lap.start();
         for (int rep=0; rep < numReps; rep++)
             BigInteger::powerModSlidingWindow(&r, &a, &e, &m);
         seconds = lap.stop();
         
-        cout << "Sliding Window Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+        cout << "Modular Exponentiation (Sliding Window);\t" << bits << ";\t" << seconds << ";" <<endl;
 
-        if (seconds > 10)
+        if (seconds > maxSeconds)
             bits = maxBits;
     }    
     
@@ -495,15 +661,16 @@ void PerformanceTest::testPerformanceModPow()
         
         } while (mprime.isZero());
         
+        a.mod(&m);
         
         lap.start();
         for (int rep=0; rep < numReps; rep++)
             BigInteger::powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
         seconds = lap.stop();
         
-        cout << "Montgomery Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+        cout << "Modular Exponentiation (Montgomery);\t" << bits << ";\t" << seconds << ";" <<endl;
         
-        if (seconds > 10)
+        if (seconds > maxSeconds)
             bits = maxBits;
     }
     
@@ -525,27 +692,71 @@ void PerformanceTest::testPerformanceModPow()
         mprime.initSize(radix.m_size);        
 
         m.random();
+        a.mod(&m);
         
         lap.start();
         for (int rep=0; rep < numReps; rep++)
             BigInteger::powerMod(&r, &a, &e, &m);
         seconds = lap.stop();
         
-        cout << "Standard Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+        cout << "Modular Exponentiation (Standard);\t" << bits << ";\t" << seconds << ";" <<endl;
         
-        if (seconds > 10)
+        if (seconds > maxSeconds)
             bits = maxBits;
 
     }
     
+    for (int bits = 32; bits <= maxBits; bits *= 2)
+    {
+        PerformanceLap lap;
+     
+        a.initSize(bits/32);
+        e.initSize(bits/32);
+        m.initSize(bits/32);
+        r.initSize(bits/32);
+        r2.initSize(bits/32);
+        a.random();
+        e.random();
+        
+        BigInteger radix;
+        radix.initSize(m.m_size+1);
+        BigInteger mprime;
+        mprime.initSize(radix.m_size);        
 
+        do
+        {
+
+            m.random();
+//        cout << "m: " << m.toHexString() << endl;
+
+            BigInteger::radixFromMontgomeryMod(&radix, &m);
+        
+            BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+        
+        } while (mprime.isZero());
+        
+        a.mod(&m);
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::powerMod_ColinPlumb(&r2, &a, &e, &m); // , &mprime, &radix);
+        seconds = lap.stop();
+        
+        cout << "Modular Exponentiation (Colin Plumb);\t" << bits << ";\t" << seconds << ";" <<endl;
+        
+        if (seconds > maxSeconds)
+            bits = maxBits;
+    }
 }
 
 void PerformanceTest::testPerformanceFinalModPow()
 {
     double seconds;
+    double maxSeconds = 10;
+    
     int numReps = 100;
     int maxBits = 2048;
+    
     cout << "MODULAR EXPONENTIATION)" << endl;
     cout << "Modular Exponentiation two random numbers ("<< (numReps)<<" times)" << endl;
     cout << "Details;\t\tbits;\ttime;" << endl;
@@ -582,7 +793,7 @@ void PerformanceTest::testPerformanceFinalModPow()
         
         cout << "Sliding Window Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
 
-        if (seconds > 10)
+        if (seconds > maxSeconds)
             bits = maxBits;
     }
 
@@ -612,7 +823,7 @@ for (int bits = 32; bits <= 256; bits *= 2)
         
         cout << "Interleaved Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
 
-        if (seconds > 10)
+        if (seconds > maxSeconds)
             bits = maxBits;
     }    
     
@@ -653,7 +864,50 @@ for (int bits = 32; bits <= 256; bits *= 2)
         
         cout << "Montgomery Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
         
-        if (seconds > 10)
+        if (seconds > maxSeconds)
+            bits = maxBits;
+    }
+    
+    
+    for (int bits = 32; bits <= maxBits; bits *= 2)
+    {
+        PerformanceLap lap;
+     
+        a.initSize(bits/32);
+        e.initSize(bits/32);
+        m.initSize(bits/32);
+        r.initSize(bits/32);
+        r2.initSize(bits/32);
+        a.random();
+        e.random();
+        
+        BigInteger radix;
+        radix.initSize(m.m_size+1);
+        BigInteger mprime;
+        mprime.initSize(radix.m_size);        
+
+        do
+        {
+
+            m.random();
+//        cout << "m: " << m.toHexString() << endl;
+
+            BigInteger::radixFromMontgomeryMod(&radix, &m);
+        
+            BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+        
+        } while (mprime.isZero());
+        
+        a.mod(&m);
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            BigInteger::powerMod_ColinPlumb(&r2, &a, &e, &m, &mprime, &radix);
+        seconds = lap.stop();
+        
+        cout << "Modular Exponentiation (Colin Plumb);\t" << bits << ";\t" << seconds << ";" <<endl;
+        
+        if (seconds > maxSeconds)
             bits = maxBits;
     }
     
