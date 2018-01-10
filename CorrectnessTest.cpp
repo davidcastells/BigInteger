@@ -17,6 +17,7 @@
 
 #include "CorrectnessTest.h"
 #include "BigInteger.h"
+#include "big_integer_base.h"
 #include "big_integer.h"
 #include <iostream>
 #include <stdlib.h>
@@ -47,6 +48,142 @@ void CorrectnessTest::run()
     cout << "[Correctnes TESTS]" << endl;
     
     BigInteger::extraChecks = 1;
+
+    const char* msg = "PowerMod (1)";
+    const char* sa = "2E70041164DB2E1";
+    const char* se = "23041164DB2E1";
+    const char* sm = "55CE28B1";
+    const char* sexp = "1D68E58E";
+    
+    {
+        BigInteger a;
+        BigInteger e;
+        BigInteger m;
+        BigInteger r, r2;
+
+        a.initFromHexString(sa);
+        e.initFromHexString(se);
+        m.initFromHexString(sm);
+        r.initFromHexString(sexp);
+        r2.initSize(m.m_size+1);
+
+    //    verbosity = 1;
+        if (verbosity) cout << "a: " << a.toHexString() << endl;
+        if (verbosity) cout << "e: " << e.toHexString() << endl;
+
+        BigInteger radix;
+        radix.initSize(m.m_size+1);
+        BigInteger mprime;
+        mprime.initSize(radix.m_size);        
+
+        if (verbosity) cout << "m: " << m.toHexString() << endl;
+
+        BigInteger::radixFromMontgomeryMod(&radix, &m);        
+        BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+
+        assert(!mprime.isZero());
+
+
+        //BigInteger::verbosity = VERBOSITY_LEVEL_POWER_MOD+1;
+        BigInteger::powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
+
+        if (verbosity)  cout << "r (mont): " << r2.toHexString() << endl;
+
+        cout << msg << " (mont) " ;
+        checkResultMatchsExpected(&r2, &r);
+    }
+    msg = "PowerModC (1)";
+    
+    unsigned int a_data[2048/32];
+    unsigned int a_base = 0;
+    unsigned int a_size = 2048/32;
+    unsigned int e_data[2048/32];
+    unsigned int e_base = 0;
+    unsigned int e_size = 2048/32;
+    unsigned int m_data[2048/32];
+    unsigned int m_base = 0;
+    unsigned int m_size = 2048/32;
+    unsigned int exp_data[2048/32];
+    unsigned int exp_base = 0;
+    unsigned int exp_size = 2048/32;
+
+    unsigned int r_data[2048/32];
+    unsigned int r_base = 0;
+    unsigned int r_size = 2048/32;
+    
+    unsigned int r2_data[2048/32];
+    unsigned int r2_base = 0;
+    unsigned int r2_size = 2048/32;
+    
+    big_integer_base_initFromHexString(a_data, a_base, a_size, sa);
+    big_integer_base_initFromHexString(e_data, e_base, e_size, se);
+    big_integer_base_initFromHexString(m_data, m_base, m_size, sm);
+    big_integer_base_initFromHexString(exp_data, exp_base, exp_size, sexp);
+
+        
+    if (base_verbosity) cout << "a: " << big_integer_base_toHexString(a_data, a_base, a_size) << endl;
+    if (base_verbosity) cout << "e: " << big_integer_base_toHexString(e_data, e_base, e_size) << endl;
+    if (base_verbosity) cout << "m: " << big_integer_base_toHexString(m_data, m_base, m_size) << endl;
+    
+//    base_verbosity = VERBOSITY_LEVEL_POWER_MOD+1;
+
+    big_integer r2;
+    big_integer_init(&r2, r2_data, r2_size);
+    big_integer a;
+    big_integer_init(&a, a_data, a_size);
+    big_integer e;
+    big_integer_init(&e, e_data, e_size);
+    big_integer m;
+    big_integer_init(&m, m_data, m_size);
+    
+    
+    unsigned int mprime_data[2048/32];
+    unsigned int mprime_base = 0;
+    unsigned int mprime_size = 2048/32;
+
+    unsigned int radix_data[2048/32];
+    unsigned int radix_base = 0;
+    unsigned int radix_size = 2048/32;
+
+    big_integer_base_radixFromMontgomeryMod(radix_data, radix_base, radix_size, m_data, m_base, m_size);
+    
+    big_integer_base_mprimeFromMontgomeryRadix(mprime_data, mprime_base, mprime_size, 
+            m_data, m_base, m_size,
+            radix_data, radix_base, radix_size);
+
+    big_integer_base_powerModMontgomery(r2_data, r2_base, r2_size,
+            a_data, a_base, a_size,
+            e_data, e_base, e_size,
+            m_data, m_base, m_size,
+            mprime_data, mprime_base, mprime_size,
+            radix_data, radix_base, radix_size);
+
+    cout << msg << " (c base mont) " ;
+    checkResultMatchsExpectedCBase(r2_data, r2_base, r2_size, exp_data, exp_base, exp_size);
+    
+    {
+        big_integer r2;
+        big_integer a;
+        big_integer e;
+        big_integer m;
+        big_integer mprime;
+        big_integer radix;
+
+        big_integer_init(&r2, r2_data, r2_size);
+        big_integer_init(&a, a_data, a_size);
+        big_integer_init(&e, e_data, e_size);
+        big_integer_init(&m, m_data, m_size);
+        big_integer_init(&mprime, mprime_data, mprime_size);
+        big_integer_init(&radix, radix_data, radix_size);
+
+        big_integer_base_initFromHexString(a_data, a_base, a_size, sa);
+        
+//        big_integer_verbosity = VERBOSITY_LEVEL_POWER_MOD +1;
+        big_integer_powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
+    
+        cout << msg << " (c mont) " ;
+        checkResultMatchsExpectedCBase(r2.m_data, 0, r2.m_size, exp_data, exp_base, exp_size);    
+    }
     
     testRandom();
     testRandomC();
@@ -75,7 +212,6 @@ void CorrectnessTest::run()
     testInverseMod();
     testSquareMod();
     testSquareModC();
-//    BigInteger::verbosity = verbosity = 3;
 
     testMontgomeryReduction();
     testMontgomeryMult();
@@ -109,16 +245,16 @@ void CorrectnessTest::checkResultMatchsExpected(BigInteger* r, BigInteger* expec
 }
 
 
-void CorrectnessTest::checkResultMatchsExpectedC(unsigned int * r_data, unsigned int r_base, unsigned int r_size,
+void CorrectnessTest::checkResultMatchsExpectedCBase(unsigned int * r_data, unsigned int r_base, unsigned int r_size,
         unsigned int * exp_data, unsigned int exp_base, unsigned int exp_size)
 {
-    if (big_integer_isEqual(r_data, r_base, r_size, exp_data, exp_base, exp_size))
+    if (big_integer_base_base_isEqual(r_data, r_base, r_size, exp_data, exp_base, exp_size))
         cout << "[OK]" << endl;
     else
     {        
         cout << "## ERROR ##" << endl;
-        cout << "Expected: " << big_integer_toHexString(exp_data, exp_base, exp_size) << endl;
-        cout << "Result: " << big_integer_toHexString(r_data, r_base, r_size) << endl;
+        cout << "Expected: " << big_integer_base_toHexString(exp_data, exp_base, exp_size) << endl;
+        cout << "Result: " << big_integer_base_toHexString(r_data, r_base, r_size) << endl;
         
         if (stopAtFirstError)
             exit(-1);
@@ -158,7 +294,23 @@ void CorrectnessTest::checkMultMod(const char* msg, const char* a, const char* b
     cout << msg << " (interleaved) ";
     BigInteger::multMod_interleaved(&r2, &ba, &bb, &bm);
     checkResultMatchsExpected(&r2, &be);
-
+    
+    cout << msg << " (montgomery) ";
+    BigInteger bradix(bm.m_size+1);
+    BigInteger bradixInv(bm.m_size+1);
+    BigInteger bmprime(bm.m_size);
+    
+    BigInteger::radixFromMontgomeryMod(&bradix, &bm);
+    BigInteger::radixInvFromMontgomeryMod(&bradixInv, &bradix, &bm);
+    BigInteger::mprimeFromMontgomeryRadix(&bmprime, &bm, &bradix);
+    BigInteger baprime(bm.m_size);
+    BigInteger bbprime(bm.m_size);
+    BigInteger brprime(bm.m_size+1);
+    BigInteger::toMontgomeryDomain(&baprime, &ba, &bradix, &bm);
+    BigInteger::toMontgomeryDomain(&bbprime, &bb, &bradix, &bm);
+    BigInteger::montgomeryMult(&brprime, &baprime, &bbprime, &bm, &bradix, bmprime.m_data[0]);
+    BigInteger::fromMontgomeryDomain(&r2, &brprime, &bradixInv, &bm);
+    checkResultMatchsExpected(&r2, &be);
 }
 
 void CorrectnessTest::checkMultModC(const char* msg, const char* sa, const char* sb, const char* sm, const char* sexp )
@@ -184,16 +336,16 @@ void CorrectnessTest::checkMultModC(const char* msg, const char* sa, const char*
     unsigned int exp_base = base;
     unsigned int exp_size = limbs;
     
-    big_integer_initFromHexString(ba_data, ba_base, ba_size, sa);
-    big_integer_initFromHexString(bb_data, bb_base, bb_size, sb);
-    big_integer_initFromHexString(bm_data, bm_base, bm_size, sm);
-    big_integer_initFromHexString(exp_data, exp_base, exp_size, sexp);
+    big_integer_base_initFromHexString(ba_data, ba_base, ba_size, sa);
+    big_integer_base_initFromHexString(bb_data, bb_base, bb_size, sb);
+    big_integer_base_initFromHexString(bm_data, bm_base, bm_size, sm);
+    big_integer_base_initFromHexString(exp_data, exp_base, exp_size, sexp);
         
     cout << msg << " (std) ";
     
     
 //    BigInteger::verbosity = 1;
-    big_integer_multMod(br_data, br_base, br_size,
+    big_integer_base_multMod(br_data, br_base, br_size,
             ba_data, ba_base, ba_size,
             bb_data, bb_base, bb_size,
             bm_data, bm_base, bm_size);
@@ -206,15 +358,15 @@ void CorrectnessTest::checkMultModC(const char* msg, const char* sa, const char*
 //        cout << " r2 = " << r2.toHexString() << endl;
 //    }
     
-    checkResultMatchsExpectedC(br_data, br_base, br_size, exp_data, exp_base, exp_size);
+    checkResultMatchsExpectedCBase(br_data, br_base, br_size, exp_data, exp_base, exp_size);
     
     cout << msg << " (interleaved) ";
-    big_integer_multMod_interleaved(br_data, br_base, br_size,
+    big_integer_base_multMod_interleaved(br_data, br_base, br_size,
             ba_data, ba_base, ba_size,
             bb_data, bb_base, bb_size,
             bm_data, bm_base, bm_size);
     
-    checkResultMatchsExpectedC(br_data, br_base, br_size, exp_data, exp_base, exp_size);
+    checkResultMatchsExpectedCBase(br_data, br_base, br_size, exp_data, exp_base, exp_size);
 
 }
 
@@ -267,6 +419,11 @@ void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char*
     cout << msg << " (sliding window) " ;
     checkResultMatchsExpected(&r2, &r);
     
+    
+    BigInteger::powerMod_ColinPlumb(&r2, &a, &e, &m);
+    
+    cout << msg << " (colin plumb) " ;
+    checkResultMatchsExpected(&r2, &r);
 }
 
 void CorrectnessTest::checkPowerModC(const char* msg, const char* sa, const char* se, const char* sm, const char* sexp)
@@ -287,19 +444,20 @@ void CorrectnessTest::checkPowerModC(const char* msg, const char* sa, const char
     unsigned int r_data[2048/32];
     unsigned int r_base = 0;
     unsigned int r_size = 2048/32;
+    
     unsigned int r2_data[2048/32];
     unsigned int r2_base = 0;
     unsigned int r2_size = 2048/32;
     
-    big_integer_initFromHexString(a_data, a_base, a_size, sa);
-    big_integer_initFromHexString(e_data, e_base, e_size, se);
-    big_integer_initFromHexString(m_data, m_base, m_size, sm);
-    big_integer_initFromHexString(exp_data, exp_base, exp_size, sexp);
+    big_integer_base_initFromHexString(a_data, a_base, a_size, sa);
+    big_integer_base_initFromHexString(e_data, e_base, e_size, se);
+    big_integer_base_initFromHexString(m_data, m_base, m_size, sm);
+    big_integer_base_initFromHexString(exp_data, exp_base, exp_size, sexp);
 
         
 //    verbosity = 1;
-    if (verbosity) cout << "a: " << big_integer_toHexString(a_data, a_base, a_size) << endl;
-    if (verbosity) cout << "e: " << big_integer_toHexString(e_data, e_base, e_size) << endl;
+    if (base_verbosity) cout << "a: " << big_integer_base_toHexString(a_data, a_base, a_size) << endl;
+    if (base_verbosity) cout << "e: " << big_integer_base_toHexString(e_data, e_base, e_size) << endl;
 
 //    unsigned int radix_data[2048/32];
 //    unsigned int radix_base = 0;
@@ -309,38 +467,84 @@ void CorrectnessTest::checkPowerModC(const char* msg, const char* sa, const char
 //    unsigned int mprime_size = 2048/32;
 //    
 //    
-    if (verbosity) cout << "m: " << big_integer_toHexString(m_data, m_base, m_size) << endl;
+    if (base_verbosity) cout << "m: " << big_integer_base_toHexString(m_data, m_base, m_size) << endl;
 //
 //    big_integer_radixFromMontgomeryMod(&radix, &m);        
 //    BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
 //        
 //    assert(!mprime.isZero());
 
-    big_integer_powerMod_interleaved(r2_data, r2_base, r2_size,
+    big_integer_base_powerMod_interleaved(r2_data, r2_base, r2_size,
             a_data, a_base, a_size,
             e_data, e_base, e_size,
             m_data, m_base, m_size);
         
-    if (verbosity)  cout << "r (std): " << big_integer_toHexString(r2_data, r2_base, r2_size) << endl;
+    if (base_verbosity)  cout << "r (base interleaved): " << big_integer_base_toHexString(r2_data, r2_base, r2_size) << endl;
 
-    cout << msg << " (std) " ;
-    checkResultMatchsExpectedC(r2_data, r2_base, r2_size, exp_data, exp_base, exp_size);
-        
-//    if (1<2)
-//        return;
-//    
-//    BigInteger::verbosity = 20;
-//    BigInteger::powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
+    cout << msg << " (base interleaved) " ;
+    checkResultMatchsExpectedCBase(r2_data, r2_base, r2_size, exp_data, exp_base, exp_size);
+
+    big_integer r2;
+    big_integer_init(&r2, r2_data, r2_size);
+    big_integer a;
+    big_integer_init(&a, a_data, a_size);
+    big_integer e;
+    big_integer_init(&e, e_data, e_size);
+    big_integer m;
+    big_integer_init(&m, m_data, m_size);
+    
+    big_integer_powerMod(&r2, &a, &e, &m);
+    
+    cout << msg << " (interleaved) " ;
+    checkResultMatchsExpectedCBase(r2.m_data, 0, r2.m_size, exp_data, exp_base, exp_size);
+
+    unsigned int mprime_data[2048/32];
+    unsigned int mprime_base = 0;
+    unsigned int mprime_size = 2048/32;
+
+    unsigned int radix_data[2048/32];
+    unsigned int radix_base = 0;
+    unsigned int radix_size = 2048/32;
+
+    big_integer_base_radixFromMontgomeryMod(radix_data, radix_base, radix_size, m_data, m_base, m_size);
+    
+    big_integer_base_mprimeFromMontgomeryRadix(mprime_data, mprime_base, mprime_size, 
+            m_data, m_base, m_size,
+            radix_data, radix_base, radix_size);
+
+    //base_verbosity = 7;
+    
+    big_integer_base_powerModMontgomery(r2_data, r2_base, r2_size,
+            a_data, a_base, a_size,
+            e_data, e_base, e_size,
+            m_data, m_base, m_size,
+            mprime_data, mprime_base, mprime_size,
+            radix_data, radix_base, radix_size);
 //
 //    if (verbosity)  cout << "r (mont): " << r2.toHexString() << endl;
 //
-//    cout << msg << " (mont) " ;
-//    checkResultMatchsExpected(&r2, &r);
+    cout << msg << " (base mont) " ;
+    checkResultMatchsExpectedCBase(r2_data, r2_base, r2_size, exp_data, exp_base, exp_size);
+
 //    
 //    BigInteger::powerModSlidingWindow(&r2, &a, &e, &m);
 //    
 //    cout << msg << " (sliding window) " ;
 //    checkResultMatchsExpected(&r2, &r);
+    
+    big_integer_init(&r2, r2_data, r2_size);
+    big_integer_init(&a, a_data, a_size);
+    big_integer_init(&e, e_data, e_size);
+    big_integer_init(&m, m_data, m_size);
+    big_integer mprime;
+    big_integer radix;
+    big_integer_init(&mprime, mprime_data, mprime_size);
+    big_integer_init(&radix, radix_data, radix_size);
+    
+    big_integer_powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
+    
+    cout << msg << " (mont) " ;
+    checkResultMatchsExpectedCBase(r2.m_data, 0, r2.m_size, exp_data, exp_base, exp_size);
     
 }
 
@@ -382,10 +586,10 @@ void CorrectnessTest::checkDivisionC(const char* msg, const char* a, const char*
     unsigned int ber_size = 2048/32;
 
     
-    big_integer_initFromHexString(ba_data, ba_base, ba_size, a);
-    big_integer_initFromHexString(bb_data, bb_base, bb_size, b);
-    big_integer_initFromHexString(beq_data, beq_base, beq_size, eq);
-    big_integer_initFromHexString(ber_data, ber_base, ber_size, er);
+    big_integer_base_initFromHexString(ba_data, ba_base, ba_size, a);
+    big_integer_base_initFromHexString(bb_data, bb_base, bb_size, b);
+    big_integer_base_initFromHexString(beq_data, beq_base, beq_size, eq);
+    big_integer_base_initFromHexString(ber_data, ber_base, ber_size, er);
     
 //    cout << "beq = " << beq.toHexString() << endl;
     
@@ -400,79 +604,52 @@ void CorrectnessTest::checkDivisionC(const char* msg, const char* a, const char*
 //    BigInteger bq(beq);
 //    BigInteger br(ber);
     
-    big_integer_div_naive(ba_data, ba_base, ba_size,
+    big_integer_base_div_naive(ba_data, ba_base, ba_size,
             bb_data, bb_base, bb_size,
             bq_data, bq_base, bq_size,
             br_data, br_base, br_size);
     
+    cout << msg << "base (q) ";
+    checkResultMatchsExpectedCBase(bq_data, bq_base, bq_size, beq_data, beq_base, beq_size);
+    cout << msg << "base (r) ";
+    checkResultMatchsExpectedCBase(br_data, br_base, br_size, ber_data, ber_base, ber_size);
+    
+    
+    big_integer ba;
+    big_integer bb;
+    big_integer bq;
+    big_integer br;
+    big_integer beq;
+    big_integer ber;
+    
+    big_integer_init(&ba, ba_data, ba_size);
+    big_integer_init(&bb, bb_data, bb_size);
+    big_integer_init(&bq, bq_data, bq_size);
+    big_integer_init(&br, br_data, br_size);
+    big_integer_init(&beq, beq_data, beq_size);
+    big_integer_init(&ber, ber_data, ber_size);
+    
+    big_integer_div_naive(&ba, &bb, &bq, &br);
+    
     cout << msg << "(q) ";
-    checkResultMatchsExpectedC(bq_data, bq_base, bq_size, beq_data, beq_base, beq_size);
+    checkResultMatchsExpectedCBase(bq.m_data, 0, bq.m_size, beq.m_data, 0, beq.m_size);
     cout << msg << "(r) ";
-    checkResultMatchsExpectedC(br_data, br_base, br_size, ber_data, ber_base, ber_size);
+    checkResultMatchsExpectedCBase(br.m_data, 0, br.m_size, ber.m_data, 0, ber.m_size);
 }
 
 
 
 void CorrectnessTest::testRange()
-{
-    BigInteger a;
-    BigInteger r;
-    BigInteger exp;
-    a.initSize(64/32),
-    r.initSize(64/32);
-    exp.initSize(64/32);
-    a.parseHexString("ABCDEF9876543210");
-    
-    exp.parseHexString("9876543210");
-    
-    
-    
-    cout << "Range a[39..0] " ;
-    BigInteger::range(&r, &a, 39, 0);
-    checkResultMatchsExpected(&r, &exp);
-    
-    exp.parseHexString("ABCDEF");
-    cout << "Range a[63..0] ";
-    BigInteger::range(&r, &a, 63, 40);
-    checkResultMatchsExpected(&r, &exp);
-    
-    a.initSize(5);
-    a.parseHexString("E991945399FE030C3A91FD8E07F953A0");
-    r.initSize(3);
-    exp.initSize(3);
-    
-    cout << "Range a[159..64] ";
-    exp.parseHexString("E991945399FE030C");
-    BigInteger::range(&r, &a, 159, 64);
-    checkResultMatchsExpected(&r, &exp);
-
-    cout << "Range a[63..0] ";
-    exp.parseHexString("3A91FD8E07F953A0");
-    BigInteger::range(&r, &a, 63, 0);
-    checkResultMatchsExpected(&r, &exp);
-
-//    BigInteger::verbosity = 1;
-    
-    cout << "Range a[125..61] ";
-    a.initFromHexString("3760E5AF3248DACA0000000000000001");
-    exp.initFromHexString("00000000000001BB072D799246D650");
-    r.initSize(exp.m_size);
-    
-    BigInteger::range(&r, &a, 125, 61);
-    checkResultMatchsExpected(&r, &exp);
-    
-    a.initSize(32); 
-    a.m_data[31] = -1;
-    r.initSize(16);
-
-    cout << "Range a[1015..506] ";
-    a.initFromHexString("A5A2F020BC402A46AF7866A6D81251BC6282F3565F95B6C2A2BA2F9DBF56331F02ED5C8292104D2D03E575A240F9D8FCD3E4E5548FE4D9F9D4466B645A3515846D963E19490E86398A701E6682BB4BAF572680EFD38EC6339E2A567955723DFB7F24C3310D8818C619D79A5060C46CC8BE2456CF24EB68349170C61547B363");
-    exp.initFromHexString("2968BC082F100A91ABDE19A9B604946F18A0BCD597E56DB0A8AE8BE76FD58CC7C0BB5720A484134B40F95D68903E763F34F9395523F9367E75119AD9168D4561");
-    r.initSize(exp.m_size);
-    BigInteger::range(&r, &a, 1015, 506);
-
-    checkResultMatchsExpected(&r, &exp);
-
+{    
+    checkRange("Range a[39..0] ", "ABCDEF9876543210", 39, 0, "9876543210");
+    checkRange("Range a[63..40] ", "E991945399FE030C3A91FD8E07F953A0", 63, 40, "3A91FD");
+    checkRange("Range a[159..64] ", "E991945399FE030C3A91FD8E07F953A0", 127, 64,"E991945399FE030C");
+    checkRange("Range a[63..0] ", "E991945399FE030C3A91FD8E07F953A0", 63, 0,"3A91FD8E07F953A0");
+    checkRange("Range a[125..61] ", "3760E5AF3248DACA0000000000000001", 125, 61, "00000000000001BB072D799246D650");
+    checkRange("Range a[1015..506] ", 
+            "A5A2F020BC402A46AF7866A6D81251BC6282F3565F95B6C2A2BA2F9DBF56331F02ED5C8292104D2D03E575A240F9D8FCD3E4E5548FE4D9F9D4466B645A3515846D963E19490E86398A701E6682BB4BAF572680EFD38EC6339E2A567955723DFB7F24C3310D8818C619D79A5060C46CC8BE2456CF24EB68349170C61547B363",
+            1015, 506,
+            "2968BC082F100A91ABDE19A9B604946F18A0BCD597E56DB0A8AE8BE76FD58CC7C0BB5720A484134B40F95D68903E763F34F9395523F9367E75119AD9168D4561");
 }
 
 void CorrectnessTest::testAdd()
@@ -532,34 +709,34 @@ void CorrectnessTest::testAddC()
     unsigned int exp_base = base;
     unsigned int exp_size = limbs;
     
-    big_integer_initFromHexString(a_data, a_base, a_size, "000000000000000000000010");
-    big_integer_initFromHexString(b_data, b_base, b_size, "00000000");
-    big_integer_initFromHexString(exp_data, exp_base, exp_size, "000000000000000000000010");
+    big_integer_base_initFromHexString(a_data, a_base, a_size, "000000000000000000000010");
+    big_integer_base_initFromHexString(b_data, b_base, b_size, "00000000");
+    big_integer_base_initFromHexString(exp_data, exp_base, exp_size, "000000000000000000000010");
 
-    big_integer_add(r_data, r_base, r_size, a_data, a_base, a_size, b_data, b_base, b_size);
+    big_integer_base_add(r_data, r_base, r_size, a_data, a_base, a_size, b_data, b_base, b_size);
     
     cout << "AddC (1) ";
-    checkResultMatchsExpectedC(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+    checkResultMatchsExpectedCBase(r_data, r_base, r_size, exp_data, exp_base, exp_size);
     
-    big_integer_add(r_data, r_base, r_size, b_data, b_base, b_size, a_data, a_base, a_size);
+    big_integer_base_add(r_data, r_base, r_size, b_data, b_base, b_size, a_data, a_base, a_size);
     
     cout << "AddC (2) ";
-    checkResultMatchsExpectedC(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+    checkResultMatchsExpectedCBase(r_data, r_base, r_size, exp_data, exp_base, exp_size);
 
-    big_integer_parseString(a_data, a_base, a_size, "8768279873802716238987346287098787657656763502221946787");
-    big_integer_parseString(b_data, b_base, b_size, "1231230932483459873495094398734762765654543128761987338");
-    big_integer_parseString(exp_data, exp_base, exp_size, "9999510806286176112482440685833550423311306630983934125");
+    big_integer_base_parseString(a_data, a_base, a_size, "8768279873802716238987346287098787657656763502221946787");
+    big_integer_base_parseString(b_data, b_base, b_size, "1231230932483459873495094398734762765654543128761987338");
+    big_integer_base_parseString(exp_data, exp_base, exp_size, "9999510806286176112482440685833550423311306630983934125");
     
-    big_integer_add(r_data, r_base, r_size, a_data, a_base, a_size, b_data, b_base, b_size);
+    big_integer_base_add(r_data, r_base, r_size, a_data, a_base, a_size, b_data, b_base, b_size);
     
     cout << "AddC (3) ";
-    checkResultMatchsExpectedC(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+    checkResultMatchsExpectedCBase(r_data, r_base, r_size, exp_data, exp_base, exp_size);
     
-    big_integer_copy(r_data, r_base, r_size, a_data, a_base, a_size);
-    big_integer_add_short(r_data, r_base, r_size, b_data, b_base, b_size);
+    big_integer_base_copy(r_data, r_base, r_size, a_data, a_base, a_size);
+    big_integer_base_add_short(r_data, r_base, r_size, b_data, b_base, b_size);
     
     cout << "AddC (4) ";
-    checkResultMatchsExpectedC(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+    checkResultMatchsExpectedCBase(r_data, r_base, r_size, exp_data, exp_base, exp_size);
 }
 
 void CorrectnessTest::testSubtract()
@@ -612,20 +789,20 @@ void CorrectnessTest::checkSubtractC(const char* msg, const char* sa, const char
     unsigned int exp_base = base;
     unsigned int exp_size = limbs;
     
-    big_integer_initFromHexString(a_data, a_base, a_size, sa);
-    big_integer_initFromHexString(b_data, b_base, b_size, sb);
-    big_integer_initFromHexString(exp_data, exp_base, exp_size, sexp);
+    big_integer_base_initFromHexString(a_data, a_base, a_size, sa);
+    big_integer_base_initFromHexString(b_data, b_base, b_size, sb);
+    big_integer_base_initFromHexString(exp_data, exp_base, exp_size, sexp);
 
-    big_integer_subtract(r_data, r_base, r_size, a_data, a_base, a_size, b_data, b_base, b_size);
+    big_integer_base_subtract(r_data, r_base, r_size, a_data, a_base, a_size, b_data, b_base, b_size);
     
     cout << msg << " (std) ";
-    checkResultMatchsExpectedC(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+    checkResultMatchsExpectedCBase(r_data, r_base, r_size, exp_data, exp_base, exp_size);
     
-    big_integer_copy(r_data, r_base, r_size, a_data, a_base, a_size);
-    big_integer_subtract_short(r_data, r_base, r_size, b_data, b_base, b_size);
+    big_integer_base_copy(r_data, r_base, r_size, a_data, a_base, a_size);
+    big_integer_base_subtract_short(r_data, r_base, r_size, b_data, b_base, b_size);
     
     cout << msg << " (short) ";
-    checkResultMatchsExpectedC(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+    checkResultMatchsExpectedCBase(r_data, r_base, r_size, exp_data, exp_base, exp_size);
 }
 
 /*
@@ -711,6 +888,7 @@ void CorrectnessTest::testDiv()
     
     
     checkDivision("Division (1)", "55B1742F2AFBE68D", "77B71DFED43", "B73F3", "13B49F796F4");
+    checkDivision("Division (2)", "1DFA3AFCF64353A34027", "FBB5742CF", "1E7D100ACF5", "2693D3C0C");
     checkDivision("Division (2)", "15B1742F2AFBE68D0000000000000000", "45CB977B71DFED43", "4f91587a190a3d8c", "a6653828e63485c");
     checkDivision("Division (3)", "3760E5AF3248DACA0000000000000001", "10000000000000000", "3760E5AF3248DACA", "000000000000000000001");
     
@@ -737,28 +915,28 @@ void CorrectnessTest::testDivC()
     unsigned int r_base = base;
     unsigned int r_size = bits/32;
     
-    big_integer_random_bits(x_data, x_base, x_size, bits/2);
-    big_integer_random_bits(q_data, q_base, q_size, bits/2);
-    big_integer_random_bits(r_data, r_base, r_size, big_integer_getLength(x_data, x_base, x_size)-1);  // ensure r < x
+    big_integer_base_random_bits(x_data, x_base, x_size, bits/2);
+    big_integer_base_random_bits(q_data, q_base, q_size, bits/2);
+    big_integer_base_random_bits(r_data, r_base, r_size, big_integer_base_getLength(x_data, x_base, x_size)-1);  // ensure r < x
     
     if (verbosity)
     {
         cout << endl;
-        cout << " x = " << big_integer_toHexString(x_data, x_base, x_size) << " * " << endl;
-        cout << " q = " << big_integer_toHexString(q_data, q_base, q_size) << " = " << endl;
+        cout << " x = " << big_integer_base_toHexString(x_data, x_base, x_size) << " * " << endl;
+        cout << " q = " << big_integer_base_toHexString(q_data, q_base, q_size) << " = " << endl;
     }
     
-    big_integer_mult(y_data, y_base, y_size, x_data, x_base, x_size, q_data, q_base, q_size);
+    big_integer_base_mult(y_data, y_base, y_size, x_data, x_base, x_size, q_data, q_base, q_size);
 
     if (verbosity)  
-        cout << " y(1) = " <<big_integer_toHexString(y_data, y_base, y_size) << "+" << endl;
+        cout << " y(1) = " <<big_integer_base_toHexString(y_data, y_base, y_size) << "+" << endl;
     
-    big_integer_add_short(y_data, y_base, y_size, r_data, r_base, r_size);                   // y = q*x + r
+    big_integer_base_add_short(y_data, y_base, y_size, r_data, r_base, r_size);                   // y = q*x + r
     
     if (verbosity)
     {
-        cout << " r = " <<big_integer_toHexString(r_data, r_base, r_size) << " = " << endl;
-        cout << " y = " <<big_integer_toHexString(y_data, y_base, y_size) << endl;
+        cout << " r = " <<big_integer_base_toHexString(r_data, r_base, r_size) << " = " << endl;
+        cout << " y = " <<big_integer_base_toHexString(y_data, y_base, y_size) << endl;
     }
     
     unsigned int qp_data[index*bits/32];
@@ -768,23 +946,23 @@ void CorrectnessTest::testDivC()
     unsigned int rp_base = base;
     unsigned int rp_size = bits/32;
 
-    big_integer_div_naive(y_data, y_base, y_size,
+    big_integer_base_div_naive(y_data, y_base, y_size,
             x_data, x_base, x_size,
             qp_data, qp_base, qp_size, 
             rp_data, rp_base, rp_size);
     
-    if (!big_integer_isEqual(q_data, q_base, q_size, qp_data, qp_base, qp_size))
+    if (!big_integer_base_base_isEqual(q_data, q_base, q_size, qp_data, qp_base, qp_size))
     {
         cout << "### ERROR ### q" << endl;
-        cout << " q' = " <<big_integer_toHexString(qp_data, qp_base, qp_size) << endl;
-        cout << " r' = " <<big_integer_toHexString(rp_data, rp_base, rp_size) << endl;
+        cout << " q' = " <<big_integer_base_toHexString(qp_data, qp_base, qp_size) << endl;
+        cout << " r' = " <<big_integer_base_toHexString(rp_data, rp_base, rp_size) << endl;
         exit(-1);
     }
-    else if (!big_integer_isEqual(r_data, r_base, r_size, rp_data, rp_base, rp_size))
+    else if (!big_integer_base_base_isEqual(r_data, r_base, r_size, rp_data, rp_base, rp_size))
     {
         cout << "### ERROR ### r" << endl;
-        cout << " q' = " <<big_integer_toHexString(qp_data, qp_base, qp_size) << endl;
-        cout << " r' = " <<big_integer_toHexString(rp_data, rp_base, rp_size) << endl;
+        cout << " q' = " <<big_integer_base_toHexString(qp_data, qp_base, qp_size) << endl;
+        cout << " r' = " <<big_integer_base_toHexString(rp_data, rp_base, rp_size) << endl;
         exit(-1);
     }
     else
@@ -853,18 +1031,18 @@ void CorrectnessTest::testModC()
     unsigned int r_base = base;
     unsigned int r_size = bits/32;
     
-    big_integer_random_bits(x_data, x_base, x_size, bits/2);
-    big_integer_random_bits(q_data, q_base, q_size, bits/2);
-    big_integer_random_bits(r_data, r_base, r_size, big_integer_getLength(x_data, x_base, x_size)-1);  // ensure r < x
+    big_integer_base_random_bits(x_data, x_base, x_size, bits/2);
+    big_integer_base_random_bits(q_data, q_base, q_size, bits/2);
+    big_integer_base_random_bits(r_data, r_base, r_size, big_integer_base_getLength(x_data, x_base, x_size)-1);  // ensure r < x
     
 //    cout << endl;
 //    cout << " x = " << big_integer_toHexString(x_data, x_base, x_size) << " * " << endl;
 //    cout << " q = " << big_integer_toHexString(q_data, q_base, q_size) << " = " << endl;
     
-    big_integer_mult(y_data, y_base, y_size, x_data, x_base, x_size, q_data, q_base, q_size);
+    big_integer_base_mult(y_data, y_base, y_size, x_data, x_base, x_size, q_data, q_base, q_size);
 //    cout << " y(1) = " <<big_integer_toHexString(y_data, y_base, y_size) << "+" << endl;
     
-    big_integer_add_short(y_data, y_base, y_size, r_data, r_base, r_size);                   // y = q*x + r
+    big_integer_base_add_short(y_data, y_base, y_size, r_data, r_base, r_size);                   // y = q*x + r
     
 //    cout << " r = " <<big_integer_toHexString(r_data, r_base, r_size) << " = " << endl;
 //    cout << " y = " <<big_integer_toHexString(y_data, y_base, y_size) << endl;
@@ -874,14 +1052,14 @@ void CorrectnessTest::testModC()
     unsigned int rp_base = base;
     unsigned int rp_size = bits/32;
 
-    big_integer_mod_naive(y_data, y_base, y_size,
+    big_integer_base_mod_naive(y_data, y_base, y_size,
             x_data, x_base, x_size,
             rp_data, rp_base, rp_size);
     
-    if (!big_integer_isEqual(r_data, r_base, r_size, rp_data, rp_base, rp_size))
+    if (!big_integer_base_base_isEqual(r_data, r_base, r_size, rp_data, rp_base, rp_size))
     {
         cout << "### ERROR ### r" << endl;
-        cout << " r' = " <<big_integer_toHexString(rp_data, rp_base, rp_size) << endl;
+        cout << " r' = " <<big_integer_base_toHexString(rp_data, rp_base, rp_size) << endl;
         exit(-1);
     }
     else
@@ -1008,10 +1186,10 @@ void CorrectnessTest::testRandomC()
     unsigned int a_size = 4;
     unsigned int a_base = 0;
     
-    big_integer_random(a_data, a_base, a_size);
+    big_integer_base_random(a_data, a_base, a_size);
     checkRandomValidC(a_data, a_base, a_size, 4*32);
     
-    big_integer_random_bits(a_data, a_base, a_size, 32);
+    big_integer_base_random_bits(a_data, a_base, a_size, 32);
     checkRandomValidC(a_data, a_base, a_size, 32);
 }
 
@@ -1024,7 +1202,7 @@ void CorrectnessTest::checkRandomValidC(unsigned int* a_data, unsigned int a_bas
     {
         sum += (a_data[i]>>16);   // sum the higher part of the random number
     }
-    cout << "Random: " << big_integer_toHexString(a_data, a_base, a_size) << " ";
+    cout << "Random: " << big_integer_base_toHexString(a_data, a_base, a_size) << " ";
     
     if (sum == 0)
     {
@@ -1100,13 +1278,13 @@ void CorrectnessTest::testIsLessThanC()
     unsigned int b_base = base;
     unsigned int b_size = limbs;
     
-    big_integer_initFromHexString(a_data, a_base, a_size, "3A35825373ADDCE6");
-    big_integer_initFromHexString(b_data, b_base, b_size, "000000010000000000000000");
+    big_integer_base_initFromHexString(a_data, a_base, a_size, "3A35825373ADDCE6");
+    big_integer_base_initFromHexString(b_data, b_base, b_size, "000000010000000000000000");
     
     
     cout << "IsLessThanC (a<B)? ";
     
-    if (big_integer_isLessThan(a_data, a_base, a_size, b_data, b_base, b_size))
+    if (big_integer_base_isLessThan(a_data, a_base, a_size, b_data, b_base, b_size))
         cout << "[OK]" << endl;
     else
     {        
@@ -1116,7 +1294,7 @@ void CorrectnessTest::testIsLessThanC()
     
     cout << "IsLessThan (B<a)? ";
     
-    if (big_integer_isLessThan(b_data, b_base, b_size, a_data, a_base, a_size))
+    if (big_integer_base_isLessThan(b_data, b_base, b_size, a_data, a_base, a_size))
     {
         cout << "### ERROR ###" << endl;
         exit(-1);
@@ -1210,6 +1388,52 @@ void CorrectnessTest::testMultC()
     checkMultC("MultC (5)", "400611DB4F6B3155309A0C3941095CC408A5162E7E26490C125C070B026825AB", "16B6559525E671F730060C65018944C014CD0ABE267158635824650A026B4FA7", "5AE1F40DBAE64FF72C651F8B56BEFE2751D10E095810C76C954C9765F21ED4FF230CDC57AED2B0D9CF21C373004944E873557784628E029AACDBF6DCA09578D");
 }
 
+void CorrectnessTest::checkRange(const char* msg, const char* sa, int upper, int lower, const char* sexp)
+{
+    BigInteger a;
+    BigInteger r;
+    BigInteger exp;
+    a.initFromHexString(sa);
+    exp.initFromHexString(sexp);
+    r.initSize(exp.m_size);
+    
+    cout << "Range a[" << to_string(upper) << ".." << to_string(lower) << "] " ;
+    BigInteger::range(&r, &a, upper, lower);
+    checkResultMatchsExpected(&r, &exp);    
+    
+    unsigned int a_data[a.m_size];
+    unsigned int a_base = 0;
+    unsigned int a_size = a.m_size;
+    
+    unsigned int r_data[r.m_size];
+    unsigned int r_base = 0;
+    unsigned int r_size = r.m_size;
+    
+    unsigned int exp_data[exp.m_size];
+    unsigned int exp_base = 0;
+    unsigned int exp_size = exp.m_size;
+
+    big_integer_base_initFromHexString(a_data, a_base, a_size, sa);
+    big_integer_base_initFromHexString(exp_data, exp_base, exp_size, sexp);
+
+    cout << "Range BaseC a[" << to_string(upper) << ".." << to_string(lower) << "] " ;
+    
+    big_integer_base_range(r_data, r_base, r_size, a_data, a_base, a_size, upper, lower);
+
+    checkResultMatchsExpectedCBase(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+    
+    big_integer ba;
+    big_integer br;
+    
+    big_integer_init(&ba, a_data, a_size);
+    big_integer_init(&br, r_data, r_size);
+    
+    cout << "Range C a[" << to_string(upper) << ".." << to_string(lower) << "] " ;
+    big_integer_range(&br, &ba, upper, lower);
+        
+    checkResultMatchsExpectedCBase(br.m_data, 0, br.m_size, exp_data, exp_base, exp_size);
+}
+
 void CorrectnessTest::checkMult(const char* msg, const char* sa, const char* sb, const char* sexp)
 {
     int bits = 1024;
@@ -1264,9 +1488,9 @@ void CorrectnessTest::checkMultC(const char* msg, const char* sa, const char* sb
     unsigned int exp_base = 0;
     unsigned int exp_size = bits/32;
         
-    big_integer_initFromHexString(a_data, a_base, a_size, sa);
-    big_integer_initFromHexString(b_data, b_base, b_size, sb);
-    big_integer_initFromHexString(exp_data, exp_base, exp_size, sexp);
+    big_integer_base_initFromHexString(a_data, a_base, a_size, sa);
+    big_integer_base_initFromHexString(b_data, b_base, b_size, sb);
+    big_integer_base_initFromHexString(exp_data, exp_base, exp_size, sexp);
     
     cout << msg << "(standard) " ;
     
@@ -1274,15 +1498,15 @@ void CorrectnessTest::checkMultC(const char* msg, const char* sa, const char* sb
 //    cout << "a = " << big_integer_toHexString(a_data, a_base, a_size) << endl;
 //    cout << "b = " << big_integer_toHexString(b_data, b_base, b_size) << endl;
     
-    big_integer_mult(r_data, r_base, r_size, a_data, a_base, a_size, b_data, b_base, b_size);
-    checkResultMatchsExpectedC(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+    big_integer_base_mult(r_data, r_base, r_size, a_data, a_base, a_size, b_data, b_base, b_size);
+    checkResultMatchsExpectedCBase(r_data, r_base, r_size, exp_data, exp_base, exp_size);
     
 }
 
 void CorrectnessTest::testMultMod()
 {
     checkMultMod("Mult Mod (same size) ", "3A3468848E2012BD", "2B62E85E55F7CD1A", "45CB977B71DFED43", "A6653828E63485C");
-    checkMultMod("Mult Mod ", "00000000CB1F03567C39076B", "45CB977B71DFED43", "000000010000000000000000", "00000001");
+    checkMultMod("Mult Mod ", "00000000CB1F03567C39076B", "45CB977B71DFED43", "000000010000000000000001", "C89F1A50CDB72538");
 }
 
 void CorrectnessTest::testMultModC()
@@ -1294,7 +1518,6 @@ void CorrectnessTest::testMultModC()
 void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const char* sy, const char* sradix, 
         const char* sm, const char* smprime, const char* sexp)
 {
-    cout << msg << " (own)";
     
     BigInteger x, y, radix, m, mprime, exp, r;
     x.initFromHexString(sx);
@@ -1310,18 +1533,35 @@ void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const
     x.mod(&m);
     y.mod(&m);
     
+    
+    cout << msg << " (own)";
     BigInteger::montgomeryMult(&r, &x, &y, &m, &radix, mprime.m_data[0]);
     checkResultMatchsExpected(&r, &exp);
     
+//    cout << msg << " (own2)";            
+//    BigInteger::multMontgomeryForm(&r, &x, &y, &m, &mprime);
+//    checkResultMatchsExpected(&r, &exp);
+    
+                
     cout << msg << " (v2) ";
     r.initSize(exp.m_size);
     BigInteger::multMontgomeryForm2(&r, &x, &y, &m, &mprime);
     checkResultMatchsExpected(&r, &exp);
     
+//    BigInteger::verbosity = 4;
     cout << msg << " (v3) ";
     r.initSize(exp.m_size);
     BigInteger::multMontgomeryForm3(&r, &x, &y, &m, &mprime);
     checkResultMatchsExpected(&r, &exp);
+    
+//    base_verbosity = 4;
+    big_integer_base_multMontgomeryForm3(r.m_data, 0, r.m_size,
+            x.m_data, 0, x.m_size, 
+            y.m_data, 0, y.m_size,
+            m.m_data, 0, m.m_size,
+            mprime.m_data, 0, mprime.m_size);
+    cout << msg << " (base v3) ";
+    checkResultMatchsExpectedCBase(r.m_data, 0, r.m_size, exp.m_data, 0, exp.m_size);
 
 }
 
@@ -1355,6 +1595,7 @@ void CorrectnessTest::testMontgomeryMult()
 {
     checkMontgomeryMult("Montgomery Mult (1)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "94A0DFAF", "ACA3D7A");
     checkMontgomeryMult("Montgomery Mult (2)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "00000094A0DFAF", "ACA3D7A");
+    checkMontgomeryMult("Montgomery Mult (3)", "0000000002E70041164DB2E1",  "0000000000000000170D6629", "000000000000000100000000",  "000000000000000055CE28B1", "000000000000000094A0DFAF", "00000000000000000ACA3D7A");
 }
 
 void CorrectnessTest::testMontgomeryReduction()
@@ -1585,15 +1826,15 @@ void CorrectnessTest::testParseNumbersC()
     unsigned int a_base = 0;
     unsigned int a_size = bits/32;
     
-    big_integer_initFromHexString(a_data, a_base, a_size, "4f91587a190a3d8c");
+    big_integer_base_initFromHexString(a_data, a_base, a_size, "4f91587a190a3d8c");
     
     unsigned int b_data[bits/32];
     unsigned int b_base = 0;
     unsigned int b_size = bits/32;
-    big_integer_parseString(b_data, b_base, b_size, "5733461082048707980");
+    big_integer_base_parseString(b_data, b_base, b_size, "5733461082048707980");
     
     cout << "Check parse NumbersC ";
-    checkResultMatchsExpectedC(a_data, a_base, a_size, b_data, b_base, b_size);
+    checkResultMatchsExpectedCBase(a_data, a_base, a_size, b_data, b_base, b_size);
     
 //    cout << " a = " << big_integer_toHexString(a_data, a_base, a_size) << endl;
 //    cout << " b = " << big_integer_toHexString(b_data, a_base, a_size) << endl;
@@ -1601,8 +1842,8 @@ void CorrectnessTest::testParseNumbersC()
     const char* sa = "5B8B8C8C3DC2206684A28191094E98A083E1912AE56FA3";
     const char* ssa = "2AE56FA3 A083E191 91094E98 6684A281 8C3DC220 005B8B8C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 ";
     
-    big_integer_initFromHexString(a_data, a_base, a_size, sa);
-    const char* csa = big_integer_toHexString(a_data, a_base, a_size);
+    big_integer_base_initFromHexString(a_data, a_base, a_size, sa);
+    const char* csa = big_integer_base_toHexString(a_data, a_base, a_size);
     
     if (strcmp(ssa, csa) != 0)
     {
@@ -1619,7 +1860,9 @@ void CorrectnessTest::testParseNumbersC()
  */
 void CorrectnessTest::testShiftLeft()
 {
-    checkShiftLeft("Shift Left " , "ABCDEF9876543210", 32 , "7654321000000000");
+    checkShiftLeft("Shift Left (1)" , "ABCDEF9876543210", 32 , "7654321000000000");
+    checkShiftLeft("Shift Left (1)" , "00000000ABCDEF9876543210", 32 , "ABCDEF987654321000000000");
+    checkShiftLeft("Shift Left (2)" , "00000000ABCDEF9876543210", 64 , "765432100000000000000000");
 
 }
 
@@ -1753,8 +1996,8 @@ void CorrectnessTest::testSquareModC()
     unsigned int exp_base = base;
     unsigned int exp_size = limbs;
     
-    big_integer_random_bits(a_data, a_base, a_size, bits-1);
-    big_integer_random_bits(m_data, m_base, m_size, bits-1);
+    big_integer_base_random_bits(a_data, a_base, a_size, bits-1);
+    big_integer_base_random_bits(m_data, m_base, m_size, bits-1);
 
         cout << "Square Mod C ("<< bits<<" bits) " ;
 
@@ -1762,14 +2005,14 @@ void CorrectnessTest::testSquareModC()
 //        if (verbosity) cout << "a: " << a.toHexString() << endl;
 //        if (verbosity) cout << "m: " << m.toHexString() << endl;
         
-        big_integer_multMod(r_data, r_base, r_size,
+        big_integer_base_multMod(r_data, r_base, r_size,
                 a_data, a_base, a_size,
                 a_data, a_base, a_size, 
                 m_data, m_base, m_size);
         
-        big_integer_squareMod_short(a_data, a_base, a_size, m_data, m_base, m_size);
+        big_integer_base_squareMod_short(a_data, a_base, a_size, m_data, m_base, m_size);
 
-        checkResultMatchsExpectedC(a_data, a_base, a_size, r_data, r_base, r_size);
+        checkResultMatchsExpectedCBase(a_data, a_base, a_size, r_data, r_base, r_size);
     }
 }
 
@@ -1782,11 +2025,11 @@ void CorrectnessTest::testPowerModC()
             "413D1C0873F436AE79FF7D9073B77F342DDF71BF59E73792636F005572C136FE33715778136C6EF1", "64FF67807FBE1E8C2B6F5032241E425F2AFB729B1C653F7D203947293C3603AF105A2D74137D40DF",
             "57F1F631F6D2EAD5E4D1269AAFD57555359B6E4EABF1CEDBD300F512A48016D0018CE3E16C7EB079");
     
-    checkPowerModC("PowerModC (1)", "2E70041164DB2E1F67F4258C3ED452B2489C045C57952DEB3A1740240B326EB5234E39D61D3D3E912E73719319674F9657460BC44A7627A76DA97978136944F5",
+    checkPowerModC("PowerModC (5)", "2E70041164DB2E1F67F4258C3ED452B2489C045C57952DEB3A1740240B326EB5234E39D61D3D3E912E73719319674F9657460BC44A7627A76DA97978136944F5",
             "3A2956A20BE47DC03B3165E777DF7DE503431FC3042C6A64413D1C0873F436AE79FF7D9073B77F342DDF71BF59E73792636F005572C136FE33715778136C6EF1",
             "74C673764F100BE55B6027B2151655E3288528C3632218C164FF67807FBE1E8C2B6F5032241E425F2AFB729B1C653F7D203947293C3603AF105A2D74137D40DF",
             "53843786EA27F4A23F3636910AA846B2D3AE258CDFC8AD43197A7A1904DD213155589B25D578DC9B478A5E218397BD5560D19A2781E0820073DBCFD654128F70");
-    checkPowerModC("PowerMod (2)", "39054AD14F8573D335E363401280522B328735171CC458F40BDA7E053A28119C3D052DFE36176BCE30EE62C3682F07A438F073B10C191E0F44DB39C920A95385", 
+    checkPowerModC("PowerModC (6)", "39054AD14F8573D335E363401280522B328735171CC458F40BDA7E053A28119C3D052DFE36176BCE30EE62C3682F07A438F073B10C191E0F44DB39C920A95385", 
             "44BD1D62768E43740920239C4B8B7D5E6D2E507D495C156D130059E922EA599513B571B80C922C70305A62EF28AE6FA04519684234632D660AA417C920AC7D81",
             "50766FF31D9713155C5D63F80496289027D56BE475F351E61A2735CE0BAC218E6A653572630D6D122FC6631C692E579C51415CD35CAE3CBC506C75C820AF277D",
             "22424FE41686F0EFBE62BA53979420C606D5C334D1EDEDA95FB44E3039BF99A3D0D402519CBAD661E2AC33907AE81EE49FE3CEE923670A669FEC903B739559FF");
@@ -1802,11 +2045,11 @@ void CorrectnessTest::testPowerMod()
             "413D1C0873F436AE79FF7D9073B77F342DDF71BF59E73792636F005572C136FE33715778136C6EF1", "64FF67807FBE1E8C2B6F5032241E425F2AFB729B1C653F7D203947293C3603AF105A2D74137D40DF",
             "57F1F631F6D2EAD5E4D1269AAFD57555359B6E4EABF1CEDBD300F512A48016D0018CE3E16C7EB079");
     
-    checkPowerMod("PowerMod (1)", "2E70041164DB2E1F67F4258C3ED452B2489C045C57952DEB3A1740240B326EB5234E39D61D3D3E912E73719319674F9657460BC44A7627A76DA97978136944F5",
+    checkPowerMod("PowerMod (5)", "2E70041164DB2E1F67F4258C3ED452B2489C045C57952DEB3A1740240B326EB5234E39D61D3D3E912E73719319674F9657460BC44A7627A76DA97978136944F5",
             "3A2956A20BE47DC03B3165E777DF7DE503431FC3042C6A64413D1C0873F436AE79FF7D9073B77F342DDF71BF59E73792636F005572C136FE33715778136C6EF1",
             "74C673764F100BE55B6027B2151655E3288528C3632218C164FF67807FBE1E8C2B6F5032241E425F2AFB729B1C653F7D203947293C3603AF105A2D74137D40DF",
             "53843786EA27F4A23F3636910AA846B2D3AE258CDFC8AD43197A7A1904DD213155589B25D578DC9B478A5E218397BD5560D19A2781E0820073DBCFD654128F70");
-    checkPowerMod("PowerMod (2)", "39054AD14F8573D335E363401280522B328735171CC458F40BDA7E053A28119C3D052DFE36176BCE30EE62C3682F07A438F073B10C191E0F44DB39C920A95385", 
+    checkPowerMod("PowerMod (6)", "39054AD14F8573D335E363401280522B328735171CC458F40BDA7E053A28119C3D052DFE36176BCE30EE62C3682F07A438F073B10C191E0F44DB39C920A95385", 
             "44BD1D62768E43740920239C4B8B7D5E6D2E507D495C156D130059E922EA599513B571B80C922C70305A62EF28AE6FA04519684234632D660AA417C920AC7D81",
             "50766FF31D9713155C5D63F80496289027D56BE475F351E61A2735CE0BAC218E6A653572630D6D122FC6631C692E579C51415CD35CAE3CBC506C75C820AF277D",
             "22424FE41686F0EFBE62BA53979420C606D5C334D1EDEDA95FB44E3039BF99A3D0D402519CBAD661E2AC33907AE81EE49FE3CEE923670A669FEC903B739559FF");
