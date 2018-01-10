@@ -70,14 +70,21 @@ void BigInteger::fromMontgomeryDomain(BigInteger* n, BigInteger* nprime, BigInte
  */        
 void BigInteger::radixFromMontgomeryMod(BigInteger* radix, BigInteger* m)
 {
-    assert(radix->m_size > m->m_size);
+    assert(radix->m_size > m->getLimbLength());
     
-    int mLen = m->m_size*32;
+    int mLen = m->getLimbLength()*32;
 
     radix->setIntValue(1);
     radix->shiftLeft(mLen);      
 }
 
+void BigInteger::radixInvFromMontgomeryMod(BigInteger* radixInv, BigInteger* radix, BigInteger* mod)
+{
+    BigInteger radixMod(*radix);
+    radixMod.mod(mod);
+        
+    BigInteger::inverseMod(radixInv, &radixMod, mod);         // radixInv = radix ^ (-1) mod m
+}
 
 /**
  * Computes m' in the montgomery domain, this is a value such m * m' mod radix = -1 
