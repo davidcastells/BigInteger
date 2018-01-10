@@ -47,52 +47,47 @@ void BigInteger::add(BigInteger* r, BigInteger* a, BigInteger* b)
     unsigned int bsize = b->m_size;
     unsigned int rsize = r->m_size;
     
+    unsigned int minSize = minVal(minVal(asize, bsize), rsize);
+    
     // we should fille the values up to rsize, if asize or bsize are greater
     // ignore them
-    if ((rsize == asize) && (rsize == bsize))
+    
+    // Do the common part
+    unsigned int i;
+    for (i=0; i < minSize; i++)
     {
-        unsigned int* pa = a->m_data;
-        unsigned int* pb = b->m_data;
-        unsigned int* pr = r->m_data;
-        
-        for (int i=0; i < rsize; i++)
-        {
-            av = *pa;
-            bv = *pb;
-            sum = av + bv + carryIn;
+        sum = a->m_data[i] + b->m_data[i] + carryIn;
 
-            carryIn = ((sum < av) || (sum < bv))? 1 : 0;
-
-            *pr = sum;
-            pa++;
-            pb++;
-            pr++;
-        }
+        if (sum < a->m_data[i]) carryIn = 1;
+        else if (sum < b->m_data[i]) carryIn = 1;
+        else carryIn = 0;
+            
+        r->m_data[i] = sum;
     }
-    else
+    
+    // do the rest with care
+    for (; i < rsize; i++)
     {
-        for (int i=0; i < rsize; i++)
+        sum = 0;
+
+        if (i < asize) sum += a->m_data[i];
+        if (i < bsize) sum += b->m_data[i];
+
+        if ((i < asize) && (sum < a->m_data[i]))
         {
-            sum = 0;
-
-            if (i < asize) sum += a->m_data[i];
-            if (i < bsize) sum += b->m_data[i];
-
-            if ((i < asize) && (sum < a->m_data[i]))
-            {
-                if (carryIn) sum++;
-                carryOut = 1;
-            }
-            else if (carryIn)
-            {
-                sum++;
-                carryOut = (sum == 0)? 1: 0;
-            }
-
-            carryIn = carryOut;
-            r->m_data[i] = sum;
+            if (carryIn) sum++;
+            carryOut = 1;
         }
+        else if (carryIn)
+        {
+            sum++;
+            carryOut = (sum == 0)? 1: 0;
+        }
+
+        carryIn = carryOut;
+        r->m_data[i] = sum;
     }
+    
 }
 
 void BigInteger::add(BigInteger* r, BigInteger* a, unsigned int b)
