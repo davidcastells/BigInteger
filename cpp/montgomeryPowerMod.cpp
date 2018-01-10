@@ -19,13 +19,13 @@
 #include <assert.h>
 #include <iostream>
 
-
+using namespace std;
         
 /**
  * As implemented in "Handbook of Applied Cryptography" algorithm 14.94
  * we compute r = x ^ e mod m
  * @param r
- * @param v
+ * @param x should be < mod, otherwise we fix it
  * @param mod
  */
 void BigInteger::powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m, BigInteger* mprime, BigInteger* radix)
@@ -64,7 +64,7 @@ void BigInteger::powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e,
     multMontgomeryForm3(&xprime, x, &radix2, m, mprime);
 
     if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
-        std::cout << "BigInteger::powerModMontgomery xprime: " << xprime.toHexString() << std::endl;
+        cout << "BigInteger::powerModMontgomery xprime: " << xprime.toHexString() << endl;
 
 //            BigInteger a(*radix);
 //            a.mod(m);
@@ -85,10 +85,20 @@ void BigInteger::powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e,
         temp.copy(&a);
         multMontgomeryForm3(&a, &temp, &temp, m, mprime);
 
+        if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
+        {
+            cout << "a = a^2 * R^-1 mod m =  " << a.toHexString() << endl;
+        }
+        
         if (ei)
         {
             temp.copy(&a);
             multMontgomeryForm3(&a, &temp, &xprime, m, mprime);
+            
+            if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
+            {
+                cout << "a = x' * a * R^-1 mod m =  " << a.toHexString() << endl;
+            }
         }   
     }
 
@@ -97,6 +107,11 @@ void BigInteger::powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e,
     one.setIntValue(1);
 
     multMontgomeryForm3(r, &a, &one, m, mprime);
+    
+    if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
+    {
+        cout << "r = a * 1 * R^-1 mod m =  " << r->toHexString() << endl;
+    }
 }
 
 
