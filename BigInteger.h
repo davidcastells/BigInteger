@@ -27,11 +27,12 @@
 #define VERBOSITY_LEVEL_DIV             5
 #define VERBOSITY_LEVEL_GET_LENGTH      6
 #define VERBOSITY_LEVEL_MULT_KARATSUBA  5
-#define VERBOSITY_LEVEL_MULT_MONTGOMERY 3
-#define VERBOSITY_LEVEL_MONTGOMERY      4
+#define VERBOSITY_LEVEL_MULT_MONTGOMERY 4
+#define VERBOSITY_LEVEL_MONTGOMERY      3
 #define VERBOSITY_LEVEL_POWER_MOD       2
 #define VERBOSITY_LEVEL_INV_MOD         4
 #define VERBOSITY_LEVEL_RANGE           6
+
 
 /**
  * BigInteger contains an integer with variable precission
@@ -40,6 +41,7 @@ class BigInteger {
 public:
     BigInteger();
     BigInteger(const BigInteger& orig);
+    BigInteger(int size);
     
     virtual ~BigInteger();
     
@@ -59,13 +61,15 @@ public:
     int isBiggerThan(BigInteger* v);
     int isLessThan(BigInteger* v);
     int isLessThanEqual(BigInteger* v);
+    
+    // bit manipulation 
     int isZero();
     int isOne();
     int isOdd();
     int isNegative();
-    void inc();
     int getBit(int bitnum);
-    
+    int getLowestSetBit(); 
+
     std::string toString();
     std::string toHexString();
     
@@ -79,7 +83,10 @@ public:
     void add(BigInteger* y);
     void add(unsigned int y);
     void div(BigInteger* m);
+    void inc();
+    int incLimb(int limb, unsigned int carry);
     void mod(BigInteger* m);
+    void square();
     void mult(BigInteger* m);
     void mult(unsigned int digit);
     void multMod(BigInteger* b, BigInteger* m);
@@ -96,8 +103,17 @@ public:
     
     int binary_to_decimal(int start, int end);
     
+    // montgomery functions
+    void montgomeryReduction(BigInteger* m, BigInteger* radix, unsigned int mprime);
+    void montgomeryMult(BigInteger* y, BigInteger* m, BigInteger* radix, unsigned int mprime);
+    void montgomeryMult(BigInteger* y, BigInteger* m, BigInteger* radix, BigInteger* mprime);
+    void montgomerySquare(BigInteger* m, BigInteger* radix, unsigned int mprime);
+    void montgomerySquare(BigInteger* m, BigInteger* radix, BigInteger* mprime);
+    
 // Static functions
 public:
+    static int isEqual(BigInteger* a, BigInteger* b);
+    
     static void add(BigInteger* r, BigInteger* a, BigInteger* b);
     static void add(BigInteger* r, BigInteger* a, unsigned int b);
     static void addShifted(BigInteger* r, BigInteger* a, BigInteger* b, int shift);
@@ -115,7 +131,8 @@ public:
     static void powerMod(BigInteger* r, BigInteger* v, BigInteger* p, BigInteger* mod);
     static void powerMod_interleaved(BigInteger* r, BigInteger* v, BigInteger* p, BigInteger* mod);
     static void powerModSlidingWindow(BigInteger* r, BigInteger* v, BigInteger* exp, BigInteger* mod);
-    
+    static void powerMod_ColinPlumb(BigInteger* r, BigInteger* v, BigInteger* exp, BigInteger* mod);
+    static void powerMod_ColinPlumb(BigInteger* r, BigInteger* x, BigInteger* exp, BigInteger* mod, BigInteger* mprime, BigInteger* radix);
     
     //static void mod(BigInteger* r, BigInteger* v, BigInteger* mod);
     static void shiftLeft(BigInteger* r, BigInteger* a, int shift);
@@ -132,11 +149,11 @@ public:
     static void multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
     static void multMontgomeryForm3(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
     static void radixFromMontgomeryMod(BigInteger* radix, BigInteger* m);
+    static void radixInvFromMontgomeryMod(BigInteger* radixInv, BigInteger* radix, BigInteger* mod);
     static void mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, BigInteger* radix);
     static void powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m, BigInteger* mprime, BigInteger* radix);
     static void montgomeryReduction(BigInteger* r, BigInteger* x, BigInteger* m, BigInteger* radix, unsigned int mprime);
     static void montgomeryMult(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* radix, unsigned int mprime);
-    static int isEqual(BigInteger* a, BigInteger* b);
     
     
     static int verbosity;
@@ -144,6 +161,7 @@ public:
     
 private:
     static int maxVal( int x,  int y);
+    static int minVal( int x,  int y);
     static void zeroHighBits(BigInteger* r, int fromBit);
     static void mult(unsigned int x, unsigned int y, unsigned int *rHight, unsigned int *rLow);
 
