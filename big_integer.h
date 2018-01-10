@@ -15,71 +15,99 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* 
+ * File:   big_integer.h
+ * Author: dcr
+ *
+ * Created on December 19, 2017, 8:10 AM
+ */
+
 #ifndef BIG_INTEGER_H
 #define BIG_INTEGER_H
+
+#define VERBOSITY_LEVEL_DIV             5
+#define VERBOSITY_LEVEL_GET_LENGTH      6
+#define VERBOSITY_LEVEL_MULT_KARATSUBA  5
+#define VERBOSITY_LEVEL_MULT_MONTGOMERY 4
+#define VERBOSITY_LEVEL_MONTGOMERY      3
+#define VERBOSITY_LEVEL_POWER_MOD       2
+#define VERBOSITY_LEVEL_INV_MOD         4
+#define VERBOSITY_LEVEL_RANGE           6
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*
- * I will refactor the code to use and structure instead of this 
- * simplistic argument passing
+/**
+ * Big Number structure
+ */
+typedef struct _big_integer_tag
+{
+    unsigned int* m_data;
+    unsigned int m_size;
+} big_integer;
 
- typedef struct tag_big_integer
- {
-  unsigned int* m_data;
-  unsigned int m_base;
-  unsigned int m_size;  
- } big_integer;
 
-*/
-    
-int big_integer_getBit(unsigned int* m_data, const unsigned int base, const unsigned int size, int bitnum);
-int big_integer_getLength(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size);
-int big_integer_isLessThan(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size,  unsigned int* v_data, const unsigned int v_base, const unsigned int v_size);
-int big_integer_isLessThanEqual(unsigned int* m_data, unsigned int m_base, unsigned int m_size, unsigned int* v_data, unsigned int v_base, unsigned int v_size);
-int big_integer_isZero(unsigned int * data, const unsigned int base, const unsigned int size);
-int big_integer_isOdd(unsigned int * data, const unsigned int base, const unsigned int size);
-int big_integer_isEqual(unsigned int * a_data, unsigned int a_base, unsigned int a_size, unsigned int * b_data, unsigned int b_base, unsigned int b_size);
-int big_integer_isBiggerThan(unsigned int* m_data, unsigned int m_base, unsigned int m_size, unsigned int* v_data, unsigned int v_base, unsigned int v_size);
-int big_integer_getNumBits(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size);
+extern int big_integer_verbosity;
 
-void big_integer_error(unsigned int*  r_data,unsigned int r_base,unsigned int r_size);
-void big_integer_zero(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size);
-void big_integer_inc(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size);
-void big_integer_setIntValue(unsigned int* data, const unsigned int base, const unsigned int size, unsigned int v);
-void big_integer_range(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* x_data, const unsigned int x_base, const unsigned int x_size, int upper, int lower);
-void big_integer_range_short(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size, int up, int down);
-void big_integer_add(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size,  unsigned int* b_data, const unsigned int b_base, const unsigned int b_size);
-void big_integer_add_short(unsigned int * r_data, unsigned int r_base, unsigned int r_size, unsigned int* b_data, const unsigned int b_base, const unsigned int b_size);
-void big_integer_copy(unsigned int* m_data, const unsigned int m_base, const unsigned int m_size, unsigned int* orig_data, const unsigned int orig_base, const unsigned int orig_size);
-void big_integer_div_naive(unsigned int* x_data, const unsigned int x_base, const unsigned int x_size, unsigned int* y_data, const unsigned int y_base, const unsigned int y_size,  unsigned int* nq_data, const unsigned int nq_base, const unsigned int nq_size, unsigned int* nr_data, const unsigned int nr_base, const unsigned int nr_size);
-void big_integer_mod_naive(unsigned int* x_data, const unsigned int x_base, const unsigned int x_size, unsigned int* y_data, const unsigned int y_base, const unsigned int y_size, unsigned int* r_data, const unsigned int r_base, const unsigned int r_size);
-void big_integer_mult(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size,  unsigned int* b_data, const unsigned int b_base, const unsigned int b_size);
-void big_integer_multLow(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size,  unsigned int* b_data, const unsigned int b_base, const unsigned int b_size);
-void big_integer_multMod(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, unsigned int* b_data, const unsigned int b_base, const unsigned int b_size, unsigned int* mod_data, const unsigned int mod_base, const unsigned int mod_size);
-void big_integer_multMod_short(unsigned int * r_data, unsigned int r_base, unsigned int r_size, unsigned int * b_data, unsigned int b_base, unsigned int b_size, unsigned int * m_data, unsigned int m_base, unsigned int m_size);void big_integer_squareMod(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* v_data, const unsigned int v_base, const unsigned int v_size, unsigned int* m_data, const unsigned int m_base, const unsigned int m_size);
-void big_integer_multMod_interleaved(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, unsigned int* b_data, const unsigned int b_base, const unsigned int b_size, unsigned int* mod_data, const unsigned int mod_base, const unsigned int mod_size);
-void big_integer_multMod_interleaved_short(unsigned int * r_data, unsigned int r_base, unsigned int r_size, unsigned int * b_data, unsigned int b_base, unsigned int b_size, unsigned int * m_data, unsigned int m_base, unsigned int m_size);
-void big_integer_shiftRight(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, int sv);
-void big_integer_shiftRight_short(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, int bits);
-void big_integer_shiftLeft(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, int sv);
-void big_integer_shiftLeft_short(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, int bits);
-void big_integer_squareMod_short(unsigned int * r_data, unsigned int r_base, unsigned int r_size, unsigned int * m_data, unsigned int m_base, unsigned int m_size);
-void big_integer_squareMod_interleaved_short(unsigned int * r_data, const unsigned int r_base, const unsigned int r_size, unsigned int * m_data, const unsigned int m_base, const unsigned int m_size);
-void big_integer_subtract(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, unsigned int* x_data, const unsigned int x_base, const unsigned int x_size, unsigned int* y_data, const unsigned int y_base, const unsigned int y_size);
-void big_integer_subtract_short(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size,  unsigned int* y_data, const unsigned int y_base, const unsigned int y_size);
-void big_integer_powerMod(unsigned int * r_data, const unsigned int r_base, const unsigned int r_size, unsigned int * v_data, const unsigned int v_base, const unsigned int v_size, unsigned int * power_data, const unsigned int power_base, const unsigned int power_size, unsigned int * mod_data, const unsigned int mod_base, const unsigned int mod_size);
-void big_integer_powerMod_interleaved(unsigned int * r_data, const unsigned int r_base, const unsigned int r_size, unsigned int * v_data, const unsigned int v_base, const unsigned int v_size, unsigned int * power_data, const unsigned int power_base, const unsigned int power_size, unsigned int * mod_data, const unsigned int mod_base, const unsigned int mod_size);
-void big_integer_initFromHexString(unsigned int * data, unsigned int base, unsigned int size, const char* str);
-void big_integer_parseHexString(unsigned int* data, unsigned int base, unsigned int size, const char* str);
-void big_integer_parseString(unsigned int * data, unsigned int base, unsigned int size, const char* str);
-void big_integer_random(unsigned int* data, unsigned int base, unsigned int size);
-void big_integer_random_bits(unsigned int* data, unsigned int base, unsigned int size, int n);
-void big_integer_zeroHighBits(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size, int fromBit);
 
-const char* big_integer_toHexString(unsigned int* data, unsigned int base, unsigned int size);
+/**
+ * To produce more readable code "big_integer x;" should be declared outside the
+ * macro, so user is totally aware that x is declared
+ * @param x
+ * @param m
+ */
+#define STATIC_ALLOCATE_AND_INIT_BIG_INTEGER_DATA(x, size) \
+    unsigned int x##_data[(size)]; \
+    unsigned int x##_size = (size); \
+    big_integer_init(&x, x##_data, x##_size);
+
+int big_integer_minVal( int x,  int y);
+int big_integer_maxVal( int x,  int y);
+int big_integer_getLength(big_integer* x);
+int big_integer_getLimbLength(big_integer* x);
+int big_integer_isBiggerThan(big_integer* x, big_integer* y);
+int big_integer_isLessThan(big_integer* x, big_integer* y);
+int big_integer_isLessThanEqual(big_integer* x, big_integer* y);
+int big_integer_isOdd(big_integer* x);
+int big_integer_isZero(big_integer* x);
+int big_integer_getBit(big_integer* x, int bitnum);
+int big_integer_getNumBits(big_integer* x);
+
+const char* big_integer_toHexString(big_integer* x);
+
+void big_integer_init(big_integer* x, unsigned int* data, unsigned int size);
+
+void big_integer_add(big_integer* r, big_integer* a, big_integer* b);
+void big_integer_add_short(big_integer* r, big_integer* b);
+void big_integer_copy(big_integer* x, big_integer* orig);
+void big_integer_div_naive(big_integer* x, big_integer* y, big_integer* q, big_integer* r);
+void big_integer_error(big_integer* x);
+void big_integer_inc(big_integer* x);
+void big_integer_mod(big_integer* r, big_integer* x, big_integer* y);
+void big_integer_mod_short(big_integer* x, big_integer* m);
+void big_integer_mod_naive(big_integer* x, big_integer* y, big_integer* r);
+void big_integer_mult(big_integer* r, big_integer* a, big_integer* b);
+void big_integer_mult32(unsigned int x, unsigned int y, unsigned int *rHight, unsigned int *rLow);
+void big_integer_multLow(big_integer* r, big_integer* a, big_integer* b);
+void big_integer_multMontgomeryForm3(big_integer* r, big_integer* x, big_integer* y, big_integer* m, big_integer* mprime);
+void big_integer_multMod_interleaved(big_integer* r, big_integer* a, big_integer* b, big_integer* mod);
+void big_integer_multMod_interleaved_short(big_integer* x, big_integer* b, big_integer* m);
+void big_integer_powerMod(big_integer* r, big_integer* v, big_integer* power, big_integer* mod);
+void big_integer_powerModMontgomery(big_integer* r, big_integer* x, big_integer* e, big_integer* m, big_integer* mprime, big_integer* radix);
+void big_integer_range(big_integer* r, big_integer* x, int upper, int lower);
+void big_integer_setIntValue(big_integer* x, unsigned int v);
+void big_integer_shiftLeft(big_integer* r, big_integer* a, int sv);
+void big_integer_shiftLeft_short(big_integer* r, int bits);
+void big_integer_shiftRight(big_integer* r, big_integer* a, int sv);
+void big_integer_shiftRight_short(big_integer* x, int bits);
+void big_integer_squareMod(big_integer* r, big_integer* v, big_integer* m);
+void big_integer_squareMod_short(big_integer* x, big_integer* m);
+void big_integer_subtract_short(big_integer* r, big_integer* y);
+void big_integer_subtract(big_integer* r, big_integer* x, big_integer* y);
+void big_integer_zero(big_integer* x);
+void big_integer_zeroHighBits(big_integer* r, int fromBit);
+
 
 #ifdef __cplusplus
 }
