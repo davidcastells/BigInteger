@@ -166,10 +166,12 @@ void BigInteger::multMontgomeryForm3(BigInteger* r, BigInteger* x, BigInteger* y
         assert(x->isLessThan(m));
         assert(y->isLessThan(m));
     }
+
+    int sr = m->getLimbLength();
     
     BigInteger t(x->m_size + y->m_size);
-    BigInteger tm(m->m_size);
-    BigInteger tmm(tm.m_size + m->m_size);
+    BigInteger tm(sr);
+    BigInteger tmm(tm.m_size + sr);
     
     BigInteger::mult(&t, x, y);
     BigInteger::multLow(&tm, &t, mprime);  // was mult low
@@ -178,11 +180,11 @@ void BigInteger::multMontgomeryForm3(BigInteger* r, BigInteger* x, BigInteger* y
 
     if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
     {
-        std::cout << "BigInteger::multMontgomeryForm2 t:" << t.toHexString() << std::endl;
-        std::cout << "BigInteger::multMontgomeryForm2 m:" << m->toHexString() << std::endl;
-        std::cout << "BigInteger::multMontgomeryForm2 mprime:" << mprime->toHexString() << std::endl;
-        std::cout << "BigInteger::multMontgomeryForm2 tm:" << tm.toHexString() << std::endl;
-        std::cout << "BigInteger::multMontgomeryForm2 tmm:" << tmm.toHexString() << std::endl;
+        cout << "BigInteger::multMontgomeryForm3 t:" << t.toHexString() << endl;
+        cout << "BigInteger::multMontgomeryForm3 m:" << m->toHexString() << endl;
+        cout << "BigInteger::multMontgomeryForm3 mprime:" << mprime->toHexString() << endl;
+        cout << "BigInteger::multMontgomeryForm3 tm:" << tm.toHexString() << endl;
+        cout << "BigInteger::multMontgomeryForm3 tmm:" << tmm.toHexString() << endl;
     }
 
     BigInteger u;
@@ -190,23 +192,31 @@ void BigInteger::multMontgomeryForm3(BigInteger* r, BigInteger* x, BigInteger* y
     BigInteger::add(&u, &t, &tmm);
 
 
-    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm2 u:" << u.toHexString() << std::endl;
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) 
+        cout << "BigInteger::multMontgomeryForm3 u:" << u.toHexString() << endl;
 
-    BigInteger::shiftRight(r, &u, m->m_size*32);
+    
+    BigInteger::shiftRight(r, &u, sr*32);
 
 
-    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm2 r:" << r->toHexString() << std::endl;
-
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+    {
+        cout << "BigInteger::multMontgomeryForm3 shifting right >> " << (m->m_size*32) << endl;
+        cout << "BigInteger::multMontgomeryForm3 r:" << r->toHexString() << endl;
+    }
+    
     if (m->isLessThan(r))   // if (r >= m) r = r - m
     {
         r->subtract(m);
 
-        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm2 r:" << r->toHexString() << std::endl;
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+            cout << "BigInteger::multMontgomeryForm3 r:" << r->toHexString() << endl;
 
     }
 }
 
 /**
+ * IT IS FAILING in unit TESTS!!!!
  * As implemented in "Handbook of Applied Cryptography" algorithm 14.36
  * we compute r = x * y * R^(-1) mod m
  * 
@@ -222,8 +232,19 @@ void BigInteger::multMontgomeryForm3(BigInteger* r, BigInteger* x, BigInteger* y
  */
 void BigInteger::multMontgomeryForm(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime)
 {
-    assert(r->m_size >= (m->m_size-1));
-
+    if (extraChecks)
+    {
+        assert(r->m_size > (m->getLimbLength()));
+        BigInteger mo(r->m_size);
+        BigInteger b(2);
+        b.setIntValue(1);
+        b.shiftLeft(32);
+        BigInteger::multMod(&mo, m, mprime, &b);
+        mo.inc();
+        mo.mod(&b);
+        assert(mo.isZero());
+    }
+    
     r->zero();
 
     BigInteger temp;
@@ -281,8 +302,8 @@ void BigInteger::multMontgomeryForm(BigInteger* r, BigInteger* x, BigInteger* y,
         
         if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  temp4:" << temp4.toHexString() << std::endl;
         
-        //BigInteger::shiftRight(r, &temp4, 32);      // r = temp4 / b
-        BigInteger::range(r, &temp4, r->m_size*32, 32);
+        BigInteger::shiftRight(r, &temp4, 32);      // r = temp4 / b
+        //BigInteger::range(r, &temp4, r->m_size*32, 32);
         
         if (verbosity > VERBOSITY_LEVEL_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm  r:" << r->toHexString() << std::endl;
     }
@@ -323,10 +344,11 @@ void BigInteger::multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y
     pretm.initSize(t.m_size);
     
     BigInteger tm;
-    tm.initSize(m->m_size);
+    //tm.initSize(m->m_size);
+    tm.initSize(m->getLimbLength());    // it must small to truncate to the size of m
 
     BigInteger tmm;
-    tmm.initSize(tm.m_size + m->m_size);
+    tmm.initSize(tm.m_size + m->getLimbLength()); // m->m_size);
     
     BigInteger::mult(&t, x, y);
     BigInteger::multLow(&pretm, &t, mprime);  // was mult low
@@ -349,12 +371,15 @@ void BigInteger::multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y
     BigInteger::add(&u, &t, &tmm);
 
 
-    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm2 u:" << u.toHexString() << std::endl;
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) 
+        std::cout << "BigInteger::multMontgomeryForm2 u:" << u.toHexString() << std::endl;
 
-    BigInteger::shiftRight(r, &u, m->m_size*32);
+    int sr= m->getLimbLength();
+    BigInteger::shiftRight(r, &u, sr*32);
 
 
-    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) std::cout << "BigInteger::multMontgomeryForm2 r:" << r->toHexString() << std::endl;
+    if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) 
+        std::cout << "BigInteger::multMontgomeryForm2 r:" << r->toHexString() << std::endl;
 
     if (m->isLessThan(r))   // if (r >= m) r = r - m
     {
