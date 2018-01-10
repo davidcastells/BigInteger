@@ -19,9 +19,6 @@
 
 void BigInteger::shiftRight(int bits)
 {
-//    BigInteger ref(*this);
-//    BigInteger::shiftRight(this, &ref, bits );
-    
     BigInteger::shiftRight(this, this, bits );
 }
 
