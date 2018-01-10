@@ -68,7 +68,7 @@ public:
     void checkRandomValid(BigInteger* a, int expBits);
     void checkRandomValidC(unsigned int* a_data, unsigned int a_base, unsigned int a_size, int expBits);
     void checkResultMatchsExpected(BigInteger* r, BigInteger* expected);
-    void checkResultMatchsExpectedC(unsigned int * r_data, unsigned int r_base, unsigned int r_size, unsigned int * exp_data, unsigned int exp_base, unsigned int exp_size);
+    void checkResultMatchsExpectedCBase(unsigned int * r_data, unsigned int r_base, unsigned int r_size, unsigned int * exp_data, unsigned int exp_base, unsigned int exp_size);
     void checkAddShifted(const char* msg, const char* sa, const char* sb, int shift, const char* sexp);
     void checkMult(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkMultC(const char* msg, const char* sa, const char* sb, const char* sexp);
@@ -78,6 +78,7 @@ public:
     void checkDivisionC(const char* msg, const char* a, const char* b, const char* eq, const char* er);
     void checkPowerMod(const char* msg, const char* sa, const char* se, const char* sm, const char* ser);
     void checkPowerModC(const char* msg, const char* sa, const char* se, const char* sm, const char* ser);
+    void checkRange(const char* msg, const char* sa, int upper, int lower, const char* sexp);
     void checkSubtract(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkSubtractC(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkSquareMod(const char* msg, const char* sa, const char* sm, const char* sexp);
