@@ -21,6 +21,18 @@
 
 using namespace std;
 
+void big_integer_powerModMont(big_integer* r, big_integer* x, big_integer* e, big_integer* m)
+{
+    big_integer radix;
+    STATIC_ALLOCATE_AND_INIT_BIG_INTEGER_DATA(radix, m->m_size+1);
+    big_integer mprime;
+    STATIC_ALLOCATE_AND_INIT_BIG_INTEGER_DATA(mprime, radix.m_size);
+        
+    big_integer_radixFromMontgomeryMod(&radix, m);        
+    big_integer_mprimeFromMontgomeryRadix(&mprime, m, &radix);
+    
+    big_integer_powerModMontgomery(r, x, e, m, &mprime, &radix);
+}
 
 void big_integer_powerModMontgomery(big_integer* r, big_integer* x, big_integer* e, big_integer* m, big_integer* mprime, big_integer* radix)
 {
