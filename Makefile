@@ -18,21 +18,24 @@ WINDOWS_LIBS=$(WINDOWS_SDK)/um/x86/uuid.lib $(WINDOWS_SDK)/um/x86/kernel32.lib $
 INCLUDE_DIRS_MSVC=/I /usr/local/include $(WINDOWS_INCLUDE_DIR) /I$(MSVC_DIR)/include
 CFLAGS_MSVC=/D WIN32 $(INCLUDE_DIRS_MSVC) $(LIB_DIRS_MSVC) $(WINDOWS_LIBS)  /EHa /GR /Zl /DEBUG /MACHINE:X86
 
-all: $(TARGET_CYG) $(TARGET_MINGW) $(TARGET_ZZ_CYG) # $(TARGET_VC) #$(TARGET_ZZ_MINGW)
+all: $(TARGET_CYG) 
 	
-SOURCES_CPP=cpp/*.cpp	
+perf: $(TARGET_CYG) $(TARGET_MINGW) $(TARGET_ZZ_CYG) # $(TARGET_VC) #$(TARGET_ZZ_MINGW)
+	
+SOURCES_CPP= main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp cpp/*.cpp c/*.cpp c_base/*.cpp	
+SOURCES_C= big_integer.cpp big_integer_base.cpp 
 
 clean:
 	rm -fr *.exe
 
-$(TARGET_CYG): BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp big_integer.cpp $(SOURCES_CPP) 
-	g++ -static -g -O0 $(SOURCES_CPP) main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp big_integer.cpp -o $(TARGET_CYG)
+$(TARGET_CYG): $(SOURCES_CPP) $(SOURCES_C)
+	g++ -static -g -O0 $(SOURCES_CPP) $(SOURCES_C) -o $(TARGET_CYG)
 	
-$(TARGET_MINGW): main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp big_integer.cpp $(SOURCES_CPP) 
-	$(CPP_MINGW) -static -g -O3 -m64 $(SOURCES_CPP)  main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp big_integer.cpp -o $(TARGET_MINGW)
+$(TARGET_MINGW): $(SOURCES_CPP) 
+	$(CPP_MINGW) -static -g -O3 -m64 $(SOURCES_CPP) $(SOURCES_C) -o $(TARGET_MINGW)
 
-$(TARGET_VC): main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp big_integer.cpp $(SOURCES_CPP) 
-	$(CPP_VC) $(CFLAGS_MSVC) -g -O3 $(SOURCES_CPP)  main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp big_integer.cpp -o $(TARGET_VC)
+$(TARGET_VC): main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp big_integer.cpp $(SOURCES_CPP) $(SOURCES_C)
+	$(CPP_VC) $(CFLAGS_MSVC) -g -O3 $(SOURCES_CPP) $(SOURCES_C)  main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp big_integer.cpp -o $(TARGET_VC)
 
 $(TARGET_ZZ_CYG): mainZZ.cpp 
 	g++ -g -O3 mainZZ.cpp PerformanceLap.cpp PerformanceTestZZ.cpp -L/usr/local/lib -lntl -lm -lgmp -o $(TARGET_ZZ_CYG)
