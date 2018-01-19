@@ -151,6 +151,7 @@ public:
     static void radixFromMontgomeryMod(BigInteger* radix, BigInteger* m);
     static void radixInvFromMontgomeryMod(BigInteger* radixInv, BigInteger* radix, BigInteger* mod);
     static void mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, BigInteger* radix);
+    static void powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m);
     static void powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m, BigInteger* mprime, BigInteger* radix);
     static void montgomeryReduction(BigInteger* r, BigInteger* x, BigInteger* m, BigInteger* radix, unsigned int mprime);
     static void montgomeryMult(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* radix, unsigned int mprime);
