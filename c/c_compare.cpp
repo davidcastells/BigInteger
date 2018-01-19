@@ -90,3 +90,8 @@ int big_integer_isOdd(big_integer* x)
 {
     return x->m_data[0] & 0x1;
 }
+
+int big_integer_isNegative(big_integer* x)
+{
+    return x->m_data[x->m_size-1] & 0x80000000;
+}
