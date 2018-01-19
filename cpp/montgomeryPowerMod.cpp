@@ -21,6 +21,20 @@
 
 using namespace std;
         
+
+void BigInteger::powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m)
+{
+    BigInteger radix;
+    radix.initSize(m->m_size+1);
+    BigInteger mprime;
+    mprime.initSize(radix.m_size);        
+        
+    BigInteger::radixFromMontgomeryMod(&radix, m);        
+    BigInteger::mprimeFromMontgomeryRadix(&mprime, m, &radix);
+    
+    BigInteger::powerModMontgomery(r, x, e, m, &mprime, &radix);
+}
+
 /**
  * As implemented in "Handbook of Applied Cryptography" algorithm 14.94
  * we compute r = x ^ e mod m
