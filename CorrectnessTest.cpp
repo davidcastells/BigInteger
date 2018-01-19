@@ -414,6 +414,14 @@ void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char*
     cout << msg << " (mont) " ;
     checkResultMatchsExpected(&r2, &r);
     
+    BigInteger::powerModMontgomery(&r2, &a, &e, &m);
+
+    if (verbosity)  cout << "r (mont): " << r2.toHexString() << endl;
+
+    cout << msg << " (mont simple) " ;
+    checkResultMatchsExpected(&r2, &r);
+    
+    
     BigInteger::powerModSlidingWindow(&r2, &a, &e, &m);
     
     cout << msg << " (sliding window) " ;
