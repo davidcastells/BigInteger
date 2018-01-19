@@ -399,7 +399,18 @@ void PerformanceTest::testPerformanceModMult()
             BigInteger::multMod(&r, &a, &b, &m);
         seconds = lap.stop();
         
-        cout << "Modular Multiply Simple;\t" << bits << ";\t" << seconds << ";" <<endl;
+        cout << "Modular Multiply Simple (c++);\t" << bits << ";\t" << seconds << ";" <<endl;
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            big_integer_base_multMod(r.m_data, 0, r.m_size, 
+                a.m_data, 0, a.m_size,
+                b.m_data, 0, b.m_size,
+                m.m_data, 0, m.m_size);
+        seconds = lap.stop();
+        
+        cout << "Modular Multiply Simple (base);\t" << bits << ";\t" << seconds << ";" <<endl;
+
     }
     
     
@@ -445,10 +456,11 @@ void PerformanceTest::testPerformanceModMult()
         b.initSize(bits/32);
         m.initSize(bits/32);
         radix.initSize(m.m_size+1);
-        r.initSize(bits/32);
+        r.initSize(bits/32+1);
         a.random();
         b.random();
-        m.random();
+        
+        do {m.random();} while (!m.isOdd());
         
         BigInteger::radixFromMontgomeryMod(&radix, &m);
         
