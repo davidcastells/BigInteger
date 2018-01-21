@@ -553,6 +553,11 @@ void CorrectnessTest::checkPowerModC(const char* msg, const char* sa, const char
     
     cout << msg << " (mont) " ;
     checkResultMatchsExpectedCBase(r2.m_data, 0, r2.m_size, exp_data, exp_base, exp_size);
+
+    big_integer_powerModMont(&r2, &a, &e, &m);
+    
+    cout << msg << " (mont without mprime&radix) " ;
+    checkResultMatchsExpectedCBase(r2.m_data, 0, r2.m_size, exp_data, exp_base, exp_size);
     
 }
 
