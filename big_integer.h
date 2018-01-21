@@ -97,6 +97,7 @@ void big_integer_multMontgomeryForm3(big_integer* r, big_integer* x, big_integer
 void big_integer_multMod_interleaved(big_integer* r, big_integer* a, big_integer* b, big_integer* mod);
 void big_integer_multMod_interleaved_short(big_integer* x, big_integer* b, big_integer* m);
 void big_integer_powerMod(big_integer* r, big_integer* v, big_integer* power, big_integer* mod);
+void big_integer_powerMod_interleaved(big_integer* r, big_integer* v, big_integer* power, big_integer* mod);
 void big_integer_powerModMont(big_integer* r, big_integer* x, big_integer* e, big_integer* m);
 void big_integer_powerModMontgomery(big_integer* r, big_integer* x, big_integer* e, big_integer* m, big_integer* mprime, big_integer* radix);
 void big_integer_radixFromMontgomeryMod(big_integer* radix, big_integer* m);
@@ -108,6 +109,7 @@ void big_integer_shiftRight(big_integer* r, big_integer* a, int sv);
 void big_integer_shiftRight_short(big_integer* x, int bits);
 void big_integer_squareMod(big_integer* r, big_integer* v, big_integer* m);
 void big_integer_squareMod_short(big_integer* x, big_integer* m);
+void big_integer_squareMod_interleaved_short(big_integer* x, big_integer* m);
 void big_integer_subtract_short(big_integer* r, big_integer* y);
 void big_integer_subtract(big_integer* r, big_integer* x, big_integer* y);
 void big_integer_zero(big_integer* x);
