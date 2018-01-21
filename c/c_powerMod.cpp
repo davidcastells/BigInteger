@@ -62,3 +62,60 @@ void big_integer_powerMod(big_integer* r, big_integer* v, big_integer* power, bi
     if (big_integer_verbosity) //  > VERBOSITY_LEVEL_POWER_MOD) 
         cout << "BigInteger::powerMod r " << big_integer_toHexString(r) << endl;
 }
+
+
+void big_integer_powerMod_interleaved(big_integer* r, big_integer* v, big_integer* power, big_integer* mod)
+{
+    //if (extraChecks)
+    {
+        assert(r != v);
+        assert(r != power);
+        assert(r != mod);
+        assert(big_integer_getNumBits(r) > big_integer_getLength(v));
+        assert(big_integer_getNumBits(r) > big_integer_getLength(power));
+        assert(big_integer_getNumBits(r) > big_integer_getLength(mod));
+    }
+
+    big_integer x;
+    STATIC_ALLOCATE_AND_INIT_BIG_INTEGER_DATA(x, mod->m_size+1); // for interleaved operations
+    big_integer_copy(&x, v);
+    //BigInteger y(*power);   // @todo remove y
+
+    int maxBit = big_integer_getLength(power);
+
+    // When using interleaved we need to apply mod before
+    big_integer_mod_short(&x, mod);
+    // y.mod(mod);
+
+    // we use a simple square-and-multiply algorithm,
+    if (big_integer_verbosity > VERBOSITY_LEVEL_POWER_MOD) 
+    {
+        cout << "BigInteger::powerMod v " << big_integer_toHexString(&x) << endl;
+        cout << "BigInteger::powerMod power " << big_integer_toHexString(power) << endl;
+        cout << "BigInteger::powerMod mod " << big_integer_toHexString(mod) << endl;
+    }
+    
+    big_integer_setIntValue(r, 1);
+
+//        while(!y.isZero())
+    for (int i=0; i < maxBit; i++)
+    {
+            //if (y.isOdd())
+        if (big_integer_getBit(power, i))
+        {
+//                    std::cout << " r " << r->toHexString() << std::endl;
+//                    std::cout << "  * x " << x.toHexString() << std::endl;
+//                    std::cout << " mod mod " << mod->toHexString() << std::endl;
+
+            big_integer_multMod_interleaved_short(r, &x, mod);
+
+//                    std::cout << " = r " << r->toHexString() << std::endl;
+        }
+
+            // y.shiftRight(1);    // / 2
+            big_integer_squareMod_interleaved_short(&x, mod); 
+    }
+
+    if (big_integer_verbosity > VERBOSITY_LEVEL_POWER_MOD) 
+        cout << "BigInteger::powerMod r " << big_integer_toHexString(r) << endl;
+}
