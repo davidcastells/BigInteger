@@ -41,3 +41,38 @@ void big_integer_squareMod(big_integer* r, big_integer* v, big_integer* m)
     // was multMod
     big_integer_multMod_interleaved(r, v, v, m);
 }
+
+
+/**
+ * 
+ * @param r the size of r must be bigger that the length of mod, because it 
+ *          should be able to accommodate values bigger than 2*mod
+ * @param v
+ * @param m
+ */
+void big_integer_squareMod_interleaved(big_integer* r, big_integer* v, big_integer* m)
+{
+//    if (extraChecks) 
+    {
+        assert(r != v);
+        assert(r != m);
+        assert(big_integer_isLessThan(v, m));
+        assert(big_integer_getNumBits(r) > big_integer_getLength(m) + 1);
+    }
+
+    big_integer_multMod_interleaved(r, v, v, m);
+}
+
+/**
+ * Assume that the value is already smaller than m
+ * @param m the modulo
+ */
+void big_integer_squareMod_interleaved_short(big_integer* x, big_integer* m)
+{
+    assert(big_integer_isLessThan(x, m));
+    big_integer ref;
+    STATIC_ALLOCATE_AND_INIT_BIG_INTEGER_DATA(ref, x->m_size);
+    big_integer_copy(&ref, x);
+    //ref.mod(m);
+    big_integer_squareMod_interleaved(x, &ref, m);
+}
