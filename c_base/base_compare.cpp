@@ -47,6 +47,29 @@ int big_integer_base_isLessThan(unsigned int* m_data, const unsigned int m_base,
     return false;
 }
 
+
+int big_integer_base_isEqual(unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, 
+	unsigned int* b_data, const unsigned int b_base, const unsigned int b_size)
+{
+    int minSize = (a_size > b_size)? b_size : a_size;
+
+    // check if there is any different limb
+    for (int i=minSize-1; i >= 0; i--)
+        if (a_data[a_base+i] != b_data[b_base+i])
+            return false;
+
+    // if sizes are different, ensure the bigger part is zero
+    for (int i=minSize; i < a_size; i++)
+        if (a_data[a_base + i] != 0)
+            return false;
+
+    for (int i=minSize; i < b_size; i++)
+        if (b_data[b_base+i] != 0)
+            return false;
+
+    return true;
+}
+
 int big_integer_base_isLessThanEqual(unsigned int* m_data, unsigned int m_base, unsigned int m_size,
         unsigned int* v_data, unsigned int v_base, unsigned int v_size)
 {
