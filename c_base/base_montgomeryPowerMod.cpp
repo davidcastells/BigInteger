@@ -21,6 +21,30 @@
 
 using namespace std;
 
+void big_integer_base_powerModMont(unsigned int * r_data, const unsigned int r_base, const unsigned int r_size, 
+	unsigned int* x_data, const unsigned int x_base, const unsigned int x_size, 
+	unsigned int* e_data, const unsigned int e_base, const unsigned int e_size,
+	unsigned int* m_data, const unsigned int m_base, const unsigned int m_size)
+{
+    unsigned int radix_data[m_size+1];
+    const unsigned int radix_size = m_size;
+    const unsigned int radix_base = 0;
+
+    unsigned int mprime_data[m_size+1];
+    const unsigned int mprime_size = m_size;
+    const unsigned int mprime_base = 0;
+        
+    big_integer_base_radixFromMontgomeryMod(radix_data, radix_base, radix_size, m_data, m_base, m_size);
+    big_integer_base_mprimeFromMontgomeryRadix(mprime_data, mprime_base, mprime_size, m_data, m_base, m_size, radix_data, radix_base, radix_size);
+    
+    big_integer_base_powerModMontgomery(r_data, r_base, r_size,
+            x_data, x_base, x_size,
+            e_data, e_base, e_size,
+            m_data, m_base, m_size,
+            mprime_data, mprime_base, mprime_size,
+            radix_data, radix_base, radix_size);
+}
+
 /**
  * As implemented in "Handbook of Applied Cryptography" algorithm 14.94
  * we compute r = x ^ e mod m
