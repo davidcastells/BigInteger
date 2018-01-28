@@ -34,6 +34,15 @@ void big_integer_powerModMont(big_integer* r, big_integer* x, big_integer* e, bi
     big_integer_powerModMontgomery(r, x, e, m, &mprime, &radix);
 }
 
+/**
+ * 
+ * @param r
+ * @param x
+ * @param e
+ * @param m
+ * @param mprime
+ * @param radix
+ */
 void big_integer_powerModMontgomery(big_integer* r, big_integer* x, big_integer* e, big_integer* m, big_integer* mprime, big_integer* radix)
 {
     //if (extraChecks)
