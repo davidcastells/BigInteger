@@ -66,3 +66,46 @@ void big_integer_base_mult(unsigned int* r_data, const unsigned int r_base, cons
             r_data[r_base + i + b_top] = carry;
     }
 }        
+
+
+/**
+ * from https://github.com/adamwalker/mmul/blob/master/crypto.c (big_mul_low)
+ */        
+void big_integer_base_multLow(unsigned int* r_data, const unsigned int r_base, const unsigned int r_size,
+	unsigned int* a_data, const unsigned int a_base, const unsigned int a_size, 
+	unsigned int* b_data, const unsigned int b_base, const unsigned int b_size)
+{
+    int i;
+    int j;
+
+    big_integer_base_zero(r_data, r_base, r_size);
+    
+    unsigned int lo;
+    unsigned int hi;
+    
+    int a_top = (big_integer_base_getLength(a_data, a_base, a_size) + 31) / 32;
+    int b_top = (big_integer_base_getLength(b_data, b_base, b_size) + 31) / 32;
+    
+    for(i=0; i < a_top; i++)
+    {
+        unsigned long long carry = 0;
+        
+        for(j=0; j < b_top; j++)
+        {
+            int idx = i + j;
+            if (idx < r_size)
+            {
+                //mult(a_data[i], b_data[j], &hi, &lo);
+                unsigned long long ap = a_data[a_base+i];
+                unsigned long long bp = b_data[b_base+j];
+                unsigned long long res = ap * bp;
+                lo = res;
+                hi = res >> 32;
+
+                unsigned long long accum  = r_data[r_base+idx] + carry + lo;
+                carry = (accum >> 32) + hi;
+                r_data[r_base+idx] = accum;
+            }
+        }
+    }
+}
