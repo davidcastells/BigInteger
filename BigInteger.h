@@ -18,6 +18,10 @@
 #ifndef BIGINTEGER_H
 #define	BIGINTEGER_H
 
+#include <assert.h>
+#include <errno.h>
+#include <string.h>
+
 #include <string>
 #include <sstream> 
 #include <iostream>
@@ -33,6 +37,9 @@
 #define VERBOSITY_LEVEL_INV_MOD         4
 #define VERBOSITY_LEVEL_RANGE           6
 
+#define clean_errno() (errno == 0 ? "None" : strerror(errno))
+#define log_error(M, ...) fprintf(stderr, "[ERROR] (%s:%d: errno: %s) " M "\n", __FILE__, __LINE__, clean_errno(), ##__VA_ARGS__)
+#define assertf(A, M, ...) if(!(A)) {log_error(M, ##__VA_ARGS__); assert(A); }
 
 /**
  * BigInteger contains an integer with variable precission
@@ -152,10 +159,12 @@ public:
     static void radixInvFromMontgomeryMod(BigInteger* radixInv, BigInteger* radix, BigInteger* mod);
     static void mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, BigInteger* radix);
     static void powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m);
+    static void powerModMontgomeryBase2(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m);
     static void powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m, BigInteger* mprime, BigInteger* radix);
+    static void powerModMontgomeryBase2(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m, BigInteger* radix);
     static void montgomeryReduction(BigInteger* r, BigInteger* x, BigInteger* m, BigInteger* radix, unsigned int mprime);
     static void montgomeryMult(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* radix, unsigned int mprime);
-    
+    static void montgomeryMultBase2(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m);
     
     static int verbosity;
     static int extraChecks;

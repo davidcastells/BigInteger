@@ -35,6 +35,24 @@ void BigInteger::powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e,
     BigInteger::powerModMontgomery(r, x, e, m, &mprime, &radix);
 }
 
+void BigInteger::powerModMontgomeryBase2(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m)
+{
+    if (extraChecks)
+    {
+        assertf(r->m_size > m->getLimbLength(), "r size = %d > m limbs = %d not true!", r->m_size, m->getLimbLength());
+    }
+    
+    BigInteger radix;
+    radix.initSize(m->m_size+1);
+//    BigInteger mprime;
+//    mprime.initSize(radix.m_size);        
+        
+    BigInteger::radixFromMontgomeryMod(&radix, m);        
+    //BigInteger::mprimeFromMontgomeryRadix(&mprime, m, &radix);
+    
+    BigInteger::powerModMontgomeryBase2(r, x, e, m, &radix);
+}
+
 /**
  * As implemented in "Handbook of Applied Cryptography" algorithm 14.94
  * we compute r = x ^ e mod m
@@ -128,6 +146,105 @@ void BigInteger::powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e,
     }
 }
 
+
+/**
+ * Computes powerMod using montgomery multiplication base2
+ * @param r
+ * @param x
+ * @param e
+ * @param m
+ * @param mprime
+ * @param radix
+ */
+void BigInteger::powerModMontgomeryBase2(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m, BigInteger* radix)
+{
+    if (extraChecks)
+    {
+        assert(!m->isZero());
+        assert(r != x);
+        assert(r != e);
+        assert(r != m);
+        assert(r != radix);
+        assertf(r->m_size > m->getLimbLength(), "r size = %d > m limbs = %d not true!", r->m_size, m->getLimbLength());
+    
+    }
+    BigInteger radix2;
+    radix2.initSize(m->m_size);
+    squareMod(&radix2, radix, m);
+
+    if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
+    {
+        std::cout << "BigInteger::powerModMontgomery x: " << x->toHexString() << std::endl;
+        std::cout << "BigInteger::powerModMontgomery e: " << e->toHexString() << std::endl;
+        std::cout << "BigInteger::powerModMontgomery radix: " << radix->toHexString() << std::endl;
+        std::cout << "BigInteger::powerModMontgomery m: " << m->toHexString() << std::endl;
+//        std::cout << "BigInteger::powerModMontgomery m': " << mprime->toHexString() << std::endl;
+        std::cout << "BigInteger::powerModMontgomery radix ^2 mod m: " << radix2.toHexString() << std::endl;
+    }
+
+    BigInteger xprime;
+    xprime.initSize(m->m_size+1);
+
+    // make sure x < m
+    x->mod(m);
+
+    // we compute xprime = x * (radix^2 mod m) * radix ^-1 mod m 
+    //multMontgomeryForm 3(&xprime, x, &radix2, m, mprime);
+    montgomeryMultBase2(&xprime, x, &radix2, m);
+
+    if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
+        cout << "BigInteger::powerModMontgomery xprime: " << xprime.toHexString() << endl;
+
+//            BigInteger a(*radix);
+//            a.mod(m);
+//            a.reduceWorkingSize(m->m_size);
+
+    BigInteger a;
+    a.initSize(m->m_size+1);
+    BigInteger::mod_naive( radix, m, &a);
+
+    int t = e->getLength();
+
+    BigInteger temp(a);
+
+    for (int i=t-1; i >= 0; i--)
+    {
+        int ei = e->getBit(i);
+
+        temp.copy(&a);
+        //multMontgomeryForm3(&a, &temp, &temp, m, mprime);
+        montgomeryMultBase2(&a, &temp, &temp, m);
+        
+        if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
+        {
+            cout << "a = a^2 * R^-1 mod m =  " << a.toHexString() << endl;
+        }
+        
+        if (ei)
+        {
+            temp.copy(&a);
+            //multMontgomeryForm3(&a, &temp, &xprime, m, mprime);
+            montgomeryMultBase2(&a, &temp, &xprime, m);
+            
+            if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
+            {
+                cout << "a = x' * a * R^-1 mod m =  " << a.toHexString() << endl;
+            }
+        }   
+    }
+
+    BigInteger one;
+    one.initSize(1);
+    one.setIntValue(1);
+
+    //multMontgomeryForm3(r, &a, &one, m, mprime);
+    montgomeryMultBase2(r, &a, &one, m);
+    
+    if (verbosity > VERBOSITY_LEVEL_POWER_MOD)
+    {
+        cout << "r = a * 1 * R^-1 mod m =  " << r->toHexString() << endl;
+    }
+}
 
 
 unsigned int bnExpModThreshTable[] = {7, 25, 81, 241, 673, 1793, 0xffffffff /*Integer.MAX_VALUE*/ }; // Sentinel

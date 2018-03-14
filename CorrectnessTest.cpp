@@ -1551,6 +1551,10 @@ void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const
     BigInteger::montgomeryMult(&r, &x, &y, &m, &radix, mprime.m_data[0]);
     checkResultMatchsExpected(&r, &exp);
     
+    cout << msg << " (own base 2)";
+    BigInteger::montgomeryMultBase2(&r, &x, &y, &m);
+    checkResultMatchsExpected(&r, &exp);
+    
 //    cout << msg << " (own2)";            
 //    BigInteger::multMontgomeryForm(&r, &x, &y, &m, &mprime);
 //    checkResultMatchsExpected(&r, &exp);

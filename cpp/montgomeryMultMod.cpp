@@ -145,6 +145,90 @@ void BigInteger::montgomeryMult(BigInteger* r, BigInteger* x, BigInteger* y, Big
 
 
 /**
+ * Algorithm 14.36 from Handbook from applied cryptography using base 2
+ * Compute montgomery multiplication
+ * base b= 2^1
+ * radix = 2
+ * 
+ * m' is always 1
+ * 
+ * @param r the result r = x * y * R^-1 mod m
+ * @param x input value, such that < m
+ * @param y input value, such that < m
+ * @param m modulo
+ * @param radix a value (2^32)^n such that it is bigger than m
+ */
+void BigInteger::montgomeryMultBase2(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m)
+{
+    if (extraChecks)
+    {
+        assert(r != x);
+        assert(r != y);
+        assert(r != m);
+        assert(x->isLessThan(m));
+        assert(y->isLessThan(m));
+        assertf(r->m_size > m->getLimbLength(), "r size = %d > m limbs = %d not true!", r->m_size, m->getLimbLength());
+    }
+    
+    r->zero();
+    
+    //int n = m->getLimbLength();
+    int n = m->getLength();
+    
+    // initialize variables used in the loop
+    BigInteger u;
+    u.initSize(4);
+    
+    BigInteger t2;
+    t2.initSize(y->m_size+1);
+    
+    BigInteger t3;
+    t3.initSize(m->m_size+1);
+        
+    // i are bits now!
+    for (int i=0; i <= n; i++)
+    {
+        // ui = (a0 + xi*y0 ) * m' mod b
+        // since m' = 1 and b is 2...
+        // ui = (a0 + xi*y0 ) % 2
+        
+        unsigned int ui = (r->getBit(0) + x->getBit(i)*y->getBit(0)) % 2;
+        
+        // A = (A  + xi * y + ui * m) / b
+        
+        // second term
+        if (x->getBit(i))
+            t2.copy(y);
+        else
+            t2.zero();
+        
+        // third term
+        if (ui)
+            t3.copy(m);
+        else
+            t3.zero();
+        
+        r->add(&t2);
+//        cout << " r = " << r->toHexString() << endl;
+        
+        r->add(&t3);
+//        cout << " r = " << r->toHexString() << endl;
+
+        r->shiftRight(1);   // /b
+        
+//        cout << " r = " << r->toHexString() << endl;
+
+    }
+    
+    if (!r->isLessThan(m))
+    {
+        r->subtract(m);
+//        cout << " r = " << r->toHexString() << endl;
+    }
+}
+
+
+/**
  * Inspired in mmul from https://github.com/adamwalker/mmul/blob/master/crypto.c
  * 
  * @param r result 
