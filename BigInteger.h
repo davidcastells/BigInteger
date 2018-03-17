@@ -37,9 +37,6 @@
 #define VERBOSITY_LEVEL_INV_MOD         4
 #define VERBOSITY_LEVEL_RANGE           6
 
-#define clean_errno() (errno == 0 ? "None" : strerror(errno))
-#define log_error(M, ...) fprintf(stderr, "[ERROR] (%s:%d: errno: %s) " M "\n", __FILE__, __LINE__, clean_errno(), ##__VA_ARGS__)
-#define assertf(A, M, ...) if(!(A)) {log_error(M, ##__VA_ARGS__); assert(A); }
 
 /**
  * BigInteger contains an integer with variable precission
@@ -156,6 +153,7 @@ public:
     static void multMontgomeryForm2(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
     static void multMontgomeryForm3(BigInteger* r, BigInteger* x, BigInteger* y, BigInteger* m, BigInteger* mprime);
     static void radixFromMontgomeryMod(BigInteger* radix, BigInteger* m);
+    static void radixFromMontgomeryModBase2(BigInteger* radix, BigInteger* m);
     static void radixInvFromMontgomeryMod(BigInteger* radixInv, BigInteger* radix, BigInteger* mod);
     static void mprimeFromMontgomeryRadix(BigInteger* mprime, BigInteger* m, BigInteger* radix);
     static void powerModMontgomery(BigInteger* r, BigInteger* x, BigInteger* e, BigInteger* m);
