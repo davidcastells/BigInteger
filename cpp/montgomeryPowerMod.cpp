@@ -16,6 +16,8 @@
  */
 #include "../BigInteger.h"
 
+#include "../assertf.h"
+
 #include <assert.h>
 #include <iostream>
 
@@ -47,7 +49,7 @@ void BigInteger::powerModMontgomeryBase2(BigInteger* r, BigInteger* x, BigIntege
 //    BigInteger mprime;
 //    mprime.initSize(radix.m_size);        
         
-    BigInteger::radixFromMontgomeryMod(&radix, m);        
+    BigInteger::radixFromMontgomeryModBase2(&radix, m);        
     //BigInteger::mprimeFromMontgomeryRadix(&mprime, m, &radix);
     
     BigInteger::powerModMontgomeryBase2(r, x, e, m, &radix);
