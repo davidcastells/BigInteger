@@ -16,6 +16,8 @@
  */
 #include "../BigInteger.h"
 
+#include "../assertf.h"
+
 #include <assert.h>
 #include <iostream>
 
@@ -109,37 +111,53 @@ void BigInteger::montgomeryMult(BigInteger* r, BigInteger* x, BigInteger* y, Big
         //unsigned long long ui = (r->m_data[0] + x->m_data[i] * y->m_data[0]) * mprime;
         //ui &= 0xFFFFFFFF;
         
-//        cout << " r = " << r->toHexString() << endl;
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+            cout << " r = " << r->toHexString() << endl;
         
         // A = (A  + xi * y + ui * m) / b
         BigInteger::mult(&t2, y, x->m_data[i]);
         
-//        cout << " y = " << y->toHexString() << endl;
-//        cout << " * xi = " << to_hex_string(x->m_data[i]) << endl;
-//        cout << " = " << t2.toHexString() << endl;
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+        {
+            cout << " y = " << y->toHexString() << endl;
+            cout << " * xi = " << to_hex_string(x->m_data[i]) << endl;
+            cout << " = " << t2.toHexString() << endl;
+        }
         
         BigInteger::mult(&t3, m, ui);
         
-//        cout << " ui = " << to_hex_string(ui) << endl;
-//        cout << " m = " << m->toHexString() << endl;
-//        cout << " * ui = " << t3.toHexString() << endl;
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+        {
+            cout << " ui = " << to_hex_string(ui) << endl;
+            cout << " m = " << m->toHexString() << endl;
+            cout << " * ui = " << t3.toHexString() << endl;
+        }
         
         r->add(&t2);
-//        cout << " r = " << r->toHexString() << endl;
+        
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+        {
+            cout << " r = " << r->toHexString() << endl;
+        }
         
         r->add(&t3);
-//        cout << " r = " << r->toHexString() << endl;
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+        {
+            cout << " r = " << r->toHexString() << endl;
+        }
 
         r->shiftRight(32);   // /b
         
-//        cout << " r = " << r->toHexString() << endl;
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+            cout << " r = " << r->toHexString() << endl;
 
     }
     
     if (!r->isLessThan(m))
     {
         r->subtract(m);
-//        cout << " r = " << r->toHexString() << endl;
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+            cout << " r = " << r->toHexString() << endl;
     }
 }
 
@@ -176,8 +194,8 @@ void BigInteger::montgomeryMultBase2(BigInteger* r, BigInteger* x, BigInteger* y
     int n = m->getLength();
     
     // initialize variables used in the loop
-    BigInteger u;
-    u.initSize(4);
+//    BigInteger u;
+//    u.initSize(4);
     
     BigInteger t2;
     t2.initSize(y->m_size+1);
@@ -186,13 +204,13 @@ void BigInteger::montgomeryMultBase2(BigInteger* r, BigInteger* x, BigInteger* y
     t3.initSize(m->m_size+1);
         
     // i are bits now!
-    for (int i=0; i <= n; i++)
+    for (int i=0; i < n; i++)
     {
         // ui = (a0 + xi*y0 ) * m' mod b
         // since m' = 1 and b is 2...
         // ui = (a0 + xi*y0 ) % 2
         
-        unsigned int ui = (r->getBit(0) + x->getBit(i)*y->getBit(0)) % 2;
+        //unsigned int ui = (r->getBit(0) + x->getBit(i)*y->getBit(0)) % 2;
         
         // A = (A  + xi * y + ui * m) / b
         
@@ -202,28 +220,38 @@ void BigInteger::montgomeryMultBase2(BigInteger* r, BigInteger* x, BigInteger* y
         else
             t2.zero();
         
+        r->add(&t2);
+        
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+            cout << " r = r + t2 = " << r->toHexString() << endl;
+        
         // third term
-        if (ui)
+        if (r->isOdd())
             t3.copy(m);
         else
             t3.zero();
         
-        r->add(&t2);
-//        cout << " r = " << r->toHexString() << endl;
-        
         r->add(&t3);
-//        cout << " r = " << r->toHexString() << endl;
+
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+            cout << " r = r + t3 = " << r->toHexString() << endl;
 
         r->shiftRight(1);   // /b
         
-//        cout << " r = " << r->toHexString() << endl;
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+            cout << " r = r / 2 = " << r->toHexString() << endl;
 
     }
     
     if (!r->isLessThan(m))
     {
         r->subtract(m);
-//        cout << " r = " << r->toHexString() << endl;
+
+        if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+        {
+            cout << " m = " << m->toHexString() << endl;
+            cout << " r = r - m =  " << r->toHexString() << endl;
+        }
     }
 }
 
