@@ -78,6 +78,16 @@ void BigInteger::radixFromMontgomeryMod(BigInteger* radix, BigInteger* m)
     radix->shiftLeft(mLen);      
 }
 
+void BigInteger::radixFromMontgomeryModBase2(BigInteger* radix, BigInteger* m)
+{
+    assert(radix->m_size > m->getLimbLength());
+    
+    int mLen = m->getLength();
+
+    radix->setIntValue(1);
+    radix->shiftLeft(mLen);      
+}
+
 void BigInteger::radixInvFromMontgomeryMod(BigInteger* radixInv, BigInteger* radix, BigInteger* mod)
 {
     BigInteger radixMod(*radix);
