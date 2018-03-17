@@ -18,11 +18,15 @@
 #include "CorrectnessTest.h"
 #include "BigInteger.h"
 #include "big_integer_base.h"
+#include "big_integer_array.h"
 #include "big_integer.h"
-#include <iostream>
+#include "assertf.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
+#include <iostream>
 
 using namespace std;
 
@@ -185,6 +189,7 @@ void CorrectnessTest::run()
         checkResultMatchsExpectedCBase(r2.m_data, 0, r2.m_size, exp_data, exp_base, exp_size);    
     }
     
+    testGetLength();
     testRandom();
     testRandomC();
     testIsBiggerThan();
@@ -225,6 +230,22 @@ void CorrectnessTest::run()
     cout << "========================================" << endl;
 }
 
+void CorrectnessTest::checkResultMatchsExpected(int r, int expected)
+{
+    if (r == expected)
+        cout << "[OK]" << endl;
+    else
+    {        
+        cout << "## ERROR ##" << endl;
+
+        cout << "Expected: " << expected << endl;
+        cout << "Result: " << r << endl;
+        
+        if (stopAtFirstError)
+            exit(-1);
+    }
+    
+}
 
 
 void CorrectnessTest::checkResultMatchsExpected(BigInteger* r, BigInteger* expected)
@@ -368,6 +389,20 @@ void CorrectnessTest::checkMultModC(const char* msg, const char* sa, const char*
     
     checkResultMatchsExpectedCBase(br_data, br_base, br_size, exp_data, exp_base, exp_size);
 
+    
+    cout << msg << " (array interleaved) ";
+    unsigned int br[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int ba[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int bb[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int bm[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    
+    big_integer_array_init(ba, &ba_data[ba_base], ba_size);
+    big_integer_array_init(bb, &bb_data[bb_base], bb_size);
+    big_integer_array_init(bm, &bm_data[bm_base], bm_size);
+    
+    big_integer_array_multMod_interleaved(br, ba, bb, bm);
+    
+    checkResultMatchsExpectedCBase(br, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp_data, exp_base, exp_size);
 }
 
 void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char* se, const char* sm, const char* ser)
@@ -431,6 +466,12 @@ void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char*
     BigInteger::powerMod_ColinPlumb(&r2, &a, &e, &m);
     
     cout << msg << " (colin plumb) " ;
+    checkResultMatchsExpected(&r2, &r);
+    
+    
+    BigInteger::powerModMontgomeryBase2(&r2, &a, &e, &m);
+    
+    cout << msg << " (montgomery base 2) " ;
     checkResultMatchsExpected(&r2, &r);
 }
 
@@ -559,6 +600,20 @@ void CorrectnessTest::checkPowerModC(const char* msg, const char* sa, const char
     cout << msg << " (mont without mprime&radix) " ;
     checkResultMatchsExpectedCBase(r2.m_data, 0, r2.m_size, exp_data, exp_base, exp_size);
     
+    unsigned int r3[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int a3[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int e3[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int m3[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    
+    big_integer_array_init(a3, a_data, a_size);
+    big_integer_array_init(e3, e_data, e_size);
+    big_integer_array_init(m3, m_data, m_size);
+    
+    big_integer_array_powerModMontgomeryBase2_noradix(r3, a3, e3, m3);
+    
+    cout << msg << " (mont array base2) " ;
+    checkResultMatchsExpectedCBase(r3, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp_data, exp_base, exp_size);
+    
 }
 
 void CorrectnessTest::checkDivision(const char* msg, const char* a, const char* b, const char* eq, const char* er)
@@ -672,34 +727,9 @@ void CorrectnessTest::testAdd()
     BigInteger r;
     BigInteger exp;
     
-    a.initFromHexString("000000000000000000000000");
-    b.initFromHexString("00000000");
-    exp.initFromHexString("000000000000000000000000");
-
-    BigInteger::add(&r, &a, &b);
-    
-    cout << "Add (1) ";
-    checkResultMatchsExpected(&r, &exp);
-    
-    BigInteger::add(&r, &b, &a);
-    
-    cout << "Add (2) ";
-    checkResultMatchsExpected(&r, &exp);
-
-    a.initSize(2048/32),
-    b.initSize(2048/32);
-    r.initSize(2048/32);
-    exp.initSize(2048/32);
-    
-    a.parseString("8768279873802716238987346287098787657656763502221946787");
-    b.parseString("1231230932483459873495094398734762765654543128761987338");
-    exp.parseString("9999510806286176112482440685833550423311306630983934125");
-    
-    BigInteger::add(&r, &a, &b);
-    
-    cout << "Add (3) ";
-    checkResultMatchsExpected(&r, &exp);
-    
+    checkAdd("Add (1)", "000000000000000000000000", "00000000", "000000000000000000000000");
+    checkAdd("Add (2)", "00000000", "000000000000000000000000", "000000000000000000000000");
+    checkAdd("Add (3)", "8768279873802716238987346287098787657656763502221946787", "1231230932483459873495094398734762765654543128761987338", "99994AA1A5C85B6FAABE1C3DA61F7CCEE9DBCCAACA662A9832CDABF");    
 }
 
 void CorrectnessTest::testAddC()
@@ -1155,6 +1185,33 @@ void CorrectnessTest::testInverseMod()
 
 }
 
+
+void CorrectnessTest::testGetLength()
+{
+    BigInteger a;
+    int len;
+    
+    
+    a.initFromHexString("0");
+    len = a.getLength();
+
+    cout << " Len (1) ";
+    checkResultMatchsExpected(len, 0);
+    
+    a.initFromHexString("1");
+    len = a.getLength();
+
+    cout << " Len (2) ";
+    checkResultMatchsExpected(len, 1);
+    
+    a.initFromHexString("10000");
+    len = a.getLength();
+    
+    cout << " Len (2) ";
+    checkResultMatchsExpected(len, 17);
+    
+}
+
 /**
  * Test random number generator
  */
@@ -1447,6 +1504,37 @@ void CorrectnessTest::checkRange(const char* msg, const char* sa, int upper, int
     checkResultMatchsExpectedCBase(br.m_data, 0, br.m_size, exp_data, exp_base, exp_size);
 }
 
+void CorrectnessTest::checkAdd(const char* msg, const char* sa, const char* sb, const char* sexp)
+{
+    BigInteger a;
+    BigInteger b;
+    BigInteger r;
+    BigInteger exp;
+    
+    a.initFromHexString(sa);
+    b.initFromHexString(sb);
+    exp.initFromHexString(sexp);
+    r.initSize(exp.m_size);
+    
+    
+    BigInteger::add(&r, &a, &b);
+    
+    cout << msg << "(standard) ";
+    checkResultMatchsExpected(&r, &exp);
+    
+    unsigned int aa[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int ab[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int ar[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    
+    big_integer_array_init(aa, a.m_data, a.m_size);
+    big_integer_array_init(ab, b.m_data, b.m_size);
+    
+    big_integer_array_add(ar, aa, ab);
+    
+    cout << msg << "(array) ";
+    checkResultMatchsExpectedCBase(ar, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp.m_data, 0, exp.m_size);
+}
+
 void CorrectnessTest::checkMult(const char* msg, const char* sa, const char* sb, const char* sexp)
 {
     int bits = 1024;
@@ -1524,8 +1612,37 @@ void CorrectnessTest::testMultMod()
 
 void CorrectnessTest::testMultModC()
 {
-    checkMultModC("Mult Mod C(same size) ", "3A3468848E2012BD", "2B62E85E55F7CD1A", "45CB977B71DFED43", "A6653828E63485C");
-    checkMultModC("Mult Mod C ", "00000000CB1F03567C39076B", "45CB977B71DFED43", "000000010000000000000000", "00000001");
+    checkMultModC("Mult Mod C (1) ", "3A3468848E2012BD", "2B62E85E55F7CD1A", "45CB977B71DFED43", "A6653828E63485C");
+    checkMultModC("Mult Mod C (2)", "00000000CB1F03567C39076B", "45CB977B71DFED43", "000000010000000000000000", "00000001");
+}
+
+void CorrectnessTest::checkMontgomeryMultBase2(const char* msg, const char* sx, const char* sy, const char* sm, const char* sexp)
+{
+    BigInteger x, y, m, exp, r;
+    x.initFromHexString(sx);
+    y.initFromHexString(sy);
+    m.initFromHexString(sm);
+    exp.initFromHexString(sexp);
+    
+    r.initSize(m.m_size+1);
+    
+    cout << msg << " (own base 2)";
+    BigInteger::montgomeryMultBase2(&r, &x, &y, &m);
+    checkResultMatchsExpected(&r, &exp);
+    
+    unsigned int ar[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int ax[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int ay[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int am[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    
+    big_integer_array_init(ax, x.m_data, x.m_size);
+    big_integer_array_init(ay, y.m_data, y.m_size);
+    big_integer_array_init(am, m.m_data, m.m_size);
+    
+    cout << msg << " (array) ";
+    big_integer_array_montgomeryMultBase2(ar, ax, ay, am);
+    
+    checkResultMatchsExpectedCBase(ar, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp.m_data, 0, exp.m_size);
 }
 
 void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const char* sy, const char* sradix, 
@@ -1551,9 +1668,7 @@ void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const
     BigInteger::montgomeryMult(&r, &x, &y, &m, &radix, mprime.m_data[0]);
     checkResultMatchsExpected(&r, &exp);
     
-    cout << msg << " (own base 2)";
-    BigInteger::montgomeryMultBase2(&r, &x, &y, &m);
-    checkResultMatchsExpected(&r, &exp);
+   
     
 //    cout << msg << " (own2)";            
 //    BigInteger::multMontgomeryForm(&r, &x, &y, &m, &mprime);
@@ -1580,6 +1695,7 @@ void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const
     cout << msg << " (base v3) ";
     checkResultMatchsExpectedCBase(r.m_data, 0, r.m_size, exp.m_data, 0, exp.m_size);
 
+    
 }
 
 void CorrectnessTest::checkMontgomeryReduction(const char* msg, const char* sx,
@@ -1610,9 +1726,30 @@ void CorrectnessTest::checkMontgomeryReduction(const char* msg, const char* sx,
 
 void CorrectnessTest::testMontgomeryMult()
 {
-    checkMontgomeryMult("Montgomery Mult (1)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "94A0DFAF", "ACA3D7A");
-    checkMontgomeryMult("Montgomery Mult (2)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "00000094A0DFAF", "ACA3D7A");
-    checkMontgomeryMult("Montgomery Mult (3)", "0000000002E70041164DB2E1",  "0000000000000000170D6629", "000000000000000100000000",  "000000000000000055CE28B1", "000000000000000094A0DFAF", "00000000000000000ACA3D7A");
+    checkMontgomeryMult("Montgomery Mult (1)", "9099454", "8DC4DD61", "100000000", "67F4258D", "6F895ABB", "2BBFCB53");
+    checkMontgomeryMult("Montgomery Mult (2)", "7", "3", "100000000", "11", "F0F0F0F", "4");
+    checkMontgomeryMult("Montgomery Mult (3)", "79", "13", "100000000", "8D", "32D63DBB", "4C");
+    checkMontgomeryMult("Montgomery Mult (4)", "454", "361", "100000000", "8D", "32D63DBB", "4C");
+    checkMontgomeryMult("Montgomery Mult (5)", "109099454", "18DC4DD60", "10000000000000000", "167F4258D", "8E153CB16F895ABB", "194AE914");
+    checkMontgomeryMult("Montgomery Mult (6)", "109099454", "18DC4DD61", "10000000000000000", "167F4258D", "8E153CB16F895ABB", "11771625B");
+    checkMontgomeryMult("Montgomery Mult (7)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "94A0DFAF", "ACA3D7A");
+    checkMontgomeryMult("Montgomery Mult (8)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "00000094A0DFAF", "ACA3D7A");
+    checkMontgomeryMult("Montgomery Mult (9)", "0000000002E70041164DB2E1",  "0000000000000000170D6629", "000000000000000100000000",  "000000000000000055CE28B1", "000000000000000094A0DFAF", "00000000000000000ACA3D7A");
+    checkMontgomeryMult("Montgomery Mult (10)", "10D48FD309099454", "130D53B78DC4DD61", "10000000000000000", "136944F567F4258D", "76B42856F895ABB","649F7D66E457166");
+    checkMontgomeryMult("Montgomery Mult (11)", "10D48FD3090994548ADE1F35", "130D53B78DC4DD61D5083F6A", "1000000000000000000000000", "136944F567F4258D3ED452B3", "78AEC30ADF7B4530041B5385","63DE248A25BE0DC6583E290");
+    checkMontgomeryMult("Montgomery Mult (12)", "10D48FD2090994548ADE1F35ECE7B10D", "130D53B78DC4DD61D5083F6A189DC74B", "100000000000000000000000000000000", "136944F567F4258D3ED452B297952DEB", "17D298F192A6366B5E1CB63D81F56D3D","466230212C34EE9A6B265ED39DAEBB8");
+    
+    checkMontgomeryMultBase2("Montgomery Mult Base 2 (1)", "7", "3", "11", "F");
+//    checkMontgomeryMultBase2("Montgomery Mult (3)", "79", "13", "100000000", "8D", "32D63DBB", "4C");
+//    checkMontgomeryMultBase2("Montgomery Mult (4)", "454", "361", "100000000", "8D", "32D63DBB", "4C");
+//    checkMontgomeryMultBase2("Montgomery Mult (5)", "109099454", "18DC4DD60", "10000000000000000", "167F4258D", "8E153CB16F895ABB", "194AE914");
+//    checkMontgomeryMultBase2("Montgomery Mult (6)", "109099454", "18DC4DD61", "10000000000000000", "167F4258D", "8E153CB16F895ABB", "11771625B");
+//    checkMontgomeryMultBase2("Montgomery Mult (7)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "94A0DFAF", "ACA3D7A");
+//    checkMontgomeryMultBase2("Montgomery Mult (8)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "00000094A0DFAF", "ACA3D7A");
+//    checkMontgomeryMultBase2("Montgomery Mult (9)", "0000000002E70041164DB2E1",  "0000000000000000170D6629", "000000000000000100000000",  "000000000000000055CE28B1", "000000000000000094A0DFAF", "00000000000000000ACA3D7A");
+//    checkMontgomeryMultBase2("Montgomery Mult (10)", "10D48FD309099454", "130D53B78DC4DD61", "10000000000000000", "136944F567F4258D", "76B42856F895ABB","649F7D66E457166");
+//    checkMontgomeryMultBase2("Montgomery Mult (11)", "10D48FD3090994548ADE1F35", "130D53B78DC4DD61D5083F6A", "1000000000000000000000000", "136944F567F4258D3ED452B3", "78AEC30ADF7B4530041B5385","63DE248A25BE0DC6583E290");
+//    checkMontgomeryMultBase2("Montgomery Mult (12)", "10D48FD2090994548ADE1F35ECE7B10D", "130D53B78DC4DD61D5083F6A189DC74B", "100000000000000000000000000000000", "136944F567F4258D3ED452B297952DEB", "17D298F192A6366B5E1CB63D81F56D3D","466230212C34EE9A6B265ED39DAEBB8");
 }
 
 void CorrectnessTest::testMontgomeryReduction()
@@ -1684,9 +1821,6 @@ void CorrectnessTest::testMontgomeryReduction()
  */
 void CorrectnessTest::testMultMontgomeryForm()
 {     
-    
-    
-    
     for (int bits = 32; bits <= 4096; bits *= 2)
     {
         cout << "Mult Montgomery Form (" << bits << ") ";
@@ -2037,6 +2171,7 @@ void CorrectnessTest::testPowerModC()
 {
     checkPowerModC("PowerModC (1)", "2E70041164DB2E1", "23041164DB2E1", "55CE28B1", "1D68E58E");
     checkPowerModC("PowerModC (2)", "2E7004114A7627A76DA97978136944F5", "3ED452B2489C045C2E70041164DB2E1F", "67F4258D3ED452B297952DEB", "2704D2FC0A8413A6C989C345");
+    big_integer_array_verbosity = VERBOSITY_LEVEL_POWER_MOD +1;
     checkPowerModC("PowerModC (3)", "64DB2E1F2E7004114A7627A76DA97978136944F5", "6DA979783ED452B2489C045C2E70041164DB2E1F", "136944F567F4258D3ED452B297952DEB", "73162639794173336F1FFA5DFCDCE3B");
     checkPowerModC("PowerModC (4)", "3A1740240B326EB5234E39D61D3D3E912E73719319674F9657460BC44A7627A76DA97978136944F5", 
             "413D1C0873F436AE79FF7D9073B77F342DDF71BF59E73792636F005572C136FE33715778136C6EF1", "64FF67807FBE1E8C2B6F5032241E425F2AFB729B1C653F7D203947293C3603AF105A2D74137D40DF",
