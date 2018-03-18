@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../BigInteger/big_integer_array.h"
-#include "big_integer.h"
+#include "../big_integer_array.h"
 
 #include <assert.h>
 
