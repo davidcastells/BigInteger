@@ -7,8 +7,8 @@ TARGET_ZZ_MINGW=ZZTest.mingw.exe
 MINGW=/usr/x86_64-w64-mingw/bin
 VC="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC"
 
-CC_MINGW=$(MINGW)/gcc
-CPP_MINGW=$(MINGW)/g++
+CC_MINGW=/usr/bin/x86_64-w64-mingw32-gcc.exe
+CPP_MINGW=/usr/bin/x86_64-w64-mingw32-g++.exe
 CC_VC=$(VC)/bin/cl.exe
 CPP_VC=$(VC)/bin/cl.exe
 MSVC_DIR="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC"
