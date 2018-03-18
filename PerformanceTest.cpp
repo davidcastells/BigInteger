@@ -728,10 +728,10 @@ void PerformanceTest::testPerformanceModPow()
     {
         PerformanceLap lap;
      
-        a.initSize(bits/32);
-        e.initSize(bits/32);
+        a.initSize(bits/32+1);
+        e.initSize(bits/32+1);
         m.initSize(bits/32);
-        r.initSize(bits/32);
+        r.initSize(bits/32+1);
         r2.initSize(bits/32+1);
         a.random();
         e.random();
@@ -747,7 +747,7 @@ void PerformanceTest::testPerformanceModPow()
             m.random();
 //        cout << "m: " << m.toHexString() << endl;
 
-            BigInteger::radixFromMontgomeryMod(&radix, &m);
+            BigInteger::radixFromMontgomeryModBase2(&radix, &m);
         
             //BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
         
@@ -964,11 +964,11 @@ void PerformanceTest::testPerformanceFinalModPow()
     {
         PerformanceLap lap;
      
-        a.initSize(bits/32);
-        e.initSize(bits/32);
+        a.initSize(bits/32+1);
+        e.initSize(bits/32+1);
         m.initSize(bits/32);
-        r.initSize(bits/32);
-        r2.initSize(bits/32);
+        r.initSize(bits/32+1);
+        r2.initSize(bits/32+1);
         a.random();
         e.random();
         
