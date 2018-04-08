@@ -17,6 +17,26 @@
 
 #include "big_integer_apint.h"
 
+int big_integer_apint_extraChecks = 0;
+int big_integer_apint_verbosity = 0;
+
+int big_integer_apint_getBit(ap_uint<NUM_BIG_INTEGER_APINT_BITS> apint, int i)
+{
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> one = 0x1;
+    return (int)((apint >> i ) & one);
+}
+
+
+int big_integer_apint_getLength(ap_uint<NUM_BIG_INTEGER_APINT_BITS> apint)
+{
+    for (int i=NUM_BIG_INTEGER_APINT_BITS-1; i>=0; i--)
+    {
+        if (((apint) >> i) & 1)
+            return (i+1);
+    }
+    return 0;
+}
+
 void big_integer_apint_zeroHighBits(ap_uint<NUM_BIG_INTEGER_APINT_BITS> *ap_r, int fromBit)
 {
     int sv = NUM_BIG_INTEGER_APINT_BITS - fromBit;
