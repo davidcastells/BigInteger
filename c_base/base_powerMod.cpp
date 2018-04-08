@@ -72,4 +72,4 @@ void big_integer_base_powerMod_interleaved(unsigned int * r_data, const unsigned
         }
 
 //        if (verbosity > VERBOSITY_LEVEL_POWER_MOD) std::cout << "BigInteger::powerMod r " << r->toHexString() << std::endl;
-    }
+}
