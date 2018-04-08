@@ -19,6 +19,7 @@
 #include "BigInteger.h"
 #include "big_integer_base.h"
 #include "big_integer_array.h"
+#include "big_integer_apint.h"
 #include "big_integer.h"
 #include "assertf.h"
 
@@ -1533,6 +1534,20 @@ void CorrectnessTest::checkAdd(const char* msg, const char* sa, const char* sb, 
     
     cout << msg << "(array) ";
     checkResultMatchsExpectedCBase(ar, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp.m_data, 0, exp.m_size);
+    
+    /// 
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apa;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apb;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apr;
+    
+    big_integer_base_copy(apa.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, a.m_data, 0, a.m_size);
+    big_integer_base_copy(apb.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, b.m_data, 0, b.m_size);
+    
+    apr = apa + apb;
+    
+    cout << msg << "(apint) ";
+    checkResultMatchsExpectedCBase(apr.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, exp.m_data, 0, exp.m_size);
+    
 }
 
 void CorrectnessTest::checkMult(const char* msg, const char* sa, const char* sb, const char* sexp)
