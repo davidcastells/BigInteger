@@ -63,3 +63,21 @@ you can use the following parameters
 --test-all-performance  It tries to test the performance of most of the functions
 
 --test-performance      It focus on testing the performance of most important functions (specially modular exponentiation)
+
+
+## Different implementation folders
+
+* cpp: A C++ implementation (BigInteger class). It both have (object) member functions and static functions to perform various operations.
+
+* c: An Object Oriented C based implementation. It's very similar to previous (cpp) but in this case I use an structure big_integer to store the 
+info (limb array and size) instead of a C++ class. Functions start with the big_integer_ prefix.
+ 
+* c_base: A C implementation. All functions start with the big_integer_base_ prefix. It assumes that a big array is used to store the limbs 
+ of different numbers. So functions take a pointer to the big array and also an offset index where the number starts. 
+The main reason for this kind of memory access is to be able to directly address global memory in OpenCL kernels.
+
+* c_array: A C implementation using static arrays. All functions start with the big_integer_array_ prefix. All arrays are statically defined, so 
+there is no support for variable length numbers.
+
+* c_apint: A C implementation using the ap_uint template type (unsigned version of ap_int). This type is used by several HLS tools to describe arbitrary length integer
+numbers. 
