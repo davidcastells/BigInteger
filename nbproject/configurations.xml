@@ -11,6 +11,7 @@
       <itemPath>./PerformanceTestZZ.h</itemPath>
       <itemPath>./assertf.h</itemPath>
       <itemPath>./big_integer.h</itemPath>
+      <itemPath>./big_integer_apint.h</itemPath>
       <itemPath>./big_integer_array.h</itemPath>
       <itemPath>./big_integer_base.h</itemPath>
     </logicalFolder>
@@ -38,6 +39,10 @@
         <itemPath>./c/c_squareMod.cpp</itemPath>
         <itemPath>./c/c_subtract.cpp</itemPath>
         <itemPath>./c/c_toString.cpp</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f5" displayName="c_apint" projectFiles="true">
+        <itemPath>./c_apint/apint_montgomeryMultMod.cpp</itemPath>
+        <itemPath>./c_apint/apint_multMod.cpp</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="c_array" projectFiles="true">
         <itemPath>./c_array/array_add.cpp</itemPath>
@@ -100,6 +105,7 @@
       <itemPath>./PerformanceTest.cpp</itemPath>
       <itemPath>./PerformanceTestZZ.cpp</itemPath>
       <itemPath>./big_integer.cpp</itemPath>
+      <itemPath>./big_integer_apint.cpp</itemPath>
       <itemPath>./big_integer_array.cpp</itemPath>
       <itemPath>./big_integer_base.cpp</itemPath>
       <itemPath>./mainZZ.cpp</itemPath>
@@ -114,6 +120,7 @@
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
+      <itemPath>./README.md</itemPath>
     </logicalFolder>
     <itemPath>./nbproject/licenseheader.txt</itemPath>
     <itemPath>./main.cpp</itemPath>
@@ -134,185 +141,77 @@
           <output>BigInteger.cyg.exe</output>
         </linkerTool>
       </compileType>
-      <item path="./BigInteger.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./BigInteger.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./BigInteger.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./BigInteger.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./CorrectnessTest.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./CorrectnessTest.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./CorrectnessTest.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./CorrectnessTest.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./PerformanceLap.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./PerformanceLap.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./PerformanceLap.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./PerformanceLap.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./PerformanceTest.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./PerformanceTest.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./PerformanceTest.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./PerformanceTest.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./PerformanceTestZZ.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./PerformanceTestZZ.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./PerformanceTestZZ.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./PerformanceTestZZ.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./assertf.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./assertf.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./big_integer.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./big_integer.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./big_integer.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./big_integer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./big_integer_array.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./big_integer_array.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./big_integer_array.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./big_integer_array.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./big_integer_base.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./big_integer_base.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./big_integer_base.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./big_integer_base.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./c/c_add.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_add.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_compare.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_compare.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_div.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_div.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_inverseMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_inverseMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_mod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_mod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_montgomeryDomain.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_montgomeryDomain.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_montgomeryMultMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_montgomeryMultMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_montgomeryPowerMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_montgomeryPowerMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_mult.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_mult.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_multMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_multMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_powerMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_powerMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_shiftLeft.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_shiftLeft.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_shiftRight.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_shiftRight.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_squareMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_squareMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_subtract.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_subtract.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_toString.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_toString.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_add.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_add.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_compare.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_compare.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_mod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_mod.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_array/array_montgomeryDomain.cpp"
             ex="false"
@@ -329,65 +228,29 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="./c_array/array_multMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_multMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_shiftLeft.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_shiftLeft.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_shiftRight.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_shiftRight.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_squareMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_squareMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_subtract.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_subtract.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_toString.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_toString.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_add.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_add.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_compare.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_compare.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_div.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_div.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_inverseMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_inverseMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_mod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_mod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_montgomeryDomain.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_montgomeryDomain.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_base/base_montgomeryMultMod.cpp"
             ex="false"
@@ -399,164 +262,88 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="./c_base/base_mult.cpp"
+      <item path="./c_base/base_mult.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_multMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_powerMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_shiftLeft.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_shiftRight.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_squareMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_subtract.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_toString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/add.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/compare.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/div.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/inverseMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/mod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/montgomeryDomain.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/montgomeryMultMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/montgomeryPowerMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/montgomeryReduction.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/mult.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/multMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/parse.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/powerMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/random.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/range.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/shiftLeft.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/shiftRight.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/square.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/squareMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/subtract.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/toString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./mainZZ.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./nbproject/licenseheader.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="./big_integer_apint.cpp"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="./c_base/base_multMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_powerMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_shiftLeft.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_shiftRight.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_squareMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_subtract.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_toString.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/add.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/compare.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/div.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/inverseMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/mod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/montgomeryDomain.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/montgomeryMultMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/montgomeryPowerMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/montgomeryReduction.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/mult.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/multMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/parse.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/powerMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/random.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/range.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/shiftLeft.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/shiftRight.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/square.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/squareMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/subtract.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/toString.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./main.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./mainZZ.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./nbproject/licenseheader.txt"
+      <item path="./big_integer_apint.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_montgomeryMultMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_multMod.cpp"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
     </conf>
@@ -580,185 +367,77 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="./BigInteger.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./BigInteger.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./BigInteger.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./BigInteger.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./CorrectnessTest.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./CorrectnessTest.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./CorrectnessTest.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./CorrectnessTest.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./PerformanceLap.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./PerformanceLap.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./PerformanceLap.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./PerformanceLap.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./PerformanceTest.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./PerformanceTest.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./PerformanceTest.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./PerformanceTest.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./PerformanceTestZZ.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./PerformanceTestZZ.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./PerformanceTestZZ.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./PerformanceTestZZ.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./assertf.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./assertf.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./big_integer.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./big_integer.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./big_integer.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./big_integer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./big_integer_array.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./big_integer_array.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./big_integer_array.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./big_integer_array.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./big_integer_base.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./big_integer_base.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./big_integer_base.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./big_integer_base.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./c/c_add.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_add.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_compare.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_compare.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_div.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_div.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_inverseMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_inverseMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_mod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_mod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_montgomeryDomain.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_montgomeryDomain.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_montgomeryMultMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_montgomeryMultMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_montgomeryPowerMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_montgomeryPowerMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_mult.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_mult.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_multMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_multMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_powerMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_powerMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_shiftLeft.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_shiftLeft.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_shiftRight.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_shiftRight.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_squareMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_squareMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_subtract.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_subtract.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c/c_toString.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c/c_toString.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_add.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_add.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_compare.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_compare.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_mod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_mod.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_array/array_montgomeryDomain.cpp"
             ex="false"
@@ -775,65 +454,29 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="./c_array/array_multMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_multMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_shiftLeft.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_shiftLeft.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_shiftRight.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_shiftRight.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_squareMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_squareMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_subtract.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_subtract.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_array/array_toString.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_array/array_toString.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_add.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_add.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_compare.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_compare.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_div.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_div.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_inverseMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_inverseMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_mod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_mod.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="./c_base/base_montgomeryDomain.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./c_base/base_montgomeryDomain.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_base/base_montgomeryMultMod.cpp"
             ex="false"
@@ -845,164 +488,88 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="./c_base/base_mult.cpp"
+      <item path="./c_base/base_mult.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_multMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_powerMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_shiftLeft.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_shiftRight.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_squareMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_subtract.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_base/base_toString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/add.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/compare.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/div.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/inverseMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/mod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/montgomeryDomain.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/montgomeryMultMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/montgomeryPowerMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/montgomeryReduction.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/mult.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/multMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/parse.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/powerMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/random.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/range.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/shiftLeft.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/shiftRight.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/square.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/squareMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/subtract.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./cpp/toString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./mainZZ.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./nbproject/licenseheader.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="./big_integer_apint.cpp"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="./c_base/base_multMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_powerMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_shiftLeft.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_shiftRight.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_squareMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_subtract.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_base/base_toString.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/add.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/compare.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/div.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/inverseMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/mod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/montgomeryDomain.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/montgomeryMultMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/montgomeryPowerMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/montgomeryReduction.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/mult.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/multMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/parse.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/powerMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/random.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/range.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/shiftLeft.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/shiftRight.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/square.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/squareMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/subtract.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./cpp/toString.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./main.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./mainZZ.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./nbproject/licenseheader.txt"
+      <item path="./big_integer_apint.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_montgomeryMultMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_multMod.cpp"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
     </conf>
