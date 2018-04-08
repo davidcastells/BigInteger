@@ -14,39 +14,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "../big_integer_apint.h"
 
-ap_uint<NUM_XMP_BITS> big_integer_apint_multMod_interleaved_safe(ap_uint<NUM_XMP_BITS> ap_a,
-	ap_uint<NUM_XMP_BITS> ap_b,
-	ap_uint<NUM_XMP_BITS> ap_mod)
+ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_multMod_interleaved_safe(ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_a,
+	ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_b,
+	ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_mod)
 {
-    ap_uint<NUM_XMP_BITS> safe_a = big_integer_apint_mod(ap_a, ap_mod);
-    ap_uint<NUM_XMP_BITS> safe_b = big_integer_apint_mod(ap_b, ap_mod);
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> safe_a = big_integer_apint_mod(ap_a, ap_mod);
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> safe_b = big_integer_apint_mod(ap_b, ap_mod);
     
     return big_integer_apint_multMod_interleaved(safe_a, safe_b, ap_mod);
 }
 
 
-ap_uint<NUM_XMP_BITS> big_integer_apint_multMod_interleaved(ap_uint<NUM_XMP_BITS> ap_a,
-	ap_uint<NUM_XMP_BITS> ap_b,
-	ap_uint<NUM_XMP_BITS> ap_mod) 
+ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_multMod_interleaved(ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_a,
+	ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_b,
+	ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_mod) 
 {
 //    assert(a->isLessThan(mod));
 //    assert(b->isLessThan(mod));
-    ap_uint<NUM_XMP_BITS> ap_r = 0;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_r = 0;
     
     // @todo find the smallest number and change order accordingly
     int n = big_integer_apint_getLength(ap_a);
     
     //ap_uint<1> ai[NUM_XMP_BITS];
     //fromAPIntToBitArray(ai, ap_a);
-    ap_uint<NUM_XMP_BITS*2> a2 = ap_a;
-    ap_uint<NUM_XMP_BITS*2> a3 = 0;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS*2> a2 = ap_a;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS*2> a3 = 0;
     
     
-    for (int i=NUM_XMP_BITS-1; i >= 0; i--)
+    for (int i=NUM_BIG_INTEGER_APINT_BITS-1; i >= 0; i--)
     {
         a2 <<= 1;
-        a3 = a2 >> NUM_XMP_BITS;
+        a3 = a2 >> NUM_BIG_INTEGER_APINT_BITS;
         
     //for (int i=n-1; i>=0; i-- )
         if (i < n)
