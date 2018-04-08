@@ -22,7 +22,7 @@ all: $(TARGET_CYG)
 	
 perf: $(TARGET_CYG) $(TARGET_MINGW) $(TARGET_ZZ_CYG) # $(TARGET_VC) #$(TARGET_ZZ_MINGW)
 	
-SOURCES_CPP= main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp cpp/*.cpp c/*.cpp c_array/*.cpp c_base/*.cpp	
+SOURCES_CPP= main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp cpp/*.cpp c/*.cpp c_array/*.cpp c_base/*.cpp c_apint/*.cpp	
 SOURCES_C= big_integer.cpp big_integer_base.cpp big_integer_array.cpp big_integer_apint.cpp
 
 clean:
