@@ -41,8 +41,14 @@
         <itemPath>./c/c_toString.cpp</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="c_apint" projectFiles="true">
+        <itemPath>./c_apint/apint_compare.cpp</itemPath>
+        <itemPath>./c_apint/apint_mod.cpp</itemPath>
+        <itemPath>./c_apint/apint_montgomeryDomain.cpp</itemPath>
         <itemPath>./c_apint/apint_montgomeryMultMod.cpp</itemPath>
+        <itemPath>./c_apint/apint_montgomeryPowerMod.cpp</itemPath>
         <itemPath>./c_apint/apint_multMod.cpp</itemPath>
+        <itemPath>./c_apint/apint_powerMod.cpp</itemPath>
+        <itemPath>./c_apint/apint_squareMod.cpp</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="c_array" projectFiles="true">
         <itemPath>./c_array/array_add.cpp</itemPath>
@@ -167,6 +173,10 @@
       </item>
       <item path="./big_integer.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="./big_integer_apint.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./big_integer_apint.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="./big_integer_array.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./big_integer_array.h" ex="false" tool="3" flavor2="0">
@@ -206,6 +216,13 @@
       <item path="./c/c_subtract.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c/c_toString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_apint/apint_montgomeryMultMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_multMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_array/array_add.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -326,22 +343,32 @@
       </item>
       <item path="./nbproject/licenseheader.txt" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./big_integer_apint.cpp"
+      <item path="./c_apint/apint_compare.cpp"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="./big_integer_apint.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="./c_apint/apint_montgomeryMultMod.cpp"
+      <item path="./c_apint/apint_mod.cpp"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="./c_apint/apint_multMod.cpp"
+      <item path="./c_apint/apint_montgomeryDomain.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_montgomeryPowerMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_powerMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_squareMod.cpp"
             ex="false"
             tool="1"
             flavor2="0">
@@ -393,6 +420,10 @@
       </item>
       <item path="./big_integer.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="./big_integer_apint.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./big_integer_apint.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="./big_integer_array.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./big_integer_array.h" ex="false" tool="3" flavor2="0">
@@ -432,6 +463,13 @@
       <item path="./c/c_subtract.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c/c_toString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_apint/apint_montgomeryMultMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_multMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_array/array_add.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -552,22 +590,32 @@
       </item>
       <item path="./nbproject/licenseheader.txt" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./big_integer_apint.cpp"
+      <item path="./c_apint/apint_compare.cpp"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="./big_integer_apint.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="./c_apint/apint_montgomeryMultMod.cpp"
+      <item path="./c_apint/apint_mod.cpp"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="./c_apint/apint_multMod.cpp"
+      <item path="./c_apint/apint_montgomeryDomain.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_montgomeryPowerMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_powerMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint/apint_squareMod.cpp"
             ex="false"
             tool="1"
             flavor2="0">
