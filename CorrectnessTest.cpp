@@ -614,6 +614,20 @@ void CorrectnessTest::checkPowerModC(const char* msg, const char* sa, const char
     
     cout << msg << " (mont array base2) " ;
     checkResultMatchsExpectedCBase(r3, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp_data, exp_base, exp_size);
+
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apa;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> ape;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apm;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apr;
+    
+    big_integer_base_copy(apa.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, a_data, 0, a_size);
+    big_integer_base_copy(ape.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, e_data, 0, e_size);
+    big_integer_base_copy(apm.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, m_data, 0, m_size);
+
+    apr = big_integer_apint_powerModMontgomeryBase2_noradix(apa, ape, apm);
+    
+    cout << msg << " (mont apint base2) " ;
+    checkResultMatchsExpectedCBase(apr.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, exp_data, exp_base, exp_size);
     
 }
 
