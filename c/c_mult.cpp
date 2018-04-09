@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <stdint.h>
 
 void big_integer_mult(big_integer* r, big_integer* a, big_integer* b)
 {
