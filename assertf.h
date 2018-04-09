@@ -26,6 +26,7 @@
 #define ASSERTF_H
 
 #include <assert.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
