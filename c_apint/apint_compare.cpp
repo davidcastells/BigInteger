@@ -21,3 +21,11 @@ int big_integer_apint_isOdd(ap_uint<NUM_BIG_INTEGER_APINT_BITS> v)
     ap_uint<NUM_BIG_INTEGER_APINT_BITS> one = 0x1;
     return (int)(v & one);
 }
+
+
+int big_integer_apint_isZero(ap_uint<NUM_BIG_INTEGER_APINT_BITS> v)
+{
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> zero = 0;
+
+    return (v == zero);
+}
