@@ -334,12 +334,15 @@ public:
 int big_integer_apint_getLength(ap_uint<NUM_BIG_INTEGER_APINT_BITS> apint);
 int big_integer_apint_getBit(ap_uint<NUM_BIG_INTEGER_APINT_BITS> apint, int i);
 int big_integer_apint_isOdd(ap_uint<NUM_BIG_INTEGER_APINT_BITS> v);
+int big_integer_apint_isZero(ap_uint<NUM_BIG_INTEGER_APINT_BITS> v);
+
 ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_mod(ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_x, ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_y);
 ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_montgomeryMultBase2(ap_uint<NUM_BIG_INTEGER_APINT_BITS> x, ap_uint<NUM_BIG_INTEGER_APINT_BITS> y, ap_uint<NUM_BIG_INTEGER_APINT_BITS> m);
 ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_multMod_interleaved(ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_a, ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_b, ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_mod); 
 ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_radixFromMontgomeryModBase2(ap_uint<NUM_BIG_INTEGER_APINT_BITS> m);
 ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_powerModMontgomeryBase2_noradix(ap_uint<NUM_BIG_INTEGER_APINT_BITS> x, ap_uint<NUM_BIG_INTEGER_APINT_BITS> e, ap_uint<NUM_BIG_INTEGER_APINT_BITS> m);
 ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_powerModMontgomeryBase2(ap_uint<NUM_BIG_INTEGER_APINT_BITS> x, ap_uint<NUM_BIG_INTEGER_APINT_BITS> e, ap_uint<NUM_BIG_INTEGER_APINT_BITS> m, ap_uint<NUM_BIG_INTEGER_APINT_BITS> radix);
+ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_powerModMontgomeryBase2_xprime(ap_uint<NUM_BIG_INTEGER_APINT_BITS> a, ap_uint<NUM_BIG_INTEGER_APINT_BITS> e, ap_uint<NUM_BIG_INTEGER_APINT_BITS> m, ap_uint<NUM_BIG_INTEGER_APINT_BITS> xprime);
 ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_squareMod(ap_uint<NUM_BIG_INTEGER_APINT_BITS> v,  ap_uint<NUM_BIG_INTEGER_APINT_BITS> m);
 ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_squareMod_interleaved(ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_v, ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_m);
 
