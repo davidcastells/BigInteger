@@ -104,6 +104,15 @@ void big_integer_array_powerModMontgomeryBase2(unsigned int r[NUM_BIG_INTEGER_AR
     if (big_integer_array_verbosity > VERBOSITY_LEVEL_POWER_MOD)
         std::cout << "BigInteger::powerModMontgomery a: " << big_integer_array_toHexString(a) << std::endl;
     
+    big_integer_array_powerModMontgomeryBase2_xprime(r, a, e, m, xprime);
+}
+
+void big_integer_array_powerModMontgomeryBase2_xprime(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
+        unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS],
+        unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS],
+        unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], 
+        unsigned int xprime[NUM_BIG_INTEGER_ARRAY_LIMBS])
+{
     int t = big_integer_array_getLength(e);
 
     unsigned int temp[NUM_BIG_INTEGER_ARRAY_LIMBS];
