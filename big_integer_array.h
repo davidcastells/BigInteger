@@ -73,6 +73,7 @@ void big_integer_array_montgomeryMultBase2(unsigned int r[NUM_BIG_INTEGER_ARRAY_
 void big_integer_array_multMod_interleaved(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int b[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int mod[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_powerModMontgomeryBase2_noradix(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_powerModMontgomeryBase2(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_powerModMontgomeryBase2_xprime(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int xprime[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_radixFromMontgomeryModBase2(unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_range(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], int upper, int lower);
 void big_integer_array_setIntValue(unsigned int data[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int v);
