@@ -38,6 +38,15 @@ ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_powerModMontgomeryBase2_no
     return big_integer_apint_powerModMontgomeryBase2(x, e, m, radix);
 }
 
+/**
+ * Montgomery Modular Exponentiation using base 2 numbers
+ * 
+ * @param x
+ * @param e
+ * @param m
+ * @param radix
+ * @return 
+ */
 ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_powerModMontgomeryBase2(ap_uint<NUM_BIG_INTEGER_APINT_BITS> x,
         ap_uint<NUM_BIG_INTEGER_APINT_BITS> e,
         ap_uint<NUM_BIG_INTEGER_APINT_BITS> m, 
@@ -84,34 +93,70 @@ ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_powerModMontgomeryBase2(ap
     if (big_integer_apint_verbosity > VERBOSITY_LEVEL_POWER_MOD)
         std::cout << "big_integer_array_powerModMontgomeryBase2 a: " << a.toHexString() << std::endl;
     
-    int t = big_integer_apint_getLength(e);
+    
+    return big_integer_apint_powerModMontgomeryBase2_xprime(a, e, m, xprime);
+}
+
+/**
+ * 
+ * @param a
+ * @param e
+ * @param m
+ * @param xprime
+ * @return 
+ */
+ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_powerModMontgomeryBase2_xprime(ap_uint<NUM_BIG_INTEGER_APINT_BITS> a,
+        ap_uint<NUM_BIG_INTEGER_APINT_BITS> e,
+        ap_uint<NUM_BIG_INTEGER_APINT_BITS> m,
+        ap_uint<NUM_BIG_INTEGER_APINT_BITS> xprime)
+{
+    //int t = big_integer_apint_getLength(e);
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS*2> e2 = e << 1;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS*2> e3 = e2 >> NUM_BIG_INTEGER_APINT_BITS;
 
     ap_uint<NUM_BIG_INTEGER_APINT_BITS> temp;
+    int startLoop = 0;
     
-    for (int i=t-1; i >= 0; i--)
+//    for (int i=t-1; i >= 0; i--)
+    for (int i=NUM_BIG_INTEGER_APINT_BITS-1; i >= 0; i--)
     {
-        int ei = big_integer_apint_getBit(e, i);
-
-        temp = a;
-        //multMontgomeryForm3(&a, &temp, &temp, m, mprime);
-        a = big_integer_apint_montgomeryMultBase2(temp, temp, m);
-        
         if (big_integer_apint_verbosity > VERBOSITY_LEVEL_POWER_MOD)
+            std::cout << "[" << i << "]";
+        
+//        int ei = big_integer_apint_getBit(e, i);
+        int ei = e3 & 0x1;
+
+        if (!startLoop && ei)
         {
-            std::cout << "a = a^2 * R^-1 mod m =  " << a.toHexString() << std::endl;
+            startLoop = 1;
         }
         
-        if (ei)
+        if (startLoop)
         {
             temp = a;
-            //multMontgomeryForm3(&a, &temp, &xprime, m, mprime);
-            a = big_integer_apint_montgomeryMultBase2(temp, xprime, m);
-            
+            //multMontgomeryForm3(&a, &temp, &temp, m, mprime);
+            a = big_integer_apint_montgomeryMultBase2(temp, temp, m);
+
             if (big_integer_apint_verbosity > VERBOSITY_LEVEL_POWER_MOD)
             {
-                std::cout << "a = x' * a * R^-1 mod m =  " << a.toHexString() << std::endl;
+                std::cout << "a = a^2 * R^-1 mod m =  " << a.toHexString() << std::endl;
             }
-        }   
+
+            if (ei)
+            {
+                temp = a;
+                //multMontgomeryForm3(&a, &temp, &xprime, m, mprime);
+                a = big_integer_apint_montgomeryMultBase2(temp, xprime, m);
+
+                if (big_integer_apint_verbosity > VERBOSITY_LEVEL_POWER_MOD)
+                {
+                    std::cout << "a = x' * a * R^-1 mod m =  " << a.toHexString() << std::endl;
+                }
+            }   
+        }
+        
+        e2 <<= 1;
+        e3 = e2 >> NUM_BIG_INTEGER_APINT_BITS;
     }
 
     ap_uint<NUM_BIG_INTEGER_APINT_BITS> one = 1;
