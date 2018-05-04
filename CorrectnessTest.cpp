@@ -1769,6 +1769,7 @@ void CorrectnessTest::testMontgomeryMult()
     checkMontgomeryMult("Montgomery Mult (12)", "10D48FD2090994548ADE1F35ECE7B10D", "130D53B78DC4DD61D5083F6A189DC74B", "100000000000000000000000000000000", "136944F567F4258D3ED452B297952DEB", "17D298F192A6366B5E1CB63D81F56D3D","466230212C34EE9A6B265ED39DAEBB8");
     
     checkMontgomeryMultBase2("Montgomery Mult Base 2 (1)", "7", "3", "11", "F");
+    checkMontgomeryMultBase2("Montgomery Mult Base 2 (2)", "9099454", "B0D3A7B",  "67F4258D", "3140844B");
 //    checkMontgomeryMultBase2("Montgomery Mult (3)", "79", "13", "100000000", "8D", "32D63DBB", "4C");
 //    checkMontgomeryMultBase2("Montgomery Mult (4)", "454", "361", "100000000", "8D", "32D63DBB", "4C");
 //    checkMontgomeryMultBase2("Montgomery Mult (5)", "109099454", "18DC4DD60", "10000000000000000", "167F4258D", "8E153CB16F895ABB", "194AE914");
