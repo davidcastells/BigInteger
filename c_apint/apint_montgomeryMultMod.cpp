@@ -111,17 +111,22 @@ ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_montgomeryMultBase2(ap_uin
 //        // std::cout << " r = " << r.toHexString() << std::endl;
 //    }
     ap_uint<NUM_BIG_INTEGER_APINT_BITS> r2 = r - m;
-    if (((r >> (NUM_BIG_INTEGER_APINT_BITS-1)) & 0x1)) && ! big_integer_apint_isZero(r2))
+    
+    //int r2isZero = big_integer_apint_isZero(r2);                // means r == m
+    int r2isNeg = (r2 >> (NUM_BIG_INTEGER_APINT_BITS-1)) & 0x1;  // means r < m
+    
+    if (r2isNeg)
     {
-        // if negative, then r was already smaller than m, no change
+        // if negative , then (r<m), no change
     }
     else
     {
-        std::cout << " r = " << r.toHexString() << std::endl;
-        std::cout << " m = " << m.toHexString() << std::endl;
-        std::cout << " r2 = " << r2.toHexString() << std::endl;
+        // !(r<m) => (r >= m)
+//        std::cout << " r = " << r.toHexString() << std::endl;
+//        std::cout << " m = " << m.toHexString() << std::endl;
+//        std::cout << " r2 = " << r2.toHexString() << std::endl;
         r = r2;
-        std::cout << " r = " << r.toHexString() << std::endl;
+//        std::cout << " r = " << r.toHexString() << std::endl;
     }
     
     return r;
