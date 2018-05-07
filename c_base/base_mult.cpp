@@ -51,19 +51,19 @@ void big_integer_base_mult(unsigned int* r_data, const unsigned int r_base, cons
             unsigned long long ap = a_data[a_base+i];
             unsigned long long bp = b_data[b_base+j];
             unsigned long long res = ap * bp;
-            lo = res;
-            hi = res >> 32;
+            lo = (unsigned int) res;
+            hi = (unsigned int) (res >> 32);
 
             accum = r_data[r_base + idx] + carry + lo;
                         
             carry = (accum >> 32) + hi;
             
-            r_data[r_base + idx] = accum;
+            r_data[r_base + idx] = (unsigned int) accum;
             
         }
         
         if ((i + b_top)< r_size)
-            r_data[r_base + i + b_top] = carry;
+            r_data[r_base + i + b_top] = (unsigned int) carry;
     }
 }        
 
@@ -99,12 +99,12 @@ void big_integer_base_multLow(unsigned int* r_data, const unsigned int r_base, c
                 unsigned long long ap = a_data[a_base+i];
                 unsigned long long bp = b_data[b_base+j];
                 unsigned long long res = ap * bp;
-                lo = res;
-                hi = res >> 32;
+                lo = (unsigned int) res;
+                hi = (unsigned int) (res >> 32);
 
                 unsigned long long accum  = r_data[r_base+idx] + carry + lo;
                 carry = (accum >> 32) + hi;
-                r_data[r_base+idx] = accum;
+                r_data[r_base+idx] = (unsigned int) accum;
             }
         }
     }
