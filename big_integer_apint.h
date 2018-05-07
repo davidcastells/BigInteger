@@ -294,7 +294,7 @@ public:
             //s = s + std::string(buf);
 
             strcpy(&s[c], buf);
-            c += strlen(buf);
+            c += (unsigned int) strlen(buf);
         }
 
         return s;
