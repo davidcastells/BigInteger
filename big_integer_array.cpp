@@ -22,13 +22,20 @@
 int big_integer_array_extraChecks = 1;
 int big_integer_array_verbosity = 0;
 
-void big_integer_array_zero(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS])
+void big_integer_array_zero(limbs_array r)
 {
     for (int i=0; i < NUM_BIG_INTEGER_ARRAY_LIMBS; i++)
         r[i] = 0;
 }
 
-void big_integer_array_init(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int* data, unsigned int size)
+void big_integer_array_zero_big(limbs_array2 r)
+{
+    for (int i=0; i < (NUM_BIG_INTEGER_ARRAY_LIMBS*2); i++)
+        r[i] = 0;
+}
+
+
+void big_integer_array_init(limbs_array r, unsigned int* data, unsigned int size)
 {
     assert(size <= NUM_BIG_INTEGER_ARRAY_LIMBS);
     
@@ -40,8 +47,7 @@ void big_integer_array_init(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigne
     }
 }
 
-void big_integer_array_copy(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], 
-	unsigned int orig[NUM_BIG_INTEGER_ARRAY_LIMBS])
+void big_integer_array_copy(limbs_array m, limbs_array orig)
 {
 //    int minCopySize = (m_size < orig_size)? m_size : orig_size;
 
@@ -53,13 +59,13 @@ void big_integer_array_copy(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS],
 //        m_data[m_base+i] = 0;
 }
 
-int big_integer_array_getNumBits(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS])
+int big_integer_array_getNumBits(limbs_array m)
 {
     unsigned int ret = NUM_BIG_INTEGER_ARRAY_LIMBS * 32;
     return ret;
 }
 
-void big_integer_array_setIntValue(unsigned int data[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int v)
+void big_integer_array_setIntValue(limbs_array data, unsigned int v)
 {
     big_integer_array_zero(data);
     
@@ -67,10 +73,8 @@ void big_integer_array_setIntValue(unsigned int data[NUM_BIG_INTEGER_ARRAY_LIMBS
 }
 
 
-int big_integer_array_getLimbLength(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS])
+int big_integer_array_getLimbLength(limbs_array m)
 {
-//    int len = 0;
-
     // find the highest limb with an active bit
     for (int i=NUM_BIG_INTEGER_ARRAY_LIMBS-1; (i > 0); i--)
     {
@@ -81,7 +85,19 @@ int big_integer_array_getLimbLength(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS])
     return 1;
 }
 
-int big_integer_array_getLength(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS])
+int big_integer_array_getLimbLength_big(limbs_array2 m)
+{
+    // find the highest limb with an active bit
+    for (int i=(NUM_BIG_INTEGER_ARRAY_LIMBS*2)-1; (i > 0); i--)
+    {
+        if (m[i] > 0)
+            return i+1;
+    }
+    
+    return 1;
+}
+
+int big_integer_array_getLength(limbs_array m)
 {
     int len = 0;
     int greaterActiveLimb = 0;
@@ -110,9 +126,7 @@ int big_integer_array_getLength(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS])
     return len;
 }
 
-void big_integer_array_range(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
-	unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS],
-        int upper, int lower)
+void big_integer_array_range(limbs_array r, limbs_array x, int upper, int lower)
 {
     //if (extraChecks)
     {
@@ -131,7 +145,7 @@ void big_integer_array_range(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
     big_integer_array_zeroHighBits(r, upper-lower+1);
 }
 
-int big_integer_array_getBit(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], int bitnum)
+int big_integer_array_getBit(limbs_array m, int bitnum)
 {
    int limbIndex = bitnum / 32;
    int bitIndex = bitnum % 32;
@@ -139,7 +153,7 @@ int big_integer_array_getBit(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], int bi
    return (m[limbIndex] >> bitIndex) & 1;
 }
 
-void big_integer_array_zeroHighBits(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], int fromBit)
+void big_integer_array_zeroHighBits(limbs_array r, int fromBit)
 {
     int fromLimb = fromBit / 32;
     int fromLimbBit = fromBit % 32;
@@ -161,3 +175,11 @@ void big_integer_array_zeroHighBits(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
         fromLimb++;
     }
 }
+
+
+void big_integer_array_initFromHexString(limbs_array v, const char* str)
+{
+    assert(((strlen(str)+7)/8) < NUM_BIG_INTEGER_ARRAY_LIMBS);
+    big_integer_array_parseHexString(v, str);
+}
+        
