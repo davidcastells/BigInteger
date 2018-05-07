@@ -184,7 +184,7 @@ int BigInteger::getLength()
  */
 void BigInteger::initFromHexString(const char* str)
 {
-    initSize((strlen(str)+7)/8);
+    initSize((unsigned int) (strlen(str)+7)/8);
     parseHexString(str);
 }
         
@@ -193,7 +193,7 @@ void BigInteger::initFromHexString(const char* str)
  * Initialize the size of the limbs array which are 32 bits numbers
  * @param s number of limbs 
  */
-void BigInteger::initSize(int s)
+void BigInteger::initSize(unsigned int s)
 {
     if  (m_size > 0)
         delete m_data;
@@ -270,7 +270,7 @@ int BigInteger::minVal( int x,  int y)
  * Reduce the working size of the integer (without reallocating memory)
  * @param s new size
  */
-void BigInteger::reduceWorkingSize(int s)
+void BigInteger::reduceWorkingSize(unsigned int s)
 {
     assert(m_size >= s);
     for (int i=s; i < m_size; i++)
