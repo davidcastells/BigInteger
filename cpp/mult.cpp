@@ -42,8 +42,8 @@ void BigInteger::mult(BigInteger* y)
 void BigInteger::mult(unsigned int x, unsigned int y, unsigned int *rHight, unsigned int *rLow)
 {
     unsigned long long res = (unsigned long long) x * (unsigned long long) y;
-    *rLow = res;
-    *rHight = res >> 32;
+    *rLow = (unsigned int) (res & 0xFFFFFFFF);
+    *rHight = (unsigned int)(res >> 32);
 }
 
 
@@ -84,11 +84,11 @@ void BigInteger::mult(BigInteger* r, BigInteger* a, BigInteger* b)
             carry = (accum >> 32);
             carry += hi;
             
-            r->m_data[idx] = accum;
+            r->m_data[idx] = (unsigned int) accum;
         }
         
         if ((i + bsize)< rsize)
-            r->m_data[i + bsize] = carry;
+            r->m_data[i + bsize] = (unsigned int) carry;
     }
 }    
 
@@ -132,13 +132,13 @@ void BigInteger::mult(BigInteger* r, BigInteger* a, unsigned int digit)
             carry = (accum >> 32);
             carry += hi;
             
-            r->m_data[idx] = accum;
+            r->m_data[idx] = (unsigned int) accum;
             
             
         }
         
         if ((i + bsize)< rsize)
-            r->m_data[i + 1 /*b->m_size*/ ] = carry;
+            r->m_data[i + 1 /*b->m_size*/ ] = (unsigned int) carry;
     }
 }
 
@@ -178,7 +178,7 @@ void BigInteger::multLow(BigInteger* r, BigInteger* a, BigInteger* b)
 
                 accum  = r->m_data[idx] + carry + lo;
                 carry  = (accum >> 32) + hi;
-                r->m_data[idx] = accum;
+                r->m_data[idx] = (unsigned int) accum;
             }
         }
     }
@@ -238,8 +238,8 @@ void BigInteger::mult_naive(BigInteger* r, BigInteger* a, BigInteger* b)
                 carry = pr_high >> 32;
                 pr_high = pr_high & 0xFFFFFFFF;
 
-                term.m_data[k] = pr_low;
-                term.m_data[k+1] = pr_high;
+                term.m_data[k] = (unsigned int) pr_low;
+                term.m_data[k+1] = (unsigned int) pr_high;
             }
 
             addShifted(r, r, &term, i);
