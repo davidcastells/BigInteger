@@ -62,7 +62,8 @@ void BigInteger::mod_naive(BigInteger* x,
 
     BigInteger::range(r, x, rl-1, downBit--);
 
-    if (verbosity>VERBOSITY_LEVEL_DIV) std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r->toHexString() << std::endl;
+    if (verbosity>VERBOSITY_LEVEL_DIV) 
+        std::cout << "BigInteger.div r range(" << to_string(rl-1) << "," << to_string(downBit+1) << ") = " << r->toHexString() << std::endl;
 
     if (r->isLessThan(y))
     {
