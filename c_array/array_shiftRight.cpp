@@ -16,13 +16,12 @@
  */
 #include "../big_integer_array.h"
 
-void big_integer_array_shiftRight_short(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], int sv)
+void big_integer_array_shiftRight_short(limbs_array r, int sv)
 {
     big_integer_array_shiftRight(r, r, sv);
 }
 
-void big_integer_array_shiftRight(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
-	unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS], int sv)
+void big_integer_array_shiftRight(limbs_array r, limbs_array a, int sv)
 {
     unsigned int carry = 0;
     int limbsShifted = sv / 32;
@@ -39,5 +38,36 @@ void big_integer_array_shiftRight(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
         if ((i+limbsShifted+1) < NUM_BIG_INTEGER_ARRAY_LIMBS && cs)
             v2 = a[i+limbsShifted+1] << cs;
         r[i] = v1 | v2;
+    }
+}
+
+/**
+ * 
+ * @param r
+ * @param a
+ * @param limbsShifted
+ */
+void big_integer_array_shiftRight_limbs_big(limbs_array r, limbs_array2 a, int limbsShifted)
+{    
+    for (int i=0; i < NUM_BIG_INTEGER_ARRAY_LIMBS; i++)
+    {
+        unsigned int v1 = 0;
+        
+        if ((i+limbsShifted) < (NUM_BIG_INTEGER_ARRAY_LIMBS*2))
+            v1 = a[i+limbsShifted];
+        r[i] = v1;
+    }
+}
+
+void big_integer_array_shiftRight_limbs(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
+	unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS], int limbsShifted)
+{    
+    for (int i=0; i < NUM_BIG_INTEGER_ARRAY_LIMBS; i++)
+    {
+        unsigned int v1 = 0;
+        
+        if ((i+limbsShifted) < NUM_BIG_INTEGER_ARRAY_LIMBS)
+            v1 = a[i+limbsShifted];
+        r[i] = v1;
     }
 }
