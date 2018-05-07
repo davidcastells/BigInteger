@@ -51,26 +51,26 @@ void big_integer_mult(big_integer* r, big_integer* a, big_integer* b)
             unsigned long long ap = a->m_data[i];
             unsigned long long bp = b->m_data[j];
             unsigned long long res = ap * bp;
-            lo = res;
-            hi = res >> 32;
+            lo = (unsigned int) res;
+            hi = (unsigned int) (res >> 32);
 
             accum = r->m_data[idx] + carry + lo;
                         
             carry = (accum >> 32) + hi;
             
-            r->m_data[idx] = accum;      
+            r->m_data[idx] = (unsigned int) accum;      
         }
         
         if ((i + b_top)< r->m_size)
-            r->m_data[i + b_top] = carry;
+            r->m_data[i + b_top] = (unsigned int) carry;
     }
 }        
 
 void big_integer_mult32(unsigned int x, unsigned int y, unsigned int *rHight, unsigned int *rLow)
 {
     unsigned long long res = (unsigned long long) x * (unsigned long long) y;
-    *rLow = res;
-    *rHight = res >> 32;
+    *rLow = (unsigned int) res;
+    *rHight = (unsigned int) (res >> 32);
 }
 
 /**
@@ -107,7 +107,7 @@ void big_integer_multLow(big_integer* r, big_integer* a, big_integer* b)
 
                 accum  = r->m_data[idx] + carry + lo;
                 carry  = (accum >> 32) + hi;
-                r->m_data[idx] = accum;
+                r->m_data[idx] = (unsigned int) accum;
             }
         }
     }
