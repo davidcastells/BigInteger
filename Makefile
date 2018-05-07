@@ -29,7 +29,7 @@ clean:
 	rm -fr *.exe
 
 $(TARGET_CYG): $(SOURCES_CPP) $(SOURCES_C)
-	g++ -static -g -O0 $(SOURCES_CPP) $(SOURCES_C) -o $(TARGET_CYG)
+	g++ -static -g -O0 -Wconversion $(SOURCES_CPP) $(SOURCES_C) -o $(TARGET_CYG)
 	
 $(TARGET_MINGW): $(SOURCES_CPP) 
 	$(CPP_MINGW) -static -g -O3 -m64 $(SOURCES_CPP) $(SOURCES_C) -o $(TARGET_MINGW)
