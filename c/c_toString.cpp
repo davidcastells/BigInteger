@@ -24,7 +24,7 @@ const char* big_integer_toHexString(big_integer* x)
 {
     static char s[200];
 
-    int c = 0;
+    unsigned int c = 0;
     for (int i=0; i < x->m_size; i++)
     {
         char buf[10];
@@ -32,7 +32,7 @@ const char* big_integer_toHexString(big_integer* x)
         //s = s + std::string(buf);
         
         strcpy(&s[c], buf);
-        c += strlen(buf);
+        c += (unsigned int) strlen(buf);
     }
 
     return s;
