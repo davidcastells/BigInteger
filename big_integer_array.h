@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include "to_string.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,42 +52,66 @@ extern "C" {
 extern int big_integer_array_extraChecks;
 extern int big_integer_array_verbosity;
 
-int big_integer_array_isBiggerThan(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int v[NUM_BIG_INTEGER_ARRAY_LIMBS]);
-int big_integer_array_isLessThan(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int v[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+typedef unsigned int limbs_array[NUM_BIG_INTEGER_ARRAY_LIMBS];   // big integer array
+typedef unsigned int limbs_array2[NUM_BIG_INTEGER_ARRAY_LIMBS*2];  // big integer array (double size)
+
+
+int big_integer_array_isBiggerThan(limbs_array m, limbs_array v);
+int big_integer_array_isLessThan(limbs_array m, limbs_array v);
 int big_integer_array_isLessThanEqual(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int v[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+int big_integer_array_isNegative(unsigned int v[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 int big_integer_array_isOdd(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 int big_integer_array_isZero(unsigned int data[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 int big_integer_array_getBit(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], int bitnum);
 int big_integer_array_getLength(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
-int big_integer_array_getLimbLength(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
-int big_integer_array_getNumBits(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+int big_integer_array_getLimbLength(limbs_array m);
+int big_integer_array_getLimbLength_big(limbs_array2 m);
+int big_integer_array_getNumBits(limbs_array m);
 
-void big_integer_array_add(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int b[NUM_BIG_INTEGER_ARRAY_LIMBS]);
-void big_integer_array_add_short(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int b[NUM_BIG_INTEGER_ARRAY_LIMBS]);
-void big_integer_array_init(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int* data, unsigned int size);
-void big_integer_array_copy(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int orig[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_add(limbs_array r, limbs_array a, limbs_array b);
+void big_integer_array_add_big(limbs_array2 r, limbs_array2 a, limbs_array2 b);
+void big_integer_array_add_short(limbs_array r, limbs_array b);
+void big_integer_array_init(limbs_array r, unsigned int* data, unsigned int size);
+void big_integer_array_initFromHexString(limbs_array v, const char* str);
+void big_integer_array_copy(limbs_array m, limbs_array orig);
+void big_integer_array_div_naive(unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS],unsigned int y[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int q[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_inc(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_inverseMod(unsigned int ret[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int b[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_mod(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_mod_short(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_mod_naive(unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int y[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_montgomeryMultBase2(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int y[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_multMontgomeryForm3(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int y[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int mprime[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_mult(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int b[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_mult_big(limbs_array2 r, limbs_array a, limbs_array b);
+void big_integer_array_multLow(limbs_array r, limbs_array2 a_big, limbs_array b, unsigned int rsize);
 void big_integer_array_multMod_interleaved(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int b[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int mod[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_powerModMontgomery(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_powerModMontgomery_mprime(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int mprime[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_powerModMontgomeryBase2_noradix(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_powerModMontgomeryBase2(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_powerModMontgomeryBase2_xprime(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int xprime[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_radixFromMontgomeryMod(unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
 void big_integer_array_radixFromMontgomeryModBase2(unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_mprimeFromMontgomeryRadix(unsigned int mprime[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_parseHexString(limbs_array v, const char* str);
 void big_integer_array_range(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], int upper, int lower);
-void big_integer_array_setIntValue(unsigned int data[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int v);
+void big_integer_array_random(limbs_array v);
+void big_integer_array_random_bits(limbs_array v, int n);
+void big_integer_array_setIntValue(limbs_array data,  unsigned int v);
 void big_integer_array_shiftLeft(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS], int sv);
 void big_integer_array_shiftLeft_short(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], int bits);
 void big_integer_array_shiftRight(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS], int sv);
 void big_integer_array_shiftRight_short(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], int sv);
-void big_integer_array_subtract(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int y[NUM_BIG_INTEGER_ARRAY_LIMBS]);
-void big_integer_array_subtract_short(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int y[NUM_BIG_INTEGER_ARRAY_LIMBS]);
-void big_integer_array_squareMod(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int v[NUM_BIG_INTEGER_ARRAY_LIMBS],  unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS]);
-void big_integer_array_zero(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS]);
-void big_integer_array_zeroHighBits(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], int fromBit);
-const char* big_integer_array_toHexString(unsigned int data[NUM_BIG_INTEGER_ARRAY_LIMBS]);
+void big_integer_array_shiftRight_limbs(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS], int limbsShifted);
+void big_integer_array_subtract(limbs_array r, limbs_array x, limbs_array y);
+void big_integer_array_subtract_short(limbs_array r, limbs_array y);
+void big_integer_array_squareMod(limbs_array r, limbs_array v, limbs_array m);
+void big_integer_array_zero(limbs_array r);
+void big_integer_array_zero_big(limbs_array2 r);
+void big_integer_array_zeroHighBits(limbs_array r, int fromBit);
+const char* big_integer_array_toHexString(limbs_array data);
+const char* big_integer_array_toHexString_big(limbs_array2 data);
 
 #ifdef __cplusplus
 }
