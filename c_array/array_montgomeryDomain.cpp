@@ -19,8 +19,7 @@
 
 #include <assert.h>
 
-void big_integer_array_radixFromMontgomeryModBase2(unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS], 
-        unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS])
+void big_integer_array_radixFromMontgomeryModBase2(limbs_array radix, limbs_array m)
 {
     if (big_integer_array_extraChecks)
         assert(big_integer_array_getNumBits(radix) > big_integer_array_getLimbLength(m));
@@ -29,4 +28,45 @@ void big_integer_array_radixFromMontgomeryModBase2(unsigned int radix[NUM_BIG_IN
 
     big_integer_array_setIntValue(radix, 1);
     big_integer_array_shiftLeft_short(radix, mLen);      
+}
+
+void big_integer_array_radixFromMontgomeryMod(limbs_array radix, limbs_array m)
+{
+    if (big_integer_array_extraChecks)
+        assert(big_integer_array_getNumBits(radix) > big_integer_array_getLimbLength(m));
+    
+    int mLen = big_integer_array_getLimbLength(m)*32;
+
+    big_integer_array_setIntValue(radix, 1);
+    big_integer_array_shiftLeft_short(radix, mLen);    
+}
+
+void big_integer_array_mprimeFromMontgomeryRadix(limbs_array mprime, limbs_array m, limbs_array radix)
+{
+    limbs_array temp;
+    big_integer_array_copy(temp, m);
+    
+    limbs_array invTemp;
+    big_integer_array_inverseMod(invTemp, temp, radix);    // invTemp = (m mod radix) ^ (-1) mod radix
+ 
+    if (big_integer_array_isZero(invTemp))
+    {
+        big_integer_array_zero(mprime);
+    }
+    else
+    {
+        if (big_integer_array_verbosity > VERBOSITY_LEVEL_MONTGOMERY)
+        {
+            std::cout << "BigInteger::mprimeFromMontgomeryRadix m = " << big_integer_array_toHexString(m) << std::endl;
+            std::cout << "BigInteger::mprimeFromMontgomeryRadix m^-1 = " << big_integer_array_toHexString(invTemp) << std::endl;
+            std::cout << "BigInteger::mprimeFromMontgomeryRadix radix = " << big_integer_array_toHexString(radix) << std::endl;
+        }
+        
+        big_integer_array_copy(mprime, radix);
+        big_integer_array_subtract_short(mprime, invTemp);
+
+
+        if (big_integer_array_verbosity > VERBOSITY_LEVEL_MONTGOMERY) 
+            std::cout << "BigInteger::mprimeFromMontgomeryRadix mprime = " << big_integer_array_toHexString(mprime) << std::endl;
+    }
 }
