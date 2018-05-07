@@ -20,6 +20,7 @@
 #include "BigInteger.h"
 #include "big_integer_base.h"
 #include "big_integer.h"
+#include "big_integer_array.h"
 
 #include <iostream>
 
@@ -47,6 +48,7 @@ void PerformanceTest::run()
     BigInteger::extraChecks = 1;
 
     testPerformanceFinalModPow();
+    testPerformanceFinalModPowArray();
    
     cout << "[Complete]" << endl;
 
@@ -936,9 +938,10 @@ void PerformanceTest::testPerformanceFinalModPow()
         BigInteger mprime;
         mprime.initSize(radix.m_size);        
 
+        // Create a m which is invertible
         do
         {
-
+            
             m.random();
 //        cout << "m: " << m.toHexString() << endl;
 
@@ -951,7 +954,7 @@ void PerformanceTest::testPerformanceFinalModPow()
         
         lap.start();
         for (int rep=0; rep < numReps; rep++)
-            BigInteger::powerModMontgomery(&r2, &a, &e, &m, &mprime, &radix);
+            BigInteger::powerModMontgomery(&r2, &a, &e, &m);
         seconds = lap.stop();
         
         cout << "Montgomery Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
@@ -983,7 +986,7 @@ void PerformanceTest::testPerformanceFinalModPow()
             m.random();
 //        cout << "m: " << m.toHexString() << endl;
 
-            BigInteger::radixFromMontgomeryMod(&radix, &m);
+            //BigInteger::radixFromMontgomeryModBase2(&radix, &m);
         
             //BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
         
@@ -992,7 +995,7 @@ void PerformanceTest::testPerformanceFinalModPow()
         
         lap.start();
         for (int rep=0; rep < numReps; rep++)
-            BigInteger::powerModMontgomeryBase2(&r2, &a, &e, &m, &radix);
+            BigInteger::powerModMontgomeryBase2(&r2, &a, &e, &m);
         seconds = lap.stop();
         
         cout << "Montgomery Modular Exponentiation (Base 2);\t" << bits << ";\t" << seconds << ";" <<endl;
@@ -1034,7 +1037,7 @@ void PerformanceTest::testPerformanceFinalModPow()
         
         lap.start();
         for (int rep=0; rep < numReps; rep++)
-            BigInteger::powerMod_ColinPlumb(&r2, &a, &e, &m, &mprime, &radix);
+            BigInteger::powerMod_ColinPlumb(&r2, &a, &e, &m);
         seconds = lap.stop();
         
         cout << "Modular Exponentiation (Colin Plumb);\t" << bits << ";\t" << seconds << ";" <<endl;
@@ -1042,5 +1045,179 @@ void PerformanceTest::testPerformanceFinalModPow()
         if (seconds > maxSeconds)
             bits = maxBits;
     }
+    
+}
+
+void PerformanceTest::testPerformanceFinalModPowArray()
+{
+    double seconds;
+    double maxSeconds = 10;
+    
+    int numReps = 100;
+    int maxBits = 2048;
+    
+    cout << "MODULAR EXPONENTIATION ARRAY)" << endl;
+    cout << "Modular Exponentiation two random numbers ("<< (numReps)<<" times)" << endl;
+    cout << "Details;\t\tbits;\ttime;" << endl;
+    
+    limbs_array a;
+    limbs_array e;
+    limbs_array m;
+    limbs_array r;
+    limbs_array r2;
+ 
+    // Not Implemented yet!!
+//    for (int bits = 32; bits <= 256; bits *= 2)
+//    {
+//        PerformanceLap lap;
+//     
+//        big_integer_array_random(a);
+//        big_integer_array_random(e);
+//        
+//        limbs_array radix;
+//        limbs_array mprime;
+//        
+//        big_integer_array_random(m);
+//        
+//        lap.start();
+//        for (int rep=0; rep < numReps; rep++)
+//            big_integer_array_powerModSlidingWindow(r, a, e, m);
+//        seconds = lap.stop();
+//        
+//        cout << "Sliding Window Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+//
+//        if (seconds > maxSeconds)
+//            bits = maxBits;
+//    }
+
+//    for (int bits = 32; bits <= 256; bits *= 2)
+//    {
+//        PerformanceLap lap;
+//     
+//        big_integer_array_random(a);
+//        big_integer_array_random(e);
+//        
+//        limbs_array radix;
+//        limbs_array mprime;
+//        
+//        big_integer_array_random(m, bits-1);
+//        
+//        lap.start();
+//        for (int rep=0; rep < numReps; rep++)
+//            BigInteger::powerMod_interleaved(&r, &a, &e, &m);
+//        seconds = lap.stop();
+//        
+//        cout << "Interleaved Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+//
+//        if (seconds > maxSeconds)
+//            bits = maxBits;
+//    }    
+    
+    for (int bits = 32; bits <= maxBits; bits *= 2)
+    {
+        PerformanceLap lap;
+     
+        big_integer_array_random_bits(a, bits);
+        big_integer_array_random_bits(e, bits);
+        
+        limbs_array radix;
+        limbs_array mprime;
+        
+        // Create a m which is invertible
+        do
+        {
+            big_integer_array_random_bits(m, bits);
+//        cout << "m: " << m.toHexString() << endl;
+
+            big_integer_array_radixFromMontgomeryMod(radix, m);
+            big_integer_array_mprimeFromMontgomeryRadix(mprime, m, radix);
+        
+        } while (big_integer_array_isZero(mprime));
+        
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            big_integer_array_powerModMontgomery(r2, a, e, m);
+        seconds = lap.stop();
+        
+        cout << "Montgomery Modular Exponentiation;\t" << bits << ";\t" << seconds << ";" <<endl;
+        
+        if (seconds > maxSeconds)
+            bits = maxBits;
+    }
+    
+    for (int bits = 32; bits <= maxBits; bits *= 2)
+    {
+        PerformanceLap lap;
+     
+        big_integer_array_random_bits(a, bits);
+        big_integer_array_random_bits(e, bits);
+        
+        limbs_array radix;
+        
+        do
+        {
+            big_integer_array_random_bits(m, bits);
+//        cout << "m: " << m.toHexString() << endl;
+
+            //BigInteger::radixFromMontgomeryModBase2(&radix, &m);
+        
+            //BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+        
+        } while (!big_integer_array_isOdd(m));
+        
+        
+        lap.start();
+        for (int rep=0; rep < numReps; rep++)
+            big_integer_array_powerModMontgomeryBase2_noradix(r2, a, e, m);
+        seconds = lap.stop();
+        
+        cout << "Montgomery Modular Exponentiation (Base 2);\t" << bits << ";\t" << seconds << ";" <<endl;
+        
+        if (seconds > maxSeconds)
+            bits = maxBits;
+    }
+    
+//    for (int bits = 32; bits <= maxBits; bits *= 2)
+//    {
+//        PerformanceLap lap;
+//     
+//        a.initSize(bits/32);
+//        e.initSize(bits/32);
+//        m.initSize(bits/32);
+//        r.initSize(bits/32);
+//        r2.initSize(bits/32);
+//        a.random();
+//        e.random();
+//        
+//        BigInteger radix;
+//        radix.initSize(m.m_size+1);
+//        BigInteger mprime;
+//        mprime.initSize(radix.m_size);        
+//
+//        do
+//        {
+//
+//            m.random();
+////        cout << "m: " << m.toHexString() << endl;
+//
+//            BigInteger::radixFromMontgomeryMod(&radix, &m);
+//        
+//            BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
+//        
+//        } while (mprime.isZero());
+//        
+//        a.mod(&m);
+//        
+//        lap.start();
+//        for (int rep=0; rep < numReps; rep++)
+//            BigInteger::powerMod_ColinPlumb(&r2, &a, &e, &m);
+//        seconds = lap.stop();
+//        
+//        cout << "Modular Exponentiation (Colin Plumb);\t" << bits << ";\t" << seconds << ";" <<endl;
+//        
+//        if (seconds > maxSeconds)
+//            bits = maxBits;
+//    }
     
 }
