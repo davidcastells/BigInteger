@@ -314,7 +314,7 @@ void big_integer_base_initSize(unsigned int * data, unsigned int base, unsigned 
 
 void big_integer_base_initFromHexString(unsigned int * data, unsigned int base, unsigned int size, const char* str)
 {
-    big_integer_base_initSize(data, base, size, (strlen(str)+7)/8);
+    big_integer_base_initSize(data, base, size, (int) (strlen(str)+7)/8);
     big_integer_base_parseHexString(data, base, size, str);
 }
     
@@ -346,7 +346,7 @@ int big_integer_base_base_isEqual(unsigned int * a_data, unsigned int a_base, un
 void big_integer_base_parseString(unsigned int * data, unsigned int base, unsigned int size, const char* str)
 {
     // multiply by x*10 is x*(8+2) -> 8*x + 2*x
-    int l = strlen(str);
+    unsigned int l = (unsigned int) strlen(str);
 
     big_integer_base_zero(data, base, size);
 
@@ -382,7 +382,7 @@ void big_integer_base_parseString(unsigned int * data, unsigned int base, unsign
 void big_integer_base_parseHexString(unsigned int* data, unsigned int base, unsigned int size, const char* str)
 {
     // multiply by x*10 is x*(8+2) -> 8*x + 2*x
-    int l = strlen(str);
+    int l = (int) strlen(str);
 
     big_integer_base_zero(data, base, size);
 
@@ -421,10 +421,10 @@ void big_integer_base_parseHexString(unsigned int* data, unsigned int base, unsi
 
 void big_integer_base_random(unsigned int* data, unsigned int base, unsigned int size)
 {
-    int lc = clock();
+    unsigned int lc = (unsigned int) clock();
     while (lc == clock());
     
-    srand(clock());
+    srand((unsigned int) clock());
     
     for (int i=0; i < size; i++)
     {
