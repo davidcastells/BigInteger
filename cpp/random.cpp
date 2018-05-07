@@ -25,10 +25,10 @@
  */
 void BigInteger::random()
 {
-    int lc = clock();
-    while (lc == clock());
+    unsigned int lc = (unsigned int) clock();
+    while (lc == (unsigned int) clock());
     
-    srand(clock());
+    srand((unsigned int) clock());
 
     
     for (int i=0; i < m_size; i++)
@@ -59,6 +59,5 @@ void BigInteger::random(int n)
     
     random();
     int shift = getNumBits() - n;
-    shiftRight(shift);
-    
+    shiftRight(shift);    
 }
