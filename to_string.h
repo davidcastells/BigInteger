@@ -15,25 +15,46 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../big_integer.h"
+/* 
+ * File:   to_string.h
+ * Author: dcr
+ *
+ * Created on May 4, 2018, 4:01 PM
+ */
 
-#include <stdio.h>
-#include <string.h>
+#ifndef TO_STRING_H
+#define TO_STRING_H
 
-const char* big_integer_toHexString(big_integer* x)
+#include <string>
+#include <sstream> 
+#include <iostream>
+
+template <typename T>
+std::string to_string(T value)
 {
-    static char s[200];
+  //create an output string stream
+  std::ostringstream os ;
 
-    unsigned int c = 0;
-    for (int i=0; i < x->m_size; i++)
-    {
-        char buf[10];
-        sprintf(buf, "%08X ", x->m_data[i]);
-        //s = s + std::string(buf);
-        
-        strcpy(&s[c], buf);
-        c += (unsigned int) strlen(buf);
-    }
+  //throw the value into the string stream
+  os << value ;
 
-    return s;
+  //convert the string stream into a string and return
+  return os.str() ;
 }
+
+template <typename T>
+std::string to_hex_string(T value)
+{
+  //create an output string stream
+  std::ostringstream os ;
+
+  //throw the value into the string stream
+  os << std::hex << value ;
+
+  //convert the string stream into a string and return
+  return os.str() ;
+}
+
+
+#endif /* TO_STRING_H */
+

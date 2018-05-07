@@ -91,3 +91,66 @@ void big_integer_array_montgomeryMultBase2(unsigned int r[NUM_BIG_INTEGER_ARRAY_
 //        cout << " r = " << r->toHexString() << endl;
     }
 }
+
+void big_integer_array_multMontgomeryForm3(limbs_array r, limbs_array x, limbs_array y, 
+        limbs_array m, limbs_array mprime)
+{
+    int i;
+
+    if (big_integer_array_extraChecks)
+    {
+        assert(r != x);
+        assert(r != y);
+        assert(r != m);
+        assert(r != mprime);
+        assert(big_integer_array_isLessThan(x, m));
+        assert(big_integer_array_isLessThan(y, m));
+    }
+
+    unsigned int sr = big_integer_array_getLimbLength(m);
+    
+    limbs_array2 t_big;
+    limbs_array tm;
+    limbs_array2 tmm_big;
+    
+    big_integer_array_mult_big(t_big, x, y);
+    big_integer_array_multLow(tm, t_big, mprime, sr);  
+    big_integer_array_mult_big(tmm_big, tm, m);
+
+    if (big_integer_array_verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+    {
+        std::cout << "big_integer_array_multMontgomeryForm3 x:" << big_integer_array_toHexString(x) << std::endl;
+        std::cout << "big_integer_array_multMontgomeryForm3 y:" << big_integer_array_toHexString(y) << std::endl;
+        std::cout << "big_integer_array_multMontgomeryForm3 t:" << big_integer_array_toHexString_big(t_big) << std::endl;
+        std::cout << "big_integer_array_multMontgomeryForm3 m:" << big_integer_array_toHexString(m) << std::endl;
+        std::cout << "big_integer_array_multMontgomeryForm3 mprime:" << big_integer_array_toHexString(mprime) << std::endl;
+        std::cout << "big_integer_array_multMontgomeryForm3 tm:" << big_integer_array_toHexString(tm) << std::endl;
+        std::cout << "big_integer_array_multMontgomeryForm3 tmm:" << big_integer_array_toHexString_big(tmm_big) << std::endl;
+    }
+
+    limbs_array2 u_big;
+    big_integer_array_add_big(u_big, t_big, tmm_big);
+
+
+    if (big_integer_array_verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY) 
+        std::cout << "big_integer_array_multMontgomeryForm3 u:" << big_integer_array_toHexString_big(u_big) << std::endl;
+
+    
+    big_integer_array_shiftRight_limbs(r, u_big, sr);
+
+
+    if (big_integer_array_verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+    {
+        std::cout << "big_integer_array_multMontgomeryForm3 shifting right >> " << (sr*32) << std::endl;
+        std::cout << "big_integer_array_multMontgomeryForm3 r:" << big_integer_array_toHexString(r) << std::endl;
+    }
+    
+    if (big_integer_array_isLessThan(m, r))   // if (r >= m) r = r - m
+    {
+        big_integer_array_subtract_short(r, m);
+
+        if (big_integer_array_verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
+            std::cout << "big_integer_array_multMontgomeryForm3 r:" << big_integer_array_toHexString(r) << std::endl;
+
+    }
+}

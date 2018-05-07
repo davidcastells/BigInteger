@@ -14,26 +14,5 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "../big_integer_apint.h"
 
-#include "../big_integer.h"
-
-#include <stdio.h>
-#include <string.h>
-
-const char* big_integer_toHexString(big_integer* x)
-{
-    static char s[200];
-
-    unsigned int c = 0;
-    for (int i=0; i < x->m_size; i++)
-    {
-        char buf[10];
-        sprintf(buf, "%08X ", x->m_data[i]);
-        //s = s + std::string(buf);
-        
-        strcpy(&s[c], buf);
-        c += (unsigned int) strlen(buf);
-    }
-
-    return s;
-}

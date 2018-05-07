@@ -14,26 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "../big_integer_apint.h"
 
-#include "../big_integer.h"
-
-#include <stdio.h>
-#include <string.h>
-
-const char* big_integer_toHexString(big_integer* x)
+int big_integer_apint_isOdd(ap_uint<NUM_BIG_INTEGER_APINT_BITS> v)
 {
-    static char s[200];
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> one = 0x1;
+    return (int)(v & one);
+}
 
-    unsigned int c = 0;
-    for (int i=0; i < x->m_size; i++)
-    {
-        char buf[10];
-        sprintf(buf, "%08X ", x->m_data[i]);
-        //s = s + std::string(buf);
-        
-        strcpy(&s[c], buf);
-        c += (unsigned int) strlen(buf);
-    }
 
-    return s;
+int big_integer_apint_isZero(ap_uint<NUM_BIG_INTEGER_APINT_BITS> v)
+{
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> zero = 0;
+
+    return (v == zero);
 }

@@ -20,22 +20,43 @@
 #include <string.h>
 #include <stdio.h>
 
-const char* big_integer_array_toHexString(unsigned int data[NUM_BIG_INTEGER_ARRAY_LIMBS])
+const char* big_integer_array_toHexString(limbs_array data)
 {
     static const int sSize = NUM_BIG_INTEGER_ARRAY_LIMBS;
     static char s[9*(sSize+1)];
     
-    assert(NUM_BIG_INTEGER_ARRAY_LIMBS <= sSize);
+    int limbs = big_integer_array_getLimbLength(data);
 
     int c = 0;
-    for (int i=0; i < NUM_BIG_INTEGER_ARRAY_LIMBS; i++)
+    for (int i=0; i < limbs; i++)
     {
         char buf[10];
         sprintf(buf, "%08X ", data[i]);
         //s = s + std::string(buf);
         
         strcpy(&s[c], buf);
-        c += strlen(buf);
+        c += (unsigned int) strlen(buf);
+    }
+
+    return s;
+}
+
+const char* big_integer_array_toHexString_big(limbs_array2 data)
+{
+    static const int sSize = NUM_BIG_INTEGER_ARRAY_LIMBS*2;
+    static char s[9*(sSize+1)];
+    
+    int limbs = big_integer_array_getLimbLength_big(data);
+
+    int c = 0;
+    for (int i=0; i < limbs; i++)
+    {
+        char buf[10];
+        sprintf(buf, "%08X ", data[i]);
+        //s = s + std::string(buf);
+        
+        strcpy(&s[c], buf);
+        c += (unsigned int) strlen(buf);
     }
 
     return s;

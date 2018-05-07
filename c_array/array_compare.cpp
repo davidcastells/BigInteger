@@ -16,8 +16,7 @@
  */
 #include "../big_integer_array.h"
 
-int big_integer_array_isLessThan(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], 
-	unsigned int v[NUM_BIG_INTEGER_ARRAY_LIMBS])
+int big_integer_array_isLessThan(limbs_array m, limbs_array v)
 {
     // if there is any 1 in a bigger size v before the range of this
     // then return true
@@ -41,7 +40,7 @@ int big_integer_array_isLessThan(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS],
 }
 
 
-int big_integer_array_isZero(unsigned int data[NUM_BIG_INTEGER_ARRAY_LIMBS])
+int big_integer_array_isZero(limbs_array data)
 {
     for (int i=0; i<NUM_BIG_INTEGER_ARRAY_LIMBS; i++)
     {
@@ -52,12 +51,12 @@ int big_integer_array_isZero(unsigned int data[NUM_BIG_INTEGER_ARRAY_LIMBS])
     return 1;
 }
 
-int big_integer_array_isLessThanEqual(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int v[NUM_BIG_INTEGER_ARRAY_LIMBS])
+int big_integer_array_isLessThanEqual(limbs_array m, limbs_array v)
 {
     return !big_integer_array_isBiggerThan(m, v);
 }
 
-int big_integer_array_isBiggerThan(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int v[NUM_BIG_INTEGER_ARRAY_LIMBS])
+int big_integer_array_isBiggerThan(limbs_array m, limbs_array v)
 {
     // if there is any 1 in a bigger size v before the range of this
     // then return true
@@ -80,8 +79,13 @@ int big_integer_array_isBiggerThan(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], 
     return false;
 }
 
-int big_integer_array_isOdd(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS])
+int big_integer_array_isOdd(limbs_array m)
 {
     return m[0] & 0x1;
 }
       
+
+int big_integer_array_isNegative(limbs_array v)
+{
+    return v[NUM_BIG_INTEGER_ARRAY_LIMBS-1] & 0x80000000;
+}

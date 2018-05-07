@@ -38,6 +38,7 @@ private:
     void testPerformanceModMult();
     void testPerformanceModPow();
     void testPerformanceFinalModPow();
+    void testPerformanceFinalModPowArray();
 
 
 public:

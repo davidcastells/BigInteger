@@ -28,7 +28,7 @@ const char* big_integer_base_toHexString(unsigned int* data, const unsigned int 
     
     assert(size <= sSize);
 
-    int c = 0;
+    unsigned int c = 0;
     for (int i=0; i < size; i++)
     {
         char buf[10];
@@ -36,7 +36,7 @@ const char* big_integer_base_toHexString(unsigned int* data, const unsigned int 
         //s = s + std::string(buf);
         
         strcpy(&s[c], buf);
-        c += strlen(buf);
+        c += (unsigned int) strlen(buf);
     }
 
     return s;

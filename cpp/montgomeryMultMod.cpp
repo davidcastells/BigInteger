@@ -292,6 +292,8 @@ void BigInteger::multMontgomeryForm3(BigInteger* r, BigInteger* x, BigInteger* y
 
     if (verbosity > VERBOSITY_LEVEL_MULT_MONTGOMERY)
     {
+        cout << "BigInteger::multMontgomeryForm3 x:" << x->toHexString() << endl;
+        cout << "BigInteger::multMontgomeryForm3 y:" << y->toHexString() << endl;
         cout << "BigInteger::multMontgomeryForm3 t:" << t.toHexString() << endl;
         cout << "BigInteger::multMontgomeryForm3 m:" << m->toHexString() << endl;
         cout << "BigInteger::multMontgomeryForm3 mprime:" << mprime->toHexString() << endl;

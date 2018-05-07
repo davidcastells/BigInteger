@@ -15,25 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../big_integer.h"
+#include "../big_integer_apint.h"
 
-#include <stdio.h>
-#include <string.h>
+#include <assert.h>
 
-const char* big_integer_toHexString(big_integer* x)
+ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_radixFromMontgomeryModBase2(ap_uint<NUM_BIG_INTEGER_APINT_BITS> m)
 {
-    static char s[200];
+    int mLen = big_integer_apint_getLength(m);
 
-    unsigned int c = 0;
-    for (int i=0; i < x->m_size; i++)
-    {
-        char buf[10];
-        sprintf(buf, "%08X ", x->m_data[i]);
-        //s = s + std::string(buf);
-        
-        strcpy(&s[c], buf);
-        c += (unsigned int) strlen(buf);
-    }
+    if (big_integer_apint_extraChecks)
+        assert(NUM_BIG_INTEGER_APINT_BITS > mLen);
+    
 
-    return s;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> radix = 1;
+    
+    radix <<= mLen;
+
+    return radix;      
 }

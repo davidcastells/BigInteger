@@ -19,6 +19,7 @@
 #include "BigInteger.h"
 #include "big_integer_base.h"
 #include "big_integer_array.h"
+#include "big_integer_apint.h"
 #include "big_integer.h"
 #include "assertf.h"
 
@@ -609,10 +610,33 @@ void CorrectnessTest::checkPowerModC(const char* msg, const char* sa, const char
     big_integer_array_init(e3, e_data, e_size);
     big_integer_array_init(m3, m_data, m_size);
     
+    big_integer_array_powerModMontgomery(r3, a3, e3, m3);
+    
+    cout << msg << " (mont array) " ;
+    checkResultMatchsExpectedCBase(r3, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp_data, exp_base, exp_size);
+
+    big_integer_array_init(a3, a_data, a_size);
+    big_integer_array_init(e3, e_data, e_size);
+    big_integer_array_init(m3, m_data, m_size);
+    
     big_integer_array_powerModMontgomeryBase2_noradix(r3, a3, e3, m3);
     
     cout << msg << " (mont array base2) " ;
     checkResultMatchsExpectedCBase(r3, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp_data, exp_base, exp_size);
+    
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apa;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> ape;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apm;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apr;
+    
+    big_integer_base_copy(apa.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, a_data, 0, a_size);
+    big_integer_base_copy(ape.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, e_data, 0, e_size);
+    big_integer_base_copy(apm.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, m_data, 0, m_size);
+
+    apr = big_integer_apint_powerModMontgomeryBase2_noradix(apa, ape, apm);
+    
+    cout << msg << " (mont apint base2) " ;
+    checkResultMatchsExpectedCBase(apr.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, exp_data, exp_base, exp_size);
     
 }
 
@@ -1533,6 +1557,20 @@ void CorrectnessTest::checkAdd(const char* msg, const char* sa, const char* sb, 
     
     cout << msg << "(array) ";
     checkResultMatchsExpectedCBase(ar, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp.m_data, 0, exp.m_size);
+    
+    /// 
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apa;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apb;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apr;
+    
+    big_integer_base_copy(apa.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, a.m_data, 0, a.m_size);
+    big_integer_base_copy(apb.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, b.m_data, 0, b.m_size);
+    
+    apr = apa + apb;
+    
+    cout << msg << "(apint) ";
+    checkResultMatchsExpectedCBase(apr.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, exp.m_data, 0, exp.m_size);
+    
 }
 
 void CorrectnessTest::checkMult(const char* msg, const char* sa, const char* sb, const char* sexp)
@@ -1665,6 +1703,7 @@ void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const
     
     
     cout << msg << " (own)";
+//    verbosity = 5;
     BigInteger::montgomeryMult(&r, &x, &y, &m, &radix, mprime.m_data[0]);
     checkResultMatchsExpected(&r, &exp);
     
@@ -1686,7 +1725,7 @@ void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const
     BigInteger::multMontgomeryForm3(&r, &x, &y, &m, &mprime);
     checkResultMatchsExpected(&r, &exp);
     
-//    base_verbosity = 4;
+//    base_verbosity = 5;
     big_integer_base_multMontgomeryForm3(r.m_data, 0, r.m_size,
             x.m_data, 0, x.m_size, 
             y.m_data, 0, y.m_size,
@@ -1696,6 +1735,21 @@ void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const
     checkResultMatchsExpectedCBase(r.m_data, 0, r.m_size, exp.m_data, 0, exp.m_size);
 
     
+    limbs_array lx;
+    limbs_array ly;
+    limbs_array lm;
+    limbs_array lmprime;
+    limbs_array lr;
+    big_integer_array_init(lx, x.m_data, x.m_size);
+    big_integer_array_init(ly, y.m_data, y.m_size);
+    big_integer_array_init(lm, m.m_data, m.m_size);
+    big_integer_array_init(lmprime, mprime.m_data, mprime.m_size);
+    
+//    big_integer_array_verbosity = 5;
+    big_integer_array_multMontgomeryForm3(lr, lx, ly, lm, lmprime);
+    
+    cout << msg << " (array v3) ";
+    checkResultMatchsExpectedCBase(lr, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp.m_data, 0, exp.m_size);
 }
 
 void CorrectnessTest::checkMontgomeryReduction(const char* msg, const char* sx,
@@ -1740,6 +1794,7 @@ void CorrectnessTest::testMontgomeryMult()
     checkMontgomeryMult("Montgomery Mult (12)", "10D48FD2090994548ADE1F35ECE7B10D", "130D53B78DC4DD61D5083F6A189DC74B", "100000000000000000000000000000000", "136944F567F4258D3ED452B297952DEB", "17D298F192A6366B5E1CB63D81F56D3D","466230212C34EE9A6B265ED39DAEBB8");
     
     checkMontgomeryMultBase2("Montgomery Mult Base 2 (1)", "7", "3", "11", "F");
+    checkMontgomeryMultBase2("Montgomery Mult Base 2 (2)", "9099454", "B0D3A7B",  "67F4258D", "3140844B");
 //    checkMontgomeryMultBase2("Montgomery Mult (3)", "79", "13", "100000000", "8D", "32D63DBB", "4C");
 //    checkMontgomeryMultBase2("Montgomery Mult (4)", "454", "361", "100000000", "8D", "32D63DBB", "4C");
 //    checkMontgomeryMultBase2("Montgomery Mult (5)", "109099454", "18DC4DD60", "10000000000000000", "167F4258D", "8E153CB16F895ABB", "194AE914");
@@ -2070,7 +2125,7 @@ void CorrectnessTest::checkSquareMod(const char* msg, const char* sa, const char
     BigInteger r;
     BigInteger exp;
     
-    a.initSize((strlen(sa)+7/8)+1);
+    a.initSize((unsigned int) (strlen(sa)+7/8)+1);
     a.parseHexString(sa);
     m.initFromHexString(sm);
     exp.initFromHexString(sexp);

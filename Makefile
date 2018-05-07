@@ -22,14 +22,14 @@ all: $(TARGET_CYG)
 	
 perf: $(TARGET_CYG) $(TARGET_MINGW) $(TARGET_ZZ_CYG) # $(TARGET_VC) #$(TARGET_ZZ_MINGW)
 	
-SOURCES_CPP= main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp cpp/*.cpp c/*.cpp c_array/*.cpp c_base/*.cpp	
-SOURCES_C= big_integer.cpp big_integer_base.cpp big_integer_array.cpp
+SOURCES_CPP= main.cpp BigInteger.cpp CorrectnessTest.cpp PerformanceLap.cpp PerformanceTest.cpp cpp/*.cpp c/*.cpp c_array/*.cpp c_base/*.cpp c_apint/*.cpp	
+SOURCES_C= big_integer.cpp big_integer_base.cpp big_integer_array.cpp big_integer_apint.cpp
 
 clean:
 	rm -fr *.exe
 
 $(TARGET_CYG): $(SOURCES_CPP) $(SOURCES_C)
-	g++ -static -g -O0 $(SOURCES_CPP) $(SOURCES_C) -o $(TARGET_CYG)
+	g++ -static -g -O0 -Wconversion $(SOURCES_CPP) $(SOURCES_C) -o $(TARGET_CYG)
 	
 $(TARGET_MINGW): $(SOURCES_CPP) 
 	$(CPP_MINGW) -static -g -O3 -m64 $(SOURCES_CPP) $(SOURCES_C) -o $(TARGET_MINGW)

@@ -49,11 +49,11 @@ void big_integer_array_powerModMontgomeryBase2_noradix(unsigned int r[NUM_BIG_IN
  * @param mprime
  * @param radix
  */
-void big_integer_array_powerModMontgomeryBase2(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
-        unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS],
-        unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS],
-        unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], 
-        unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS])
+void big_integer_array_powerModMontgomeryBase2(limbs_array r,
+        limbs_array x,
+        limbs_array e,
+        limbs_array m, 
+        limbs_array radix)
 {
     if (big_integer_array_extraChecks)
     {
@@ -104,6 +104,15 @@ void big_integer_array_powerModMontgomeryBase2(unsigned int r[NUM_BIG_INTEGER_AR
     if (big_integer_array_verbosity > VERBOSITY_LEVEL_POWER_MOD)
         std::cout << "BigInteger::powerModMontgomery a: " << big_integer_array_toHexString(a) << std::endl;
     
+    big_integer_array_powerModMontgomeryBase2_xprime(r, a, e, m, xprime);
+}
+
+void big_integer_array_powerModMontgomeryBase2_xprime(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
+        unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS],
+        unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS],
+        unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], 
+        unsigned int xprime[NUM_BIG_INTEGER_ARRAY_LIMBS])
+{
     int t = big_integer_array_getLength(e);
 
     unsigned int temp[NUM_BIG_INTEGER_ARRAY_LIMBS];
@@ -140,6 +149,109 @@ void big_integer_array_powerModMontgomeryBase2(unsigned int r[NUM_BIG_INTEGER_AR
 
     //multMontgomeryForm3(r, &a, &one, m, mprime);
     big_integer_array_montgomeryMultBase2(r, a, one, m);
+    
+    if (big_integer_array_verbosity > VERBOSITY_LEVEL_POWER_MOD)
+    {
+        std::cout << "r = a * 1 * R^-1 mod m =  " << big_integer_array_toHexString(r) << std::endl;
+    }
+}
+
+void big_integer_array_powerModMontgomery(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
+        unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS],
+        unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS],
+        unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS])
+{
+    unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    unsigned int mprime[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    
+    big_integer_array_radixFromMontgomeryMod(radix, m);        
+    big_integer_array_mprimeFromMontgomeryRadix(mprime, m, radix);
+    
+    big_integer_array_powerModMontgomery_mprime(r, x, e, m, mprime, radix);
+}
+
+void big_integer_array_powerModMontgomery_mprime(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], 
+        unsigned int x[NUM_BIG_INTEGER_ARRAY_LIMBS], 
+        unsigned int e[NUM_BIG_INTEGER_ARRAY_LIMBS], 
+        unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS], 
+        unsigned int mprime[NUM_BIG_INTEGER_ARRAY_LIMBS], 
+        unsigned int radix[NUM_BIG_INTEGER_ARRAY_LIMBS])
+{
+    if (big_integer_array_extraChecks)
+    {
+        assert(!big_integer_array_isZero(m));
+        assert(!big_integer_array_isZero(mprime));
+        assert(r != x);
+        assert(r != e);
+        assert(r != m);
+        assert(r != mprime);
+        assert(r != radix);
+    }
+
+    unsigned int radix2[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    big_integer_array_squareMod(radix2, radix, m);
+
+    if (big_integer_array_verbosity > VERBOSITY_LEVEL_POWER_MOD)
+    {
+        std::cout << "BigInteger::powerModMontgomery x: " << big_integer_array_toHexString(x) << std::endl;
+        std::cout << "BigInteger::powerModMontgomery e: " << big_integer_array_toHexString(e) << std::endl;
+        std::cout << "BigInteger::powerModMontgomery radix: " << big_integer_array_toHexString(radix) << std::endl;
+        std::cout << "BigInteger::powerModMontgomery m: " << big_integer_array_toHexString(m) << std::endl;
+        std::cout << "BigInteger::powerModMontgomery m': " << big_integer_array_toHexString(mprime) << std::endl;
+        std::cout << "BigInteger::powerModMontgomery radix ^2 mod m: " << big_integer_array_toHexString(radix2) << std::endl;
+    }
+
+    unsigned int xprime[NUM_BIG_INTEGER_ARRAY_LIMBS];
+
+    // make sure x < m
+    big_integer_array_mod_short(x, m);
+
+    // we compute xprime = x * (radix^2 mod m) * radix ^-1 mod m 
+    big_integer_array_multMontgomeryForm3(xprime, x, radix2, m, mprime);
+
+    if (big_integer_array_verbosity > VERBOSITY_LEVEL_POWER_MOD)
+        std::cout << "BigInteger::powerModMontgomery xprime: " << big_integer_array_toHexString(xprime) << std::endl;
+
+//            BigInteger a(*radix);
+//            a.mod(m);
+//            a.reduceWorkingSize(m->m_size);
+
+    unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    big_integer_array_mod_naive( radix, m, a);
+
+    int t = big_integer_array_getLength(e);
+
+    unsigned int temp[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    big_integer_array_copy(temp, a);
+
+    for (int i=t-1; i >= 0; i--)
+    {
+        int ei = big_integer_array_getBit(e, i);
+
+        big_integer_array_copy(temp, a);
+        big_integer_array_multMontgomeryForm3(a, temp, temp, m, mprime);
+
+        if (big_integer_array_verbosity > VERBOSITY_LEVEL_POWER_MOD)
+        {
+            std::cout << "a = a^2 * R^-1 mod m =  " << big_integer_array_toHexString(a) << std::endl;
+        }
+        
+        if (ei)
+        {
+            big_integer_array_copy(temp, a);
+            big_integer_array_multMontgomeryForm3(a, temp, xprime, m, mprime);
+            
+            if (big_integer_array_verbosity > VERBOSITY_LEVEL_POWER_MOD)
+            {
+                std::cout << "a = x' * a * R^-1 mod m =  " << big_integer_array_toHexString(a) << std::endl;
+            }
+        }   
+    }
+
+    unsigned int one[NUM_BIG_INTEGER_ARRAY_LIMBS];
+    big_integer_array_setIntValue(one, 1);
+
+    big_integer_array_multMontgomeryForm3(r, a, one, m, mprime);
     
     if (big_integer_array_verbosity > VERBOSITY_LEVEL_POWER_MOD)
     {

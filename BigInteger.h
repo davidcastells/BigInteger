@@ -22,9 +22,8 @@
 #include <errno.h>
 #include <string.h>
 
-#include <string>
-#include <sstream> 
-#include <iostream>
+
+#include "to_string.h"
 
 //class BigNumBase;
 
@@ -50,8 +49,8 @@ public:
     virtual ~BigInteger();
     
 public:
-    void initSize(int s);
-    void reduceWorkingSize(int s);
+    void initSize(unsigned int s);
+    void reduceWorkingSize(unsigned int s);
     int getLength();
     int getLimbLength();
     int getNumBits();
@@ -177,32 +176,6 @@ public:
     unsigned int* m_data;
     unsigned int m_size;
 };
-
-template <typename T>
-std::string to_string(T value)
-{
-  //create an output string stream
-  std::ostringstream os ;
-
-  //throw the value into the string stream
-  os << value ;
-
-  //convert the string stream into a string and return
-  return os.str() ;
-}
-
-template <typename T>
-std::string to_hex_string(T value)
-{
-  //create an output string stream
-  std::ostringstream os ;
-
-  //throw the value into the string stream
-  os << std::hex << value ;
-
-  //convert the string stream into a string and return
-  return os.str() ;
-}
 
 #endif	/* BIGINTEGER_H */
 

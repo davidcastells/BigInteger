@@ -14,16 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "../BigInteger.h"
+#include "../big_integer_array.h"
 
 #include <assert.h>
-#include <stdlib.h>
-#include <time.h>
 
-/**
- * Sets the integer to a random value (using all the limbs)
- */
-void BigInteger::random()
+void big_integer_array_random(limbs_array v)
 {
     unsigned int lc = (unsigned int) clock();
     while (lc == (unsigned int) clock());
@@ -31,20 +26,20 @@ void BigInteger::random()
     srand((unsigned int) clock());
 
     
-    for (int i=0; i < m_size; i++)
+    for (int i=0; i < NUM_BIG_INTEGER_ARRAY_LIMBS; i++)
     {
-        m_data[i] = rand();
+        v[i] = rand();
         
         // Mingw random seems to return 16 bit numbers
         #ifdef __MINGW32__
-            m_data[i] <<= 16;
-            m_data[i] |= rand();
+            v[i] <<= 16;
+            v[i] |= rand();
         #endif
 
         // Windows random seems to return 16 bit numbers also
         #ifdef WIN32
-            m_data[i] <<= 16;
-            m_data[i] |= rand();
+            v[i] <<= 16;
+            v[i] |= rand();
         #endif
     }
 }
@@ -53,11 +48,11 @@ void BigInteger::random()
 /**
  * Creates a random number having n bits
  */
-void BigInteger::random(int n)
+void big_integer_array_random_bits(limbs_array v, int n)
 {
-    assert(n < getNumBits());
+    assert(n < big_integer_array_getNumBits(v));
     
-    random();
-    int shift = getNumBits() - n;
-    shiftRight(shift);    
+    big_integer_array_random(v);
+    int shift = big_integer_array_getNumBits(v) - n;
+    big_integer_array_shiftRight_short(v, shift);    
 }

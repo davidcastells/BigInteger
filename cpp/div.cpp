@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <iostream>
 
+
 void BigInteger::div(BigInteger* m)
 {
     BigInteger ref(*this);

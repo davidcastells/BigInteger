@@ -15,25 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../big_integer.h"
+#include "../big_integer_apint.h"
 
-#include <stdio.h>
-#include <string.h>
 
-const char* big_integer_toHexString(big_integer* x)
+ap_uint<NUM_BIG_INTEGER_APINT_BITS>  big_integer_apint_mod(ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_x, ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_y)
 {
-    static char s[200];
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS*2> x2 = ap_x;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS*2> y2 = ap_y;
+    
+    y2 <<=  NUM_BIG_INTEGER_APINT_BITS;
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS*2> r2 = 0;
 
-    unsigned int c = 0;
-    for (int i=0; i < x->m_size; i++)
     {
-        char buf[10];
-        sprintf(buf, "%08X ", x->m_data[i]);
-        //s = s + std::string(buf);
+        // get the length of y
+        r2 = x2;
         
-        strcpy(&s[c], buf);
-        c += (unsigned int) strlen(buf);
-    }
-
-    return s;
+        for (int i=0; i < NUM_BIG_INTEGER_APINT_BITS; i++)
+        {
+            r2 <<= 1;
+            
+            if (r2 >= y2)
+                r2 -= y2;            
+        }
+        
+        ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_r;
+        
+        ap_r = (r2 >> NUM_BIG_INTEGER_APINT_BITS);
+        return ap_r;
+    }    
 }

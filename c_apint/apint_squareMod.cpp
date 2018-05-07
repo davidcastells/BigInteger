@@ -14,26 +14,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "../big_integer_apint.h"
+#include "../assertf.h"
 
-#include "../big_integer.h"
-
-#include <stdio.h>
-#include <string.h>
-
-const char* big_integer_toHexString(big_integer* x)
+ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_squareMod(ap_uint<NUM_BIG_INTEGER_APINT_BITS> v, 
+        ap_uint<NUM_BIG_INTEGER_APINT_BITS> m)
 {
-    static char s[200];
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> vmod = big_integer_apint_mod(v, m);
+    
+    //big_integer_array_multMod(r, v, v, m);
+    return big_integer_apint_squareMod_interleaved(vmod, m);
+    
+}
 
-    unsigned int c = 0;
-    for (int i=0; i < x->m_size; i++)
-    {
-        char buf[10];
-        sprintf(buf, "%08X ", x->m_data[i]);
-        //s = s + std::string(buf);
-        
-        strcpy(&s[c], buf);
-        c += (unsigned int) strlen(buf);
-    }
-
-    return s;
+ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_squareMod_interleaved(ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_v,
+	ap_uint<NUM_BIG_INTEGER_APINT_BITS> ap_m)
+{
+    return big_integer_apint_multMod_interleaved(ap_v, ap_v, ap_m);
 }

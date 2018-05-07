@@ -28,7 +28,7 @@
 void BigInteger::parseString(const char* str)
 {
     // multiply by x*10 is x*(8+2) -> 8*x + 2*x
-    int l = strlen(str);
+    int l = (int) strlen(str);
 
     zero();
 
@@ -60,7 +60,7 @@ void BigInteger::parseString(const char* str)
 void BigInteger::parseHexString(const char* str)
 {
     // multiply by x*10 is x*(8+2) -> 8*x + 2*x
-    int l = strlen(str);
+    int l = (int) strlen(str);
 
     zero();
 
