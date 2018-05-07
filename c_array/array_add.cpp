@@ -43,9 +43,7 @@ void big_integer_array_inc(unsigned int m[NUM_BIG_INTEGER_ARRAY_LIMBS])
     }
 }
 
-void big_integer_array_add(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
-	unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS], 
-	unsigned int b[NUM_BIG_INTEGER_ARRAY_LIMBS])
+void big_integer_array_add(limbs_array r, limbs_array a, limbs_array b)
 {
     unsigned int carryIn = 0;
     unsigned int carryOut = 0;
@@ -56,6 +54,28 @@ void big_integer_array_add(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS],
 //    unsigned int minSize = big_integer_base_minVal(big_integer_base_minVal(a_size, b_size), r_size);
         
     for (i=0; i < NUM_BIG_INTEGER_ARRAY_LIMBS; i++)
+    {
+        sum = a[i] + b[i] + carryIn;
+
+        if (sum < a[i]) carryIn = 1;
+        else if (sum < b[i]) carryIn = 1;
+        else carryIn = 0;
+            
+        r[i] = sum;
+    }
+}
+
+void big_integer_array_add_big(limbs_array2 r, limbs_array2 a, limbs_array2 b)
+{
+    unsigned int carryIn = 0;
+    unsigned int carryOut = 0;
+            
+    unsigned int sum;
+    unsigned int i;
+    
+//    unsigned int minSize = big_integer_base_minVal(big_integer_base_minVal(a_size, b_size), r_size);
+        
+    for (i=0; i < (NUM_BIG_INTEGER_ARRAY_LIMBS*2); i++)
     {
         sum = a[i] + b[i] + carryIn;
 
