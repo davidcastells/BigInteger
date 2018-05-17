@@ -22,6 +22,7 @@
 #include "big_integer_apint.h"
 #include "big_integer.h"
 #include "assertf.h"
+#include "big_integer_apint_radix.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -266,6 +267,22 @@ void CorrectnessTest::checkResultMatchsExpected(BigInteger* r, BigInteger* expec
     
 }
 
+void CorrectnessTest::checkResultMatchsExpectedApintRadix(limbs_radix_array r, unsigned int * exp_data, unsigned int exp_size)
+{
+    limbs_radix_array e;
+    big_integer_apint_radix_initfromLimbArray(e, exp_data, exp_size);
+    
+    if (big_integer_apint_radix_isEqual(r, e))
+        cout << "[OK]" << endl;
+    else
+    {
+        cout << "## ERROR ##" << endl;
+        cout << "Expected: " << big_integer_apint_radix_toHexString(e) << endl;
+        cout << "Result:   " << big_integer_apint_radix_toHexString(r) << endl;
+        if (stopAtFirstError)
+            exit(-1);
+    }
+}
 
 void CorrectnessTest::checkResultMatchsExpectedCBase(unsigned int * r_data, unsigned int r_base, unsigned int r_size,
         unsigned int * exp_data, unsigned int exp_base, unsigned int exp_size)
@@ -753,7 +770,9 @@ void CorrectnessTest::testAdd()
     
     checkAdd("Add (1)", "000000000000000000000000", "00000000", "000000000000000000000000");
     checkAdd("Add (2)", "00000000", "000000000000000000000000", "000000000000000000000000");
-    checkAdd("Add (3)", "8768279873802716238987346287098787657656763502221946787", "1231230932483459873495094398734762765654543128761987338", "99994AA1A5C85B6FAABE1C3DA61F7CCEE9DBCCAACA662A9832CDABF");    
+    checkAdd("Add (3)", "30000000200000000", "5000000010000000F", "8000000030000000F");
+    checkAdd("Add (4)", "87682798738027162389873", "12312309324834598734950", "99994AA1A5C85B6FAABE1C3");
+    checkAdd("Add (5)", "8768279873802716238987346287098787657656763502221946787", "1231230932483459873495094398734762765654543128761987338", "99994AA1A5C85B6FAABE1C3DA61F7CCEE9DBCCAACA662A9832CDABF");    
 }
 
 void CorrectnessTest::testAddC()
@@ -1570,6 +1589,19 @@ void CorrectnessTest::checkAdd(const char* msg, const char* sa, const char* sb, 
     
     cout << msg << "(apint) ";
     checkResultMatchsExpectedCBase(apr.m_data, 0, NUM_BIG_INTEGER_APINT_LIMBS, exp.m_data, 0, exp.m_size);
+    
+    
+    limbs_radix_array lra_a;
+    limbs_radix_array lra_b;
+    limbs_radix_array lra_r;
+    
+    big_integer_apint_radix_initfromLimbArray(lra_a, a.m_data, a.m_size);
+    big_integer_apint_radix_initfromLimbArray(lra_b, b.m_data, b.m_size);
+    
+    big_integer_apint_radix_add(lra_r, lra_a, lra_b);
+    
+    cout << msg << "(apint radix) ";
+    checkResultMatchsExpectedApintRadix(lra_r, exp.m_data, exp.m_size);
     
 }
 
