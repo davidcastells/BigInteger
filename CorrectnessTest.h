@@ -19,6 +19,7 @@
 #define	CORRECTNESSTEST_H
 
 #include "BigInteger.h"
+#include "big_integer_apint_radix.h"
 
 class CorrectnessTest {
 public:
@@ -70,6 +71,7 @@ public:
     void checkRandomValidC(unsigned int* a_data, unsigned int a_base, unsigned int a_size, int expBits);
     void checkResultMatchsExpected(int r, int expected);
     void checkResultMatchsExpected(BigInteger* r, BigInteger* expected);
+    void checkResultMatchsExpectedApintRadix(limbs_radix_array r, unsigned int * exp_data, unsigned int exp_size);
     void checkResultMatchsExpectedCBase(unsigned int * r_data, unsigned int r_base, unsigned int r_size, unsigned int * exp_data, unsigned int exp_base, unsigned int exp_size);
     void checkAdd(const char* msg, const char* sa, const char* sb, const char* sexp);
     void checkAddShifted(const char* msg, const char* sa, const char* sb, int shift, const char* sexp);
