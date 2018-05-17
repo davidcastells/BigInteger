@@ -17,6 +17,8 @@
 #include "../big_integer_array.h"
 
 #include <assert.h>
+#include <stdlib.h>
+#include <time.h>
 
 void big_integer_array_random(limbs_array v)
 {
