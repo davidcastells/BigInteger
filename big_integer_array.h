@@ -31,9 +31,6 @@
 
 #include "to_string.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define VERBOSITY_LEVEL_DIV             5
 #define VERBOSITY_LEVEL_GET_LENGTH      6
@@ -113,9 +110,7 @@ void big_integer_array_zeroHighBits(limbs_array r, int fromBit);
 const char* big_integer_array_toHexString(limbs_array data);
 const char* big_integer_array_toHexString_big(limbs_array2 data);
 
-#ifdef __cplusplus
-}
-#endif
+
 
 #endif /* BIG_INTEGER_ARRAY_H */
 
