@@ -25,6 +25,8 @@
 #ifndef TO_STRING_H
 #define TO_STRING_H
 
+#include <stdarg.h>
+
 #include <string>
 #include <sstream> 
 #include <iostream>
@@ -55,6 +57,7 @@ std::string to_hex_string(T value)
   return os.str() ;
 }
 
+std::string format(const char *fmt, ...);
 
 #endif /* TO_STRING_H */
 
