@@ -17,6 +17,8 @@
 
 #include "big_integer_apint.h"
 
+#include <assert.h>
+
 int big_integer_apint_extraChecks = 0;
 int big_integer_apint_verbosity = 0;
 
@@ -57,4 +59,18 @@ void big_integer_apint_range(ap_uint<NUM_BIG_INTEGER_APINT_BITS> *ap_r, ap_uint<
 }
 
 
-   
+ap_uint<NUM_BIG_INTEGER_APINT_BITS> big_integer_apint_initfromLimbArray(unsigned int* m_data, unsigned int limbs)
+{
+    assert(NUM_BIG_INTEGER_APINT_LIMBS >= limbs);
+    
+    ap_uint<NUM_BIG_INTEGER_APINT_BITS> apint = 0;
+    for (int i=0; i < limbs; i++)
+    {
+        unsigned int limb = i/32;
+        unsigned int bitIndex = i %32;
+        ap_uint<2080> bitActive = ((m_data[limb] >> bitIndex) & 0x1);
+        ap_uint<2080> newV = bitActive << i;
+        apint |= newV;
+    }
+    return apint;
+}
