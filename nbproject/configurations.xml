@@ -9,9 +9,11 @@
       <itemPath>./PerformanceLap.h</itemPath>
       <itemPath>./PerformanceTest.h</itemPath>
       <itemPath>./PerformanceTestZZ.h</itemPath>
+      <itemPath>./ap_int.h</itemPath>
       <itemPath>./assertf.h</itemPath>
       <itemPath>./big_integer.h</itemPath>
       <itemPath>./big_integer_apint.h</itemPath>
+      <itemPath>./big_integer_apint_radix.h</itemPath>
       <itemPath>./big_integer_array.h</itemPath>
       <itemPath>./big_integer_base.h</itemPath>
       <itemPath>./to_string.h</itemPath>
@@ -50,6 +52,12 @@
         <itemPath>./c_apint/apint_multMod.cpp</itemPath>
         <itemPath>./c_apint/apint_powerMod.cpp</itemPath>
         <itemPath>./c_apint/apint_squareMod.cpp</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f6" displayName="c_apint_radix" projectFiles="true">
+        <itemPath>./c_apint_radix/apint_radix_add.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_compare.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_mult.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_toString.cpp</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="c_array" projectFiles="true">
         <itemPath>./c_array/array_add.cpp</itemPath>
@@ -118,9 +126,11 @@
       <itemPath>./c_array/array_parse.cpp</itemPath>
       <itemPath>./big_integer.cpp</itemPath>
       <itemPath>./big_integer_apint.cpp</itemPath>
+      <itemPath>./big_integer_apint_radix.cpp</itemPath>
       <itemPath>./big_integer_array.cpp</itemPath>
       <itemPath>./big_integer_base.cpp</itemPath>
       <itemPath>./mainZZ.cpp</itemPath>
+      <itemPath>./to_string.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -252,6 +262,10 @@
       </item>
       <item path="./c_array/array_compare.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="./c_array/array_div.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_array/array_inverseMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="./c_array/array_mod.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_array/array_montgomeryDomain.cpp"
@@ -269,7 +283,13 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="./c_array/array_mult.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="./c_array/array_multMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_array/array_parse.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_array/array_random.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_array/array_shiftLeft.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -367,34 +387,46 @@
       </item>
       <item path="./nbproject/licenseheader.txt" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./c_array/array_div.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="./to_string.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./c_array/array_inverseMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_array/array_mult.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_array/array_parse.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_array/array_random.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./to_string.h"
+      <item path="./ap_int.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="./big_integer_apint_radix.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./big_integer_apint_radix.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_add.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_compare.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_mult.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_toString.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./to_string.cpp"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
     </conf>
@@ -517,6 +549,10 @@
       </item>
       <item path="./c_array/array_compare.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="./c_array/array_div.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_array/array_inverseMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="./c_array/array_mod.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_array/array_montgomeryDomain.cpp"
@@ -534,7 +570,13 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="./c_array/array_mult.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="./c_array/array_multMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_array/array_parse.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_array/array_random.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_array/array_shiftLeft.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -632,31 +674,46 @@
       </item>
       <item path="./nbproject/licenseheader.txt" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./c_array/array_div.cpp" ex="false" tool="1" flavor2="0">
+      <item path="./to_string.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./c_array/array_inverseMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_array/array_mult.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_array/array_parse.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_array/array_random.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./to_string.h"
+      <item path="./ap_int.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="./big_integer_apint_radix.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./big_integer_apint_radix.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_add.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_compare.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_mult.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_toString.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./to_string.cpp"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
     </conf>
