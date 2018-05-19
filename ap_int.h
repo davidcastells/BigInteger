@@ -45,6 +45,12 @@ public:
             m_data[i] = v.m_data[i];
     }
     
+    ap_uint<T>(const ap_uint<2*T>& v)
+    {
+        for (int i=0; i<((T+31)/32); i++)
+            m_data[i] = v.m_data[i];
+    }
+    
     ap_uint<T>(const int v)
     {
         for (int i=0; i<((T+31)/32); i++)
@@ -148,6 +154,15 @@ public:
         ap_uint<T> ret=*this;
         
         big_integer_base_add(ret.m_data, 0, ((T+31)/32), m_data, 0, ((T+31)/32), (unsigned int*)v.m_data, 0, ((T+31)/32));
+        
+        return ret;
+    }
+    
+    ap_uint<T> operator*(const ap_uint<T>& v)
+    {
+        ap_uint<T> ret=*this;
+        
+        big_integer_base_mult(ret.m_data, 0, ((T+31)/32), m_data, 0, ((T+31)/32), (unsigned int*)v.m_data, 0, ((T+31)/32));
         
         return ret;
     }
