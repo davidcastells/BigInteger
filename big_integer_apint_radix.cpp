@@ -20,6 +20,9 @@
 
 #include <assert.h>
 
+int big_integer_apint_radix_extraChecks = 0;
+
+
 void big_integer_apint_radix_zero(limbs_radix_array r)
 {
     for (int i=0; i < NUM_BIG_INTEGER_APINT_RADIX_LIMBS; i++)
@@ -44,7 +47,7 @@ void big_integer_apint_radix_initfromLimbArray(limbs_radix_array r, unsigned int
         
         r[limb] |= newV;
         
-        std::cout << "32bits limb ["<< to_string(i)<< "] = " << to_hex_string(m_data[i]) <<" => Radix Limb ["<< limb <<"] =  " << r[limb].toHexString() << std::endl; 
+//        std::cout << "32bits limb ["<< to_string(i)<< "] = " << to_hex_string(m_data[i]) <<" => Radix Limb ["<< limb <<"] =  " << r[limb].toHexString() << std::endl; 
     }
 
 }
@@ -52,12 +55,42 @@ void big_integer_apint_radix_initfromLimbArray(limbs_radix_array r, unsigned int
 
 int big_integer_apint_radix_getLimbLength(limbs_radix_array m)
 {
+    int i;
     // find the highest limb with an active bit
-    for (int i=NUM_BIG_INTEGER_APINT_RADIX_LIMBS-1; (i > 0); i--)
+    for (i=NUM_BIG_INTEGER_APINT_RADIX_LIMBS-1; (i > 0); i--)
     {
-        if (m[i] > 0)
+        if (m[i] != 0)
             return i+1;
     }
     
     return 1;
+}
+
+int big_integer_apint_radix_getLength(limbs_radix_array m)
+{
+    int len = 0;
+    int greaterActiveLimb = 0;
+
+    // find the highest limb with an active bit
+    for (int i=NUM_BIG_INTEGER_APINT_RADIX_LIMBS-1; (i > 0) && (greaterActiveLimb == 0); i--)
+    {
+        if (m[i] > 0)
+            greaterActiveLimb = i;
+    }
+
+
+    // find the highest bit 
+    ap_uint<NUM_BIG_INTEGER_APINT_RADIX> test = m[greaterActiveLimb];
+    int numActiveBits = 0;
+
+
+    while (test > 0)
+    {
+        test = test >> 1;
+        numActiveBits++;
+    }
+
+    len = (numActiveBits + greaterActiveLimb * 32);
+
+    return len;
 }
