@@ -81,3 +81,6 @@ there is no support for variable length numbers.
 
 * c_apint: A C implementation using the ap_uint template type (unsigned version of ap_int). This type is used by several HLS tools to describe arbitrary length integer
 numbers. 
+
+* c_apint_radix: A C implementation using arrays with [usually] a higher radix. The cpp/c/c_base/c_array versions uses arrays of limbs of 32 bits. On the other hand c_apint version 
+uses all the final bitwidth in intermediate operations. On the other hand this version uses arrays of a radix (either 64, 128, etc.)
