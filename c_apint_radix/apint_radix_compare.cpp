@@ -33,3 +33,43 @@ int big_integer_apint_radix_isNegative(limbs_radix_array v)
     ap_uint<NUM_BIG_INTEGER_APINT_RADIX> negBit = (one << (NUM_BIG_INTEGER_APINT_RADIX-1));
     return (v[NUM_BIG_INTEGER_APINT_RADIX_LIMBS-1] & negBit)? 1 : 0;
 }
+
+int big_integer_apint_radix_isLessThan(limbs_radix_array m, limbs_radix_array v)
+{
+    for (int i=NUM_BIG_INTEGER_APINT_RADIX_LIMBS-1; i >= 0; i--)
+        if (m[i] < v[i])
+            return true;
+        else if (m[i] > v[i])
+            return false;
+
+    return false;
+}
+
+int big_integer_apint_radix_isLessThanEqual(limbs_radix_array m, limbs_radix_array v)
+{
+    return !big_integer_apint_radix_isBiggerThan(m, v);
+}
+
+int big_integer_apint_radix_isBiggerThan(limbs_radix_array m, limbs_radix_array v)
+{
+    for (int i=NUM_BIG_INTEGER_APINT_RADIX_LIMBS-1; i >= 0; i--)
+        if (m[i] > v[i])
+            return true;
+        else if (m[i] < v[i])
+            return false;
+
+    return false;
+}
+
+
+
+int big_integer_apint_radix_isZero(limbs_radix_array data)
+{
+    for (int i=0; i<NUM_BIG_INTEGER_APINT_RADIX_LIMBS; i++)
+    {
+        if (data[i] != 0)
+            return 0;   // exit if it is not zero
+    }
+
+    return 1;
+}
