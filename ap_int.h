@@ -220,8 +220,7 @@ public:
         
         int isNeg = diff.m_data[((T+31)/32)-1] & 0x80000000;
         
-        if (isNegV && isNegThis)
-            return isNeg;
+        
         if (!isNegThis && isNegV)
             // this is smaller
             return 1;
@@ -235,8 +234,18 @@ public:
     int operator>(ap_uint<T>& v)
     {
         ap_uint<T> diff = v - *this;
+
+        int isNegThis = m_data[((T+31)/32)-1] & 0x80000000;
+        int isNegV = v.m_data[((T+31)/32)-1] & 0x80000000;
         
         int isNeg = diff.m_data[((T+31)/32)-1] & 0x80000000;
+        
+        if (isNegThis && !isNegV)
+            // this is greater
+            return 1;
+        if (!isNegThis && isNegV)
+            // v is greater
+            return 0;
         
         return isNeg;
     }
@@ -248,6 +257,11 @@ public:
                 return 0;
         
         return 1;
+    }
+    
+    int operator!=(ap_uint<T>& v)
+    {
+        return !((*this)==v);
     }
     
     
