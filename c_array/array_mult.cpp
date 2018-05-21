@@ -19,6 +19,9 @@
 
 #include "../assertf.h"
 
+#include <stdint.h>
+
+
 void big_integer_array_mult_hi_lo(unsigned int x, unsigned int y, unsigned int *rHight, unsigned int *rLow)
 {
     unsigned long long res = (unsigned long long) x * (unsigned long long) y;
