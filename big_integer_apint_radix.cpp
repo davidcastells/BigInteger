@@ -20,7 +20,9 @@
 
 #include <assert.h>
 
-int big_integer_apint_radix_extraChecks = 0;
+int big_integer_apint_radix_extraChecks = 1;
+int big_integer_apint_radix_verbosity = 0;
+
 
 
 void big_integer_apint_radix_zero(limbs_radix_array r)
@@ -29,6 +31,11 @@ void big_integer_apint_radix_zero(limbs_radix_array r)
         r[i] = 0;
 }
 
+void big_integer_apint_radix_zero_big(limbs_radix_array2 r)
+{
+    for (int i=0; i < 2*NUM_BIG_INTEGER_APINT_RADIX_LIMBS; i++)
+        r[i] = 0;
+}
 
 
 void big_integer_apint_radix_initfromLimbArray(limbs_radix_array r, unsigned int* m_data, unsigned int limbs)
@@ -66,6 +73,40 @@ int big_integer_apint_radix_getLimbLength(limbs_radix_array m)
     return 1;
 }
 
+int big_integer_apint_radix_getLimbLength_big(limbs_radix_array2 m)
+{
+    int i;
+    // find the highest limb with an active bit
+    for (i=(2*NUM_BIG_INTEGER_APINT_RADIX_LIMBS)-1; (i > 0); i--)
+    {
+        if (m[i] != 0)
+            return i+1;
+    }
+    
+    return 1;
+}
+
+int big_integer_apint_radix_getNumBits(limbs_radix_array m)
+{
+    unsigned int ret = NUM_BIG_INTEGER_APINT_RADIX_BITS;
+    return ret;
+}
+
+int big_integer_apint_radix_getBit(limbs_radix_array m, int bitnum)
+{
+   int limbIndex = bitnum / NUM_BIG_INTEGER_APINT_RADIX;
+   int bitIndex = bitnum % NUM_BIG_INTEGER_APINT_RADIX;
+
+   return (m[limbIndex] >> bitIndex) & 1;
+}
+
+void big_integer_apint_radix_copy(limbs_radix_array m, limbs_radix_array orig)
+{
+    for (int i=0; i < NUM_BIG_INTEGER_APINT_RADIX_LIMBS; i++)
+        m[i] = orig[i];    
+}
+
+
 int big_integer_apint_radix_getLength(limbs_radix_array m)
 {
     int len = 0;
@@ -74,23 +115,31 @@ int big_integer_apint_radix_getLength(limbs_radix_array m)
     // find the highest limb with an active bit
     for (int i=NUM_BIG_INTEGER_APINT_RADIX_LIMBS-1; (i > 0) && (greaterActiveLimb == 0); i--)
     {
-        if (m[i] > 0)
+        if (m[i] != 0)
             greaterActiveLimb = i;
     }
 
 
     // find the highest bit 
     ap_uint<NUM_BIG_INTEGER_APINT_RADIX> test = m[greaterActiveLimb];
+    ap_uint<NUM_BIG_INTEGER_APINT_RADIX> zero = 0;
     int numActiveBits = 0;
 
 
-    while (test > 0)
+    while (test != zero)
     {
         test = test >> 1;
         numActiveBits++;
     }
 
-    len = (numActiveBits + greaterActiveLimb * 32);
+    len = (numActiveBits + greaterActiveLimb * NUM_BIG_INTEGER_APINT_RADIX);
 
     return len;
+}
+
+void big_integer_apint_radix_setIntValue(limbs_radix_array data, unsigned int v)
+{
+    big_integer_apint_radix_zero(data);
+    
+    data[0] = v;    
 }
