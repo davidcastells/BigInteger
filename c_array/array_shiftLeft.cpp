@@ -29,7 +29,7 @@ void big_integer_array_shiftLeft_short(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMB
  * @param a
  * @param sv
  */
-void big_integer_array_shiftLeft(unsigned int r[NUM_BIG_INTEGER_ARRAY_LIMBS], unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS], int sv)
+void big_integer_array_shiftLeft(limbs_array r, limbs_array a, int sv)
 {
     int limbsShifted = sv / 32;
     int limbBitsShifted = sv % 32;
