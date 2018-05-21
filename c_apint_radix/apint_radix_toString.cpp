@@ -52,3 +52,39 @@ const char* big_integer_apint_radix_toHexString(limbs_radix_array data)
 
     return s;
 }
+
+const char* big_integer_apint_radix_toHexString_big(limbs_radix_array2 data)
+{
+    static const int sSize = NUM_BIG_INTEGER_APINT_RADIX_LIMBS * 2;
+    static const int n32Limbs = sSize * (NUM_BIG_INTEGER_APINT_RADIX*2/32);
+    
+    static char s[9*(n32Limbs+1)];
+    
+    int limbs = big_integer_apint_radix_getLimbLength(data);
+
+    ap_uint<NUM_BIG_INTEGER_APINT_RADIX> lmask = 0xFFFFFFFF;    // 32 bits mask
+    
+    
+    int c = 0;
+    for (int i=0; i < limbs; i++)
+    {
+        ap_uint<NUM_BIG_INTEGER_APINT_RADIX> ldata = data[i];
+        
+        
+        for (int k=0; k < NUM_BIG_INTEGER_APINT_RADIX/32; k++)
+        {
+            char buf[10];
+            ap_uint<NUM_BIG_INTEGER_APINT_RADIX> temp = ldata & lmask;
+            
+            sprintf(buf, "%s", temp.toHexString());
+        //s = s + std::string(buf);
+        
+            strcpy(&s[c], buf);
+            c += (unsigned int) strlen(buf);
+            
+            ldata >>= 32;
+        }
+    }
+
+    return s;
+}
