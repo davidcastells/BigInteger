@@ -19,9 +19,7 @@
 #include <assert.h>
 #include <iostream>
 
-void big_integer_array_inverseMod(unsigned int ret[NUM_BIG_INTEGER_ARRAY_LIMBS], 
-        unsigned int a[NUM_BIG_INTEGER_ARRAY_LIMBS], 
-        unsigned int b[NUM_BIG_INTEGER_ARRAY_LIMBS])
+void big_integer_array_inverseMod(limbs_array ret, limbs_array a, limbs_array b)
 {
     if (big_integer_array_extraChecks)
     {
