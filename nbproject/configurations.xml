@@ -17,6 +17,7 @@
       <itemPath>./big_integer_array.h</itemPath>
       <itemPath>./big_integer_base.h</itemPath>
       <itemPath>./to_string.h</itemPath>
+      <itemPath>./verbosity.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -56,7 +57,16 @@
       <logicalFolder name="f6" displayName="c_apint_radix" projectFiles="true">
         <itemPath>./c_apint_radix/apint_radix_add.cpp</itemPath>
         <itemPath>./c_apint_radix/apint_radix_compare.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_div.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_inverseMod.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_montgomeryDomain.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_montgomeryMultMod.cpp</itemPath>
         <itemPath>./c_apint_radix/apint_radix_mult.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_multMod.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_range.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_shiftLeft.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_shiftRight.cpp</itemPath>
+        <itemPath>./c_apint_radix/apint_radix_subtract.cpp</itemPath>
         <itemPath>./c_apint_radix/apint_radix_toString.cpp</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="c_array" projectFiles="true">
@@ -183,6 +193,8 @@
       </item>
       <item path="./PerformanceTestZZ.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="./ap_int.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="./assertf.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="./big_integer.cpp" ex="false" tool="1" flavor2="0">
@@ -192,6 +204,10 @@
       <item path="./big_integer_apint.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./big_integer_apint.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="./big_integer_apint_radix.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./big_integer_apint_radix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="./big_integer_array.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -257,6 +273,26 @@
       <item path="./c_apint/apint_powerMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_apint/apint_squareMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_add.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_compare.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_mult.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_toString.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="./c_array/array_add.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -387,46 +423,58 @@
       </item>
       <item path="./nbproject/licenseheader.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="./to_string.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="./to_string.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./ap_int.h"
+      <item path="./c_apint_radix/apint_radix_div.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_inverseMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_montgomeryDomain.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_montgomeryMultMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_multMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_range.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_shiftLeft.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_shiftRight.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_subtract.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./verbosity.h"
             ex="false"
             tool="3"
-            flavor2="0">
-      </item>
-      <item path="./big_integer_apint_radix.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./big_integer_apint_radix.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_add.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_compare.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_mult.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_toString.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./to_string.cpp"
-            ex="false"
-            tool="1"
             flavor2="0">
       </item>
     </conf>
@@ -470,6 +518,8 @@
       </item>
       <item path="./PerformanceTestZZ.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="./ap_int.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="./assertf.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="./big_integer.cpp" ex="false" tool="1" flavor2="0">
@@ -479,6 +529,10 @@
       <item path="./big_integer_apint.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./big_integer_apint.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="./big_integer_apint_radix.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./big_integer_apint_radix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="./big_integer_array.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -544,6 +598,26 @@
       <item path="./c_apint/apint_powerMod.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="./c_apint/apint_squareMod.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_add.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_compare.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_mult.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_toString.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="./c_array/array_add.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -674,46 +748,58 @@
       </item>
       <item path="./nbproject/licenseheader.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="./to_string.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="./to_string.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./ap_int.h"
+      <item path="./c_apint_radix/apint_radix_div.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_inverseMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_montgomeryDomain.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_montgomeryMultMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_multMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_range.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_shiftLeft.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_shiftRight.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_subtract.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./verbosity.h"
             ex="false"
             tool="3"
-            flavor2="0">
-      </item>
-      <item path="./big_integer_apint_radix.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./big_integer_apint_radix.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_add.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_compare.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_mult.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_toString.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./to_string.cpp"
-            ex="false"
-            tool="1"
             flavor2="0">
       </item>
     </conf>
