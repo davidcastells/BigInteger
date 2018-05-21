@@ -197,6 +197,8 @@ void CorrectnessTest::run()
     testIsBiggerThan();
     testIsLessThan();
     testIsLessThanC();
+    testIsLessThanEqual();
+    testIsNegative();
     testParseNumbers();
     testParseNumbersC();
     testShiftLeft();
@@ -282,6 +284,11 @@ void CorrectnessTest::checkResultMatchsExpectedApintRadix(limbs_radix_array r, u
         if (stopAtFirstError)
             exit(-1);
     }
+}
+
+void CorrectnessTest::checkResultMatchsExpectedArray(limbs_array r, limbs_array exp)
+{
+    checkResultMatchsExpectedCBase(r, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp, 0, NUM_BIG_INTEGER_ARRAY_LIMBS);
 }
 
 void CorrectnessTest::checkResultMatchsExpectedCBase(unsigned int * r_data, unsigned int r_base, unsigned int r_size,
@@ -421,6 +428,21 @@ void CorrectnessTest::checkMultModC(const char* msg, const char* sa, const char*
     big_integer_array_multMod_interleaved(br, ba, bb, bm);
     
     checkResultMatchsExpectedCBase(br, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp_data, exp_base, exp_size);
+    
+    limbs_radix_array bar_a;
+    limbs_radix_array bar_b;
+    limbs_radix_array bar_m;
+    limbs_radix_array bar_r;
+    
+    big_integer_apint_radix_initfromLimbArray(bar_a, &ba_data[ba_base], ba_size);
+    big_integer_apint_radix_initfromLimbArray(bar_b, &bb_data[ba_base], bb_size);
+    big_integer_apint_radix_initfromLimbArray(bar_m, &bm_data[ba_base], bm_size);
+    
+    big_integer_apint_radix_multMod_interleaved(bar_r, bar_a, bar_b, bar_m);
+
+    cout << msg << " (apint radix) ";    
+    checkResultMatchsExpectedApintRadix(bar_r, &exp_data[exp_base], exp_size);
+
 }
 
 void CorrectnessTest::checkPowerMod(const char* msg, const char* sa, const char* se, const char* sm, const char* ser)
@@ -657,14 +679,14 @@ void CorrectnessTest::checkPowerModC(const char* msg, const char* sa, const char
     
 }
 
-void CorrectnessTest::checkDivision(const char* msg, const char* a, const char* b, const char* eq, const char* er)
+void CorrectnessTest::checkDivision(const char* msg, const char* sa, const char* sb, const char* seq, const char* ser)
 {
     BigInteger ba, bb, beq, ber;
     
-    ba.initFromHexString(a);
-    bb.initFromHexString(b);
-    beq.initFromHexString(eq);
-    ber.initFromHexString(er);
+    ba.initFromHexString(sa);
+    bb.initFromHexString(sb);
+    beq.initFromHexString(seq);
+    ber.initFromHexString(ser);
     
 //    cout << "beq = " << beq.toHexString() << endl;
     
@@ -673,10 +695,45 @@ void CorrectnessTest::checkDivision(const char* msg, const char* a, const char* 
     
     BigInteger::div_naive(&ba, &bb, &bq, &br);
     
-    cout << msg << "(q) ";
+    cout << msg << " q (std) ";
     checkResultMatchsExpected(&bq, &beq);
-    cout << msg << "(r) ";
+    cout << msg << " r (std) ";
     checkResultMatchsExpected(&br, &ber);
+    
+    limbs_array la_a;
+    limbs_array la_b;
+    limbs_array la_q;
+    limbs_array la_r;
+    limbs_array la_eq;
+    limbs_array la_er;
+    
+    big_integer_array_initFromHexString(la_a, sa);
+    big_integer_array_initFromHexString(la_b, sb);
+    big_integer_array_initFromHexString(la_eq, seq);
+    big_integer_array_initFromHexString(la_er, ser);
+    
+    big_integer_array_div_naive(la_a, la_b, la_q, la_r);
+    
+    cout << msg << " q (array) ";
+    checkResultMatchsExpectedArray(la_q, la_eq);
+    cout << msg << " r (array) ";
+    checkResultMatchsExpectedArray(la_r, la_er);
+    
+    
+    limbs_radix_array lar_a;
+    limbs_radix_array lar_b;
+    limbs_radix_array lar_q;
+    limbs_radix_array lar_r;
+    
+    big_integer_apint_radix_initfromLimbArray(lar_a, la_a, NUM_BIG_INTEGER_ARRAY_LIMBS);
+    big_integer_apint_radix_initfromLimbArray(lar_b, la_b, NUM_BIG_INTEGER_ARRAY_LIMBS);
+    
+    big_integer_apint_radix_div_naive(lar_a, lar_b, lar_q, lar_r);
+    
+    cout << msg << " q (apint radix) ";
+    checkResultMatchsExpectedApintRadix(lar_q, la_eq, NUM_BIG_INTEGER_ARRAY_LIMBS);
+    cout << msg << " r (apint radix) ";
+    checkResultMatchsExpectedApintRadix(lar_r, la_er, NUM_BIG_INTEGER_ARRAY_LIMBS);
 }
 
 void CorrectnessTest::checkDivisionC(const char* msg, const char* a, const char* b, const char* eq, const char* er)
@@ -889,6 +946,40 @@ void CorrectnessTest::checkSubtractC(const char* msg, const char* sa, const char
     
     cout << msg << " (short) ";
     checkResultMatchsExpectedCBase(r_data, r_base, r_size, exp_data, exp_base, exp_size);
+    
+    limbs_array la_a;
+    limbs_array la_b;
+    limbs_array la_r;
+
+    cout << msg << " (array) ";
+    big_integer_array_init(la_a, &a_data[a_base], a_size);
+    big_integer_array_init(la_b, &b_data[b_base], b_size);
+
+    big_integer_array_subtract(la_r, la_a, la_b);
+    checkResultMatchsExpectedCBase(la_r, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp_data, exp_base, exp_size);
+    
+    cout << msg << " (array short) ";
+    big_integer_array_copy(la_r, la_a);
+    big_integer_array_subtract_short(la_r, la_b);
+    checkResultMatchsExpectedCBase(la_r, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp_data, exp_base, exp_size);
+    
+    cout << msg << " (apint radix) ";
+    limbs_radix_array lra_a;
+    limbs_radix_array lra_b;
+    limbs_radix_array lra_r;
+    
+    big_integer_apint_radix_initfromLimbArray(lra_a, &a_data[a_base], a_size);
+    big_integer_apint_radix_initfromLimbArray(lra_b, &b_data[b_base], b_size);
+ 
+    big_integer_apint_radix_subtract(lra_r, lra_a, lra_b);
+    checkResultMatchsExpectedApintRadix(lra_r, &exp_data[exp_base], exp_size);
+    
+    cout << msg << " (apint radix short) ";
+    big_integer_apint_radix_copy(lra_r, lra_a);
+    big_integer_apint_radix_subtract_short(lra_r, lra_b);
+    
+    checkResultMatchsExpectedApintRadix(lra_r, &exp_data[exp_base], exp_size);
+
 }
 
 /*
@@ -1156,7 +1247,7 @@ void CorrectnessTest::testModC()
 
 void CorrectnessTest::checkInverseMod(const char* msg, const char* sa, const char* sm, const char* sexp)
 {
-    cout << msg;
+    
     
     BigInteger a;
     a.initFromHexString(sa);
@@ -1168,91 +1259,85 @@ void CorrectnessTest::checkInverseMod(const char* msg, const char* sa, const cha
     exp.initFromHexString(sexp);
     
     BigInteger ainv;
-    ainv.initSize(a.m_size);
+    ainv.initSize(exp.m_size);
     BigInteger::inverseMod(&ainv, &a, &m);
     
+    cout << msg << " (std) ";
     checkResultMatchsExpected(&ainv, &exp);
+    
+    limbs_array la_a;
+    limbs_array la_m;
+    limbs_array la_exp;
+    limbs_array la_r;
+    
+    big_integer_array_initFromHexString(la_a, sa);
+    big_integer_array_initFromHexString(la_m, sm);
+    big_integer_array_initFromHexString(la_exp, sexp);
+    
+    big_integer_array_inverseMod(la_r, la_a, la_m);
+    
+    cout << msg << " (array) ";
+    checkResultMatchsExpectedArray(la_r, la_exp);
+    
+    limbs_radix_array lra_a;
+    limbs_radix_array lra_m;
+    limbs_radix_array lra_r;
+    
+    big_integer_apint_radix_initfromLimbArray(lra_a, la_a, NUM_BIG_INTEGER_ARRAY_LIMBS);
+    big_integer_apint_radix_initfromLimbArray(lra_m, la_m, NUM_BIG_INTEGER_ARRAY_LIMBS);
+    
+    big_integer_apint_radix_inverseMod(lra_r, lra_a, lra_m);
+    
+    cout << msg << " (apint radix) ";
+    checkResultMatchsExpectedApintRadix(lra_r, la_exp, NUM_BIG_INTEGER_ARRAY_LIMBS);
 }
 
 void CorrectnessTest::testInverseMod()
 {
     checkInverseMod("Inverse Mod (1)", "35DA44F3", "42E6AC98", "427217EB");
     checkInverseMod("Inverse Mod (2)", "5463AE9E", "55CE28B1", "31D11B59");
-    //checkInverseMod("Inverse Mod (1)", "264564564564564564565464564611", "54654645645645654654654654645675467");
-        
-    
-    //m.random();
-    
-//    BigInteger v;
-//    v.initSize(2048/32);
-//    v.parseString("54654645645645654654654654645675467");
-//    v.random();
-//    
-//    BigInteger vinv;
-//    vinv.initSize(2048/32);
-//    
-//    BigInteger::extraChecks = false;
-//    BigInteger::inverseMod(&vinv, &v, &m);
-//    BigInteger::extraChecks = true;
-//    
-//    // Ensure vinv * v mod m = 1
-//    BigInteger r;
-//    r.initSize(2048/32);
-//    BigInteger::multMod(&r, &vinv, &v, &m);
-//    
-//    BigInteger one;
-//    one.initSize(2048/32);
-//    one.setIntValue(1);
-//    
-//    if (BigInteger::isEqual(&r, &one))
-//    {
-//        cout << "[OK]" << endl;
-//    }
-//    else
-//    {
-//        cout << "### ERROR ###" << endl; 
-//        cout << " v = " << v.toHexString() << endl;
-//        cout << " vinv = " << vinv.toHexString() << endl;
-//        cout << " r = " << r.toHexString() << endl;
-//    }
-//    
-//    cout << "Invalid inv mod";
-//
-//    v.initFromHexString("3A35825373ADDCE6");
-//    m.initFromHexString("10000000000000000");
-//    r.initFromHexString("0");
-//    //BigInteger::verbosity = 10;
-//    BigInteger::inverseMod(&vinv, &v, &m);
-//    
-//    checkResultMatchsExpected(&vinv, &r);
-
+    checkInverseMod("Inverse Mod (3)", "264564564564564564565464564611", "54654645645645654654654654645675467", "432FE85ECB07F46945F7ACFFADEB7CDD3DA");
+    checkInverseMod("Inverse Mod (4)", "67F4258D", "10000000000000000", "D838C7E79076A545");
 }
 
+void CorrectnessTest::checkGetLength(const char* msg, const char* sa, int exp)
+{
+    BigInteger a;
+    a.initFromHexString(sa);
+    
+    cout << msg << " (std) ";
+    int len = a.getLength();
+    
+    checkResultMatchsExpected(len, exp);
+    
+    limbs_array la;
+    
+    big_integer_array_initFromHexString(la, sa);
+    
+    len = big_integer_array_getLength(la);
+    
+    cout << msg << " (array) ";
+    checkResultMatchsExpected(len, exp);
+    
+    limbs_radix_array lra;
+    
+    big_integer_apint_radix_initfromLimbArray(lra, la, NUM_BIG_INTEGER_ARRAY_LIMBS);
+    
+//    cout << "lra = " << big_integer_apint_radix_toHexString(lra) << endl;
+    len = big_integer_apint_radix_getLength(lra);
+    
+    cout << msg << " (apint radix) ";
+    checkResultMatchsExpected(len, exp);
+}
 
 void CorrectnessTest::testGetLength()
 {
-    BigInteger a;
-    int len;
-    
-    
-    a.initFromHexString("0");
-    len = a.getLength();
-
-    cout << " Len (1) ";
-    checkResultMatchsExpected(len, 0);
-    
-    a.initFromHexString("1");
-    len = a.getLength();
-
-    cout << " Len (2) ";
-    checkResultMatchsExpected(len, 1);
-    
-    a.initFromHexString("10000");
-    len = a.getLength();
-    
-    cout << " Len (2) ";
-    checkResultMatchsExpected(len, 17);
-    
+    checkGetLength(" Len (1) ", "0", 0);
+    checkGetLength(" Len (2) ", "1", 1);
+    checkGetLength(" Len (3) ", "10000", 17);
+    checkGetLength(" Len (4) ", "10000000000", 41);
+    checkGetLength(" Len (5) ", "1DFA3AFCF64353A34027", 77);
+    checkGetLength(" Len (6) ", "10000000000000000000000", 89);
 }
 
 /**
@@ -1328,6 +1413,49 @@ void CorrectnessTest::checkRandomValidC(unsigned int* a_data, unsigned int a_bas
 
 }
 
+void CorrectnessTest::testIsLessThanEqual()
+{
+    checkIsLessThanEqual("<= (1)", "3A35825373ADDCE6", "000000010000000000000000", 1);
+    checkIsLessThanEqual("<= (2)", "000000010000000000000000", "3A35825373ADDCE6", 0);
+    checkIsLessThanEqual("<= (3)", "10000000000000000", "1458B19C9567F1F24", 1);
+    checkIsLessThanEqual("<= (4)", "1458B19C9567F1F24", "10000000000000000", 0);
+    checkIsLessThanEqual("<= (5)", "10000000000000000", "1A2C58CE4AB3F8F92", 1);
+    checkIsLessThanEqual("<= (6)", "1A2C58CE4AB3F8F92", "10000000000000000", 0);
+}
+
+void CorrectnessTest::checkIsLessThanEqual(const char* msg, const char* sa, const char* sb, int exp)
+{
+    BigInteger a, b;
+    a.initFromHexString(sa);
+    b.initFromHexString(sb);
+    
+    cout << msg << " (std) " ;
+    
+    checkResultMatchsExpected(a.isLessThanEqual(&b), exp);
+
+    
+    limbs_array la_a;
+    limbs_array la_b;
+    
+    big_integer_array_initFromHexString(la_a, sa);
+    big_integer_array_initFromHexString(la_b, sb);
+    
+    cout << msg << " (array) " ;
+    
+    checkResultMatchsExpected(big_integer_array_isLessThanEqual(la_a, la_b), exp);
+    
+    limbs_radix_array lra_a;
+    limbs_radix_array lra_b;
+    
+    big_integer_apint_radix_initfromLimbArray(lra_a, la_a, NUM_BIG_INTEGER_ARRAY_LIMBS);
+    big_integer_apint_radix_initfromLimbArray(lra_b, la_b, NUM_BIG_INTEGER_ARRAY_LIMBS);
+
+    cout << msg << " (apint radix) " ;
+    
+    checkResultMatchsExpected(big_integer_apint_radix_isLessThanEqual(lra_a, lra_b), exp);
+    
+}
+
 void CorrectnessTest::testIsLessThan()
 {
     BigInteger a, b;
@@ -1374,6 +1502,19 @@ void CorrectnessTest::testIsBiggerThan()
     }
     else
         cout << "[OK]" << endl;
+}
+
+void CorrectnessTest::testIsNegative()
+{
+    limbs_radix_array one = 1;
+    limbs_radix_array zero = 0;
+    
+    limbs_radix_array neg = zero - one;
+    
+    int isNeg = big_integer_apint_radix_isNegative(neg);
+    
+    cout << "Neg (apint radix) " ;
+    checkResultMatchsExpected(isNeg, 1);
 }
 
 void CorrectnessTest::testIsLessThanC()
@@ -1545,6 +1686,28 @@ void CorrectnessTest::checkRange(const char* msg, const char* sa, int upper, int
     big_integer_range(&br, &ba, upper, lower);
         
     checkResultMatchsExpectedCBase(br.m_data, 0, br.m_size, exp_data, exp_base, exp_size);
+    
+    limbs_array la_a;
+    limbs_array la_r;
+    limbs_array la_exp;
+    
+    big_integer_array_initFromHexString(la_a, sa);
+    big_integer_array_initFromHexString(la_exp, sexp);
+    
+    big_integer_array_range(la_r, la_a, upper, lower);
+    
+    cout << "Range array a[" << to_string(upper) << ".." << to_string(lower) << "] " ;
+    checkResultMatchsExpectedArray(la_r, la_exp);
+    
+    limbs_radix_array lar_a;
+    limbs_radix_array lar_r;
+    
+    big_integer_apint_radix_initfromLimbArray(lar_a, la_a, NUM_BIG_INTEGER_ARRAY_LIMBS);
+    
+    big_integer_apint_radix_range(lar_r, lar_a, upper, lower);
+    
+    cout << "Range apint radix a[" << to_string(upper) << ".." << to_string(lower) << "] " ;
+    checkResultMatchsExpectedApintRadix(lar_r, la_exp, NUM_BIG_INTEGER_ARRAY_LIMBS);
 }
 
 void CorrectnessTest::checkAdd(const char* msg, const char* sa, const char* sb, const char* sexp)
@@ -1738,17 +1901,32 @@ void CorrectnessTest::checkMontgomeryMultBase2(const char* msg, const char* sx, 
     checkResultMatchsExpectedCBase(ar, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp.m_data, 0, exp.m_size);
 }
 
-void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const char* sy, const char* sradix, 
-        const char* sm, const char* smprime, const char* sexp)
+/**
+ * 
+ * @param msg
+ * @param sx
+ * @param sy
+ * @param sm
+ * @param sexp
+ */
+void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const char* sy, 
+        /*const char* sradix, */
+        const char* sm, /*const char* smprime,*/ const char* sexp)
 {
     
     BigInteger x, y, radix, m, mprime, exp, r;
     x.initFromHexString(sx);
     y.initFromHexString(sy);
-    radix.initFromHexString(sradix);
+    //radix.initFromHexString(sradix);
     m.initFromHexString(sm);
-    mprime.initFromHexString(smprime);
+    
+    radix.initSize(m.m_size + 1);
+    mprime.initSize(m.m_size);
+    //mprime.initFromHexString(smprime);
     exp.initFromHexString(sexp);
+    
+    BigInteger::radixFromMontgomeryMod(&radix, &m);
+    BigInteger::mprimeFromMontgomeryRadix(&mprime, &m, &radix);
     
     r.initSize(m.m_size+1);
     
@@ -1805,6 +1983,29 @@ void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const
     
     cout << msg << " (array v3) ";
     checkResultMatchsExpectedCBase(lr, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp.m_data, 0, exp.m_size);
+    
+    limbs_radix_array lra_x;
+    limbs_radix_array lra_y;
+    limbs_radix_array lra_m;
+    limbs_radix_array lra_radix;
+    limbs_radix_array lra_mprime;
+    limbs_radix_array lra_r;
+    big_integer_apint_radix_initfromLimbArray(lra_x, x.m_data, x.m_size);
+    big_integer_apint_radix_initfromLimbArray(lra_y, y.m_data, y.m_size);
+    big_integer_apint_radix_initfromLimbArray(lra_m, m.m_data, m.m_size);
+    
+
+    big_integer_apint_radix_radixFromMontgomeryMod(lra_radix, lra_m);
+    
+    cout << "radix = " << big_integer_apint_radix_toHexString(lra_radix) << endl;
+    cout << "m = " << big_integer_apint_radix_toHexString(lra_m) << endl;
+    
+    big_integer_apint_radix_mprimeFromMontgomeryRadix(lra_mprime, lra_m, lra_radix);
+    
+    big_integer_apint_radix_multMontgomeryForm3(lra_r, lra_x, lra_y, lra_m, lra_mprime);
+    
+    cout << msg << " (apint radix v3) ";
+    checkResultMatchsExpectedApintRadix(lra_r, exp.m_data, exp.m_size);
 }
 
 void CorrectnessTest::checkMontgomeryReduction(const char* msg, const char* sx,
@@ -1835,18 +2036,18 @@ void CorrectnessTest::checkMontgomeryReduction(const char* msg, const char* sx,
 
 void CorrectnessTest::testMontgomeryMult()
 {
-    checkMontgomeryMult("Montgomery Mult (1)", "9099454", "8DC4DD61", "100000000", "67F4258D", "6F895ABB", "2BBFCB53");
-    checkMontgomeryMult("Montgomery Mult (2)", "7", "3", "100000000", "11", "F0F0F0F", "4");
-    checkMontgomeryMult("Montgomery Mult (3)", "79", "13", "100000000", "8D", "32D63DBB", "4C");
-    checkMontgomeryMult("Montgomery Mult (4)", "454", "361", "100000000", "8D", "32D63DBB", "4C");
-    checkMontgomeryMult("Montgomery Mult (5)", "109099454", "18DC4DD60", "10000000000000000", "167F4258D", "8E153CB16F895ABB", "194AE914");
-    checkMontgomeryMult("Montgomery Mult (6)", "109099454", "18DC4DD61", "10000000000000000", "167F4258D", "8E153CB16F895ABB", "11771625B");
-    checkMontgomeryMult("Montgomery Mult (7)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "94A0DFAF", "ACA3D7A");
-    checkMontgomeryMult("Montgomery Mult (8)", "2E70041164DB2E1", "170D6629", "100000000", "55CE28B1", "00000094A0DFAF", "ACA3D7A");
-    checkMontgomeryMult("Montgomery Mult (9)", "0000000002E70041164DB2E1",  "0000000000000000170D6629", "000000000000000100000000",  "000000000000000055CE28B1", "000000000000000094A0DFAF", "00000000000000000ACA3D7A");
-    checkMontgomeryMult("Montgomery Mult (10)", "10D48FD309099454", "130D53B78DC4DD61", "10000000000000000", "136944F567F4258D", "76B42856F895ABB","649F7D66E457166");
-    checkMontgomeryMult("Montgomery Mult (11)", "10D48FD3090994548ADE1F35", "130D53B78DC4DD61D5083F6A", "1000000000000000000000000", "136944F567F4258D3ED452B3", "78AEC30ADF7B4530041B5385","63DE248A25BE0DC6583E290");
-    checkMontgomeryMult("Montgomery Mult (12)", "10D48FD2090994548ADE1F35ECE7B10D", "130D53B78DC4DD61D5083F6A189DC74B", "100000000000000000000000000000000", "136944F567F4258D3ED452B297952DEB", "17D298F192A6366B5E1CB63D81F56D3D","466230212C34EE9A6B265ED39DAEBB8");
+    checkMontgomeryMult("Montgomery Mult (1)", "9099454", "8DC4DD61", "67F4258D", "2BBFCB53");
+    checkMontgomeryMult("Montgomery Mult (2)", "7", "3", "11", "4");
+    checkMontgomeryMult("Montgomery Mult (3)", "79", "13", "8D", "4C");
+    checkMontgomeryMult("Montgomery Mult (4)", "454", "361", "8D", "4C");
+    checkMontgomeryMult("Montgomery Mult (5)", "109099454", "18DC4DD60", "167F4258D",  "194AE914");
+    checkMontgomeryMult("Montgomery Mult (6)", "109099454", "18DC4DD61", "167F4258D", "11771625B");
+    checkMontgomeryMult("Montgomery Mult (7)", "2E70041164DB2E1", "170D6629", "55CE28B1", "ACA3D7A");
+    checkMontgomeryMult("Montgomery Mult (8)", "2E70041164DB2E1", "170D6629", "55CE28B1", "ACA3D7A");
+    checkMontgomeryMult("Montgomery Mult (9)", "0000000002E70041164DB2E1",  "0000000000000000170D6629",  "000000000000000055CE28B1",  "00000000000000000ACA3D7A");
+    checkMontgomeryMult("Montgomery Mult (10)", "10D48FD309099454", "130D53B78DC4DD61", "136944F567F4258D", "649F7D66E457166");
+    checkMontgomeryMult("Montgomery Mult (11)", "10D48FD3090994548ADE1F35", "130D53B78DC4DD61D5083F6A",  "136944F567F4258D3ED452B3", "63DE248A25BE0DC6583E290");
+    checkMontgomeryMult("Montgomery Mult (12)", "10D48FD2090994548ADE1F35ECE7B10D", "130D53B78DC4DD61D5083F6A189DC74B",  "136944F567F4258D3ED452B297952DEB", "466230212C34EE9A6B265ED39DAEBB8");
     
     checkMontgomeryMultBase2("Montgomery Mult Base 2 (1)", "7", "3", "11", "F");
     checkMontgomeryMultBase2("Montgomery Mult Base 2 (2)", "9099454", "B0D3A7B",  "67F4258D", "3140844B");
@@ -2121,9 +2322,10 @@ void CorrectnessTest::testParseNumbersC()
  */
 void CorrectnessTest::testShiftLeft()
 {
-    checkShiftLeft("Shift Left (1)" , "ABCDEF9876543210", 32 , "7654321000000000");
-    checkShiftLeft("Shift Left (1)" , "00000000ABCDEF9876543210", 32 , "ABCDEF987654321000000000");
-    checkShiftLeft("Shift Left (2)" , "00000000ABCDEF9876543210", 64 , "765432100000000000000000");
+    checkShiftLeft("Shift Left (1)" , "ABCDEF9876543210", 32 , "ABCDEF987654321000000000");
+    checkShiftLeft("Shift Left (2)" , "00000000ABCDEF9876543210", 32 , "ABCDEF987654321000000000");
+    checkShiftLeft("Shift Left (3)" , "00000000ABCDEF9876543210", 64 , "ABCDEF98765432100000000000000000");
+    checkShiftLeft("Shift Left (4)", "1EDABB5798CEECDAFAE870C24", 1, "3DB576AF319DD9B5F5D0E1848");
 
 }
 
@@ -2133,13 +2335,36 @@ void CorrectnessTest::checkShiftLeft(const char* msg, const char* sa, int bits, 
     BigInteger r;
     BigInteger expected;
     a.initFromHexString(sa);
-    r.initSize(a.getNumBits()/32);
     expected.initFromHexString(sexp);
+    r.initSize(expected.m_size);
     
     BigInteger::shiftLeft(&r, &a, bits);
     
-    cout << msg ;
+    cout << msg << " (std) ";
     checkResultMatchsExpected(&r, &expected);
+
+    limbs_array la_a;
+    limbs_array la_r;
+    limbs_array la_exp;
+    
+    big_integer_array_initFromHexString(la_a, sa);
+    big_integer_array_initFromHexString(la_exp, sexp);
+
+    big_integer_array_shiftLeft(la_r, la_a, bits);
+    
+    cout << msg << " (array) ";
+    checkResultMatchsExpectedArray(la_r, la_exp);
+    
+    limbs_radix_array lr_a;
+    limbs_radix_array lr_r;
+
+    big_integer_apint_radix_initfromLimbArray(lr_a, la_a, NUM_BIG_INTEGER_ARRAY_LIMBS);
+    
+    big_integer_apint_radix_shiftLeft(lr_r, lr_a, bits);
+
+    
+    cout << msg << " (apint radix) ";
+    checkResultMatchsExpectedApintRadix(lr_r, la_exp, NUM_BIG_INTEGER_ARRAY_LIMBS);
 
 }
 
