@@ -31,6 +31,12 @@ void big_integer_apint_radix_radixFromMontgomeryMod(limbs_radix_array radix, lim
 
 void big_integer_apint_radix_mprimeFromMontgomeryRadix(limbs_radix_array mprime, limbs_radix_array m, limbs_radix_array radix)
 {
+    if (big_integer_apint_radix_verbosity > VERBOSITY_LEVEL_MONTGOMERY)
+    {
+        std::cout << "big_integer_apint_radix_mprimeFromMontgomeryRadix m = " << big_integer_apint_radix_toHexString(m) << std::endl;
+        std::cout << "big_integer_apint_radix_mprimeFromMontgomeryRadix radix = " << big_integer_apint_radix_toHexString(radix) << std::endl;
+    }
+
     limbs_radix_array temp;
     big_integer_apint_radix_copy(temp, m);
     
@@ -45,9 +51,7 @@ void big_integer_apint_radix_mprimeFromMontgomeryRadix(limbs_radix_array mprime,
     {
         if (big_integer_apint_radix_verbosity > VERBOSITY_LEVEL_MONTGOMERY)
         {
-            std::cout << "big_integer_apint_radix_mprimeFromMontgomeryRadix m = " << big_integer_apint_radix_toHexString(m) << std::endl;
             std::cout << "big_integer_apint_radix_mprimeFromMontgomeryRadix m^-1 = " << big_integer_apint_radix_toHexString(invTemp) << std::endl;
-            std::cout << "big_integer_apint_radix_mprimeFromMontgomeryRadix radix = " << big_integer_apint_radix_toHexString(radix) << std::endl;
         }
         
         big_integer_apint_radix_copy(mprime, radix);
