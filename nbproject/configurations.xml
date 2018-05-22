@@ -284,7 +284,52 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="./c_apint_radix/apint_radix_div.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_inverseMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_montgomeryDomain.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_montgomeryMultMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="./c_apint_radix/apint_radix_mult.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_multMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_range.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_shiftLeft.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_shiftRight.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_subtract.cpp"
             ex="false"
             tool="1"
             flavor2="0">
@@ -427,55 +472,7 @@
       </item>
       <item path="./to_string.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./c_apint_radix/apint_radix_div.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_inverseMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_montgomeryDomain.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_montgomeryMultMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_multMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_range.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_shiftLeft.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_shiftRight.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_subtract.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./verbosity.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./verbosity.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -609,7 +606,52 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="./c_apint_radix/apint_radix_div.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_inverseMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_montgomeryDomain.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_montgomeryMultMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="./c_apint_radix/apint_radix_mult.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_multMod.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_range.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_shiftLeft.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_shiftRight.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="./c_apint_radix/apint_radix_subtract.cpp"
             ex="false"
             tool="1"
             flavor2="0">
@@ -752,55 +794,7 @@
       </item>
       <item path="./to_string.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="./c_apint_radix/apint_radix_div.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_inverseMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_montgomeryDomain.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_montgomeryMultMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_multMod.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_range.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_shiftLeft.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_shiftRight.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./c_apint_radix/apint_radix_subtract.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="./verbosity.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="./verbosity.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
