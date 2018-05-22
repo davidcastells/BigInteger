@@ -22,7 +22,7 @@
 void big_integer_apint_radix_multMontgomeryForm3(limbs_radix_array r, limbs_radix_array x, limbs_radix_array y, 
         limbs_radix_array m, limbs_radix_array mprime)
 {
-    big_integer_apint_radix_verbosity = VERBOSITY_LEVEL_MULT_MONTGOMERY +1;
+//    big_integer_apint_radix_verbosity = VERBOSITY_LEVEL_MULT_MONTGOMERY +1;
     
     int i;
 
