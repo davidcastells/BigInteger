@@ -41,6 +41,7 @@ public:
     void testMod();
     void testModC();
     void testModBase();
+    void testMontgomeryDomain();
     void testMontgomeryReduction();
     void testMontgomeryMult();
     void testMult();
@@ -96,6 +97,7 @@ public:
     void checkInverseMod(const char* msg, const char* sa, const char* sm, const char* sexp);
     void checkMontgomeryReduction(const char* msg, const char* sx, const char* sradix, const char* sm, const char* sexp);
     void checkMontgomeryMult(const char* msg, const char* sx, const char* sy, const char* sm, const char* sexp);
+    void checkMontgomeryMultRadix(const char* msg, const char* sx, const char* sy, const char* sm, const char* sexp);
     void checkMontgomeryMultBase2(const char* msg, const char* sx, const char* sy, const char* sm, const char* sexp);
     
     

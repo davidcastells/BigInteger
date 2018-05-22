@@ -222,6 +222,7 @@ void CorrectnessTest::run()
     testSquareMod();
     testSquareModC();
 
+    testMontgomeryDomain();
     testMontgomeryReduction();
     testMontgomeryMult();
     testMultMontgomeryForm();
@@ -1506,10 +1507,16 @@ void CorrectnessTest::testIsBiggerThan()
 
 void CorrectnessTest::testIsNegative()
 {
-    limbs_radix_array one = 1;
-    limbs_radix_array zero = 0;
+    limbs_radix_array one;
+    limbs_radix_array zero;
+    limbs_radix_array neg;
     
-    limbs_radix_array neg = zero - one;
+    big_integer_apint_radix_setIntValue(one, 1);
+    big_integer_apint_radix_setIntValue(zero, 0);
+    
+    big_integer_apint_radix_subtract(neg, zero, one);
+    
+    cout << "neg: " << big_integer_apint_radix_toHexString(neg) << endl;
     
     int isNeg = big_integer_apint_radix_isNegative(neg);
     
@@ -1984,6 +1991,25 @@ void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const
     cout << msg << " (array v3) ";
     checkResultMatchsExpectedCBase(lr, 0, NUM_BIG_INTEGER_ARRAY_LIMBS, exp.m_data, 0, exp.m_size);
     
+    
+}
+
+void CorrectnessTest::checkMontgomeryMultRadix(const char* msg, const char* sx, const char* sy, 
+        /*const char* sradix, */
+        const char* sm, /*const char* smprime,*/ const char* sexp)
+{
+    BigInteger x, y, radix, m, mprime, exp, r;
+    x.initFromHexString(sx);
+    y.initFromHexString(sy);
+    //radix.initFromHexString(sradix);
+    m.initFromHexString(sm);
+    
+    
+    exp.initFromHexString(sexp);
+    
+    x.mod(&m);
+    y.mod(&m);
+    
     limbs_radix_array lra_x;
     limbs_radix_array lra_y;
     limbs_radix_array lra_m;
@@ -1997,10 +2023,12 @@ void CorrectnessTest::checkMontgomeryMult(const char* msg, const char* sx, const
 
     big_integer_apint_radix_radixFromMontgomeryMod(lra_radix, lra_m);
     
-    cout << "radix = " << big_integer_apint_radix_toHexString(lra_radix) << endl;
-    cout << "m = " << big_integer_apint_radix_toHexString(lra_m) << endl;
+//    cout << "radix = " << big_integer_apint_radix_toHexString(lra_radix) << endl;
+//    cout << "m = " << big_integer_apint_radix_toHexString(lra_m) << endl;
     
     big_integer_apint_radix_mprimeFromMontgomeryRadix(lra_mprime, lra_m, lra_radix);
+    
+//    cout << "mprime = " << big_integer_apint_radix_toHexString(lra_mprime) << endl;
     
     big_integer_apint_radix_multMontgomeryForm3(lra_r, lra_x, lra_y, lra_m, lra_mprime);
     
@@ -2043,11 +2071,22 @@ void CorrectnessTest::testMontgomeryMult()
     checkMontgomeryMult("Montgomery Mult (5)", "109099454", "18DC4DD60", "167F4258D",  "194AE914");
     checkMontgomeryMult("Montgomery Mult (6)", "109099454", "18DC4DD61", "167F4258D", "11771625B");
     checkMontgomeryMult("Montgomery Mult (7)", "2E70041164DB2E1", "170D6629", "55CE28B1", "ACA3D7A");
-    checkMontgomeryMult("Montgomery Mult (8)", "2E70041164DB2E1", "170D6629", "55CE28B1", "ACA3D7A");
-    checkMontgomeryMult("Montgomery Mult (9)", "0000000002E70041164DB2E1",  "0000000000000000170D6629",  "000000000000000055CE28B1",  "00000000000000000ACA3D7A");
+        checkMontgomeryMult("Montgomery Mult (9)", "0000000002E70041164DB2E1",  "0000000000000000170D6629",  "000000000000000055CE28B1",  "00000000000000000ACA3D7A");
     checkMontgomeryMult("Montgomery Mult (10)", "10D48FD309099454", "130D53B78DC4DD61", "136944F567F4258D", "649F7D66E457166");
     checkMontgomeryMult("Montgomery Mult (11)", "10D48FD3090994548ADE1F35", "130D53B78DC4DD61D5083F6A",  "136944F567F4258D3ED452B3", "63DE248A25BE0DC6583E290");
     checkMontgomeryMult("Montgomery Mult (12)", "10D48FD2090994548ADE1F35ECE7B10D", "130D53B78DC4DD61D5083F6A189DC74B",  "136944F567F4258D3ED452B297952DEB", "466230212C34EE9A6B265ED39DAEBB8");
+    
+    checkMontgomeryMultRadix("Montgomery Mult Radix (1)", "9099454", "8DC4DD61", "67F4258D", "1315B3E2");
+    checkMontgomeryMultRadix("Montgomery Mult Radix (2)", "7", "3", "11", "4");
+    checkMontgomeryMultRadix("Montgomery Mult Radix (3)", "79", "13", "8D", "D");
+    checkMontgomeryMultRadix("Montgomery Mult Radix (4)", "454", "361", "8D", "D");
+    checkMontgomeryMultRadix("Montgomery Mult Radix (5)", "109099454", "18DC4DD60", "167F4258D",  "194AE914");
+    checkMontgomeryMultRadix("Montgomery Mult Radix (6)", "109099454", "18DC4DD61", "167F4258D", "11771625B");
+    checkMontgomeryMultRadix("Montgomery Mult Radix (7)", "2E70041164DB2E1", "170D6629", "55CE28B1", "2AEB896C");
+    checkMontgomeryMultRadix("Montgomery Mult Radix (9)", "0000000002E70041164DB2E1",  "0000000000000000170D6629",  "000000000000000055CE28B1",  "000000000000000002AEB896C");
+    checkMontgomeryMultRadix("Montgomery Mult Radix (10)", "10D48FD309099454", "130D53B78DC4DD61", "136944F567F4258D", "649F7D66E457166");
+    checkMontgomeryMultRadix("Montgomery Mult Radix (11)", "10D48FD3090994548ADE1F35", "130D53B78DC4DD61D5083F6A",  "136944F567F4258D3ED452B3", "C85FCF32203C89684837979");
+    checkMontgomeryMultRadix("Montgomery Mult Radix (12)", "10D48FD2090994548ADE1F35ECE7B10D", "130D53B78DC4DD61D5083F6A189DC74B",  "136944F567F4258D3ED452B297952DEB", "466230212C34EE9A6B265ED39DAEBB8");
     
     checkMontgomeryMultBase2("Montgomery Mult Base 2 (1)", "7", "3", "11", "F");
     checkMontgomeryMultBase2("Montgomery Mult Base 2 (2)", "9099454", "B0D3A7B",  "67F4258D", "3140844B");
@@ -2061,6 +2100,34 @@ void CorrectnessTest::testMontgomeryMult()
 //    checkMontgomeryMultBase2("Montgomery Mult (10)", "10D48FD309099454", "130D53B78DC4DD61", "10000000000000000", "136944F567F4258D", "76B42856F895ABB","649F7D66E457166");
 //    checkMontgomeryMultBase2("Montgomery Mult (11)", "10D48FD3090994548ADE1F35", "130D53B78DC4DD61D5083F6A", "1000000000000000000000000", "136944F567F4258D3ED452B3", "78AEC30ADF7B4530041B5385","63DE248A25BE0DC6583E290");
 //    checkMontgomeryMultBase2("Montgomery Mult (12)", "10D48FD2090994548ADE1F35ECE7B10D", "130D53B78DC4DD61D5083F6A189DC74B", "100000000000000000000000000000000", "136944F567F4258D3ED452B297952DEB", "17D298F192A6366B5E1CB63D81F56D3D","466230212C34EE9A6B265ED39DAEBB8");
+}
+
+void CorrectnessTest::testMontgomeryDomain()
+{
+    limbs_radix_array lra_m;
+    limbs_radix_array lra_radix;
+    limbs_radix_array lra_mprime;
+    
+    BigInteger m;
+    m.initFromHexString("67F4258D");
+    
+    BigInteger exp_radix;
+    exp_radix.initFromHexString("10000000000000000");
+    
+    big_integer_apint_radix_initfromLimbArray(lra_m, m.m_data, m.m_size);
+    big_integer_apint_radix_radixFromMontgomeryMod(lra_radix, lra_m);
+    
+    cout << " radix from mod (apint radix) ";
+    checkResultMatchsExpectedApintRadix(lra_radix, exp_radix.m_data, exp_radix.m_size);
+    
+    BigInteger exp_mprime;
+    exp_mprime.initFromHexString("27C738186F895ABB");
+    
+    //big_integer_apint_radix_verbosity = VERBOSITY_LEVEL_MONTGOMERY + 1;
+    big_integer_apint_radix_mprimeFromMontgomeryRadix(lra_mprime, lra_m, lra_radix);
+    
+    cout << " mprime from radix & mod (apint radix) ";
+    checkResultMatchsExpectedApintRadix(lra_mprime, exp_mprime.m_data, exp_mprime.m_size);
 }
 
 void CorrectnessTest::testMontgomeryReduction()
